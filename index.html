@@ -1,451 +1,577 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sky 星を紡ぐ子どもたち - 赤闇・星のキャンドル獲得量計算ツール</title>
-    <style>
-        :root {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --accent-gold: #f59e0b;
-            --accent-red: #ef4444;
-            --accent-blue: #3b82f6;
-            --border-color: #334155;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1B1B3A">
+<meta name="color-scheme" content="dark">
+<title>星のキャンドル計算機</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Kaisei+Decol&family=Zen+Maru+Gothic:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --indigo: #1B1B3A;
+    --violet: #362A56;
+    --violet-deep: #2C2350;
+    --gold: #F5B54C;
+    --gold-light: #FFD98A;
+    --cream: #FFEFD6;
+    --lavender: #C9BFEA;
+    --crimson: #C4574B;
+    --crimson-light: #E6A199;
+    --text-dim: #9C93BE;
+    --card-bg: rgba(255,255,255,0.055);
+    --card-border: rgba(255,255,255,0.14);
+  }
 
-        .sky-shard-calculator {
-            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            max-width: 600px;
-            margin: 20px auto;
-            padding: 25px;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--border-color);
-            box-sizing: border-box;
-        }
+  * { box-sizing: border-box; }
 
-        .sky-shard-calculator * {
-            box-sizing: border-box;
-        }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background:
+      radial-gradient(ellipse 90% 45% at 50% 100%, rgba(245,181,76,0.16), transparent 60%),
+      linear-gradient(165deg, var(--indigo) 0%, var(--violet) 55%, var(--violet-deep) 100%);
+    background-attachment: fixed;
+    font-family: 'Zen Maru Gothic', 'Hiragino Maru Gothic ProN', 'Yu Gothic', sans-serif;
+    color: var(--cream);
+    position: relative;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
 
-        .sky-title {
-            text-align: center;
-            font-size: 1.5rem;
-            margin-top: 0;
-            margin-bottom: 20px;
-            color: var(--accent-gold);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
+  .star-field {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
 
-        .sky-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            border-bottom: 2px solid var(--border-color);
-            padding-bottom: 10px;
-        }
+  .star {
+    position: absolute;
+    border-radius: 50%;
+    background: #fff;
+    animation: twinkle 4s ease-in-out infinite;
+  }
 
-        .sky-tab-btn {
-            flex: 1;
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            padding: 10px;
-            font-size: 0.95rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border-radius: 8px;
-        }
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.15; transform: scale(0.8); }
+    50% { opacity: 1; transform: scale(1.3); }
+  }
 
-        .sky-tab-btn.active {
-            color: var(--text-main);
-            background-color: var(--border-color);
-        }
+  .wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 460px;
+    margin: 0 auto;
+    padding: 40px 20px 50px;
+  }
 
-        .sky-section {
-            display: none;
-        }
+  .page-head {
+    text-align: center;
+    margin-bottom: 26px;
+  }
 
-        .sky-section.active {
-            display: block;
-        }
+  .title-icon {
+    width: 38px; height: 38px;
+    margin: 0 auto 10px;
+    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+    background: linear-gradient(160deg, var(--gold-light), var(--gold));
+    animation: title-twinkle 3s ease-in-out infinite;
+  }
 
-        .sky-form-group {
-            margin-bottom: 15px;
-        }
+  @keyframes title-twinkle {
+    0%, 100% { filter: drop-shadow(0 0 8px rgba(245,181,76,0.5)); }
+    50% { filter: drop-shadow(0 0 16px rgba(245,181,76,0.85)); }
+  }
 
-        .sky-label {
-            display: block;
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            margin-bottom: 6px;
-        }
+  h1 {
+    font-family: 'Kaisei Decol', serif;
+    font-size: 25px;
+    margin: 0 0 6px;
+    letter-spacing: 0.03em;
+    text-shadow: 0 0 18px rgba(245,181,76,0.3);
+  }
 
-        .sky-select, .sky-input {
-            width: 100%;
-            padding: 12px;
-            background-color: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            color: var(--text-main);
-            font-size: 1rem;
-            outline: none;
-            transition: border-color 0.2s;
-        }
+  .subtitle {
+    color: var(--lavender);
+    font-size: 13.5px;
+    margin: 0;
+  }
 
-        .sky-select:focus, .sky-input:focus {
-            border-color: var(--accent-gold);
-        }
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border-radius: 22px;
+    padding: 22px 20px;
+    margin-bottom: 18px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+  }
 
-        .sky-select option {
-            background-color: var(--card-bg);
-            color: var(--text-main);
-        }
+  .card h2 {
+    font-family: 'Kaisei Decol', serif;
+    font-size: 16.5px;
+    font-weight: 400;
+    margin: 0 0 16px;
+    color: var(--gold-light);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
 
-        .sky-result-card {
-            background-color: var(--card-bg);
-            border-radius: 12px;
-            padding: 20px;
-            margin-top: 20px;
-            border-left: 5px solid var(--accent-gold);
-        }
+  .field { margin-bottom: 16px; }
+  .field:last-child { margin-bottom: 0; }
 
-        .sky-result-card.is-black {
-            border-left-color: var(--text-muted);
-        }
+  .field label {
+    display: block;
+    font-size: 13px;
+    color: var(--lavender);
+    margin-bottom: 6px;
+  }
 
-        .sky-result-card.is-red {
-            border-left-color: var(--accent-red);
-        }
+  .input-suffix { position: relative; }
 
-        .sky-res-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
+  input[type="number"] {
+    width: 100%;
+    padding: 12px 42px 12px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--card-border);
+    background: rgba(0,0,0,0.2);
+    color: var(--cream);
+    font-family: 'Zen Maru Gothic', sans-serif;
+    font-size: 16px;
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"] { -moz-appearance: textfield; }
 
-        .sky-res-row:last-child {
-            border-bottom: none;
-        }
+  input[type="number"]:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(245,181,76,0.22);
+  }
 
-        .sky-res-val {
-            font-weight: bold;
-            font-size: 1.1rem;
-        }
+  .unit {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 13px;
+    color: var(--text-dim);
+    pointer-events: none;
+  }
 
-        .sky-candle-badge {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            color: #000;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 1.2rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
+  .slider-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .slider-row label { margin-bottom: 0; }
 
-        .sky-badge-red {
-            background-color: rgba(239, 68, 68, 0.2);
-            color: #f87171;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.85rem;
-            border: 1px solid rgba(239, 68, 68, 0.3);
-        }
+  .slider-readout {
+    font-size: 12.5px;
+    color: var(--gold-light);
+    white-space: nowrap;
+  }
 
-        .sky-badge-black {
-            background-color: rgba(148, 163, 184, 0.2);
-            color: #cbd5e1;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.85rem;
-            border: 1px solid rgba(148, 163, 184, 0.3);
-        }
+  input[type="range"] {
+    width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 6px;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--gold) var(--fill, 100%), rgba(255,255,255,0.14) var(--fill, 100%));
+    outline: none;
+    margin: 10px 0 4px;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, var(--gold-light), var(--gold));
+    box-shadow: 0 0 10px rgba(245,181,76,0.7), 0 2px 4px rgba(0,0,0,0.3);
+    cursor: pointer;
+    border: 2px solid rgba(255,255,255,0.5);
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, var(--gold-light), var(--gold));
+    box-shadow: 0 0 10px rgba(245,181,76,0.7), 0 2px 4px rgba(0,0,0,0.3);
+    cursor: pointer;
+    border: 2px solid rgba(255,255,255,0.5);
+  }
 
-        .sky-info-text {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin-top: 15px;
-            line-height: 1.5;
-            background-color: rgba(0, 0, 0, 0.2);
-            padding: 10px;
-            border-radius: 6px;
-        }
+  .divider {
+    border: none;
+    border-top: 1px dashed rgba(255,255,255,0.14);
+    margin: 20px 0 16px;
+  }
 
-        .location-list {
-            margin-top: 10px;
-            padding-left: 20px;
-        }
-        .location-list li {
-            margin-bottom: 5px;
-            font-size: 0.95rem;
-        }
-    </style>
+  .sub-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13.5px;
+    color: var(--crimson-light);
+    margin-bottom: 12px;
+  }
+
+  .shard-icon {
+    width: 11px; height: 11px;
+    background: var(--crimson);
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+    flex-shrink: 0;
+  }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .note {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin: 12px 0 0;
+    line-height: 1.6;
+  }
+
+  .result-card { text-align: center; border-color: rgba(245,181,76,0.28); }
+
+  .gauge-wrap {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    height: 160px;
+    margin: 4px 0 18px;
+  }
+
+  .candle { position: relative; width: 46px; height: 130px; }
+
+  .candle-body {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 90px;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 6px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.15), rgba(255,255,255,0.04) 45%, rgba(0,0,0,0.15));
+    overflow: hidden;
+  }
+
+  .candle-fill {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 0%;
+    background: linear-gradient(180deg, var(--gold-light), var(--gold) 65%, #d68f2e);
+    transition: height 0.7s cubic-bezier(.22,1,.36,1);
+  }
+  .candle-fill::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 5px;
+    background: rgba(255,255,255,0.35);
+  }
+
+  .wick {
+    position: absolute;
+    left: 50%; bottom: 90px;
+    width: 3px; height: 12px;
+    background: #4a3b2e;
+    border-radius: 2px;
+    margin-left: -1.5px;
+  }
+
+  .flame {
+    position: absolute;
+    left: 50%; bottom: 98px;
+    width: 18px; height: 24px;
+    margin-left: -9px;
+    border-radius: 0 50% 50% 50%;
+    background: radial-gradient(circle at 50% 65%, #fff6d8, var(--gold-light) 40%, var(--gold) 72%, #e2761f 100%);
+    box-shadow: 0 0 16px 4px rgba(245,181,76,0.6), 0 0 30px 10px rgba(245,181,76,0.22);
+    transform: rotate(45deg);
+    transform-origin: bottom center;
+    animation: flicker 2.4s ease-in-out infinite;
+  }
+
+  @keyframes flicker {
+    0%, 100% { transform: rotate(45deg) scale(1); }
+    25% { transform: rotate(41deg) scale(1.06,0.94); }
+    50% { transform: rotate(49deg) scale(0.94,1.06); }
+    75% { transform: rotate(44deg) scale(1.03,0.97); }
+  }
+
+  .spark {
+    position: absolute;
+    left: 50%; bottom: 118px;
+    width: 3px; height: 3px;
+    border-radius: 50%;
+    background: var(--gold-light);
+    opacity: 0;
+    animation: float-up 3.2s ease-in infinite;
+  }
+  .spark:nth-child(1){ margin-left: -8px; animation-delay: 0s; }
+  .spark:nth-child(2){ margin-left: 4px;  animation-delay: 1.1s; }
+  .spark:nth-child(3){ margin-left: -2px; animation-delay: 2.1s; }
+
+  @keyframes float-up {
+    0% { transform: translate(0,0); opacity: 0; }
+    15% { opacity: 0.9; }
+    80% { opacity: 0.15; }
+    100% { transform: translate(6px, -46px); opacity: 0; }
+  }
+
+  .hero-stat {
+    font-family: 'Kaisei Decol', serif;
+    font-size: 38px;
+    color: var(--gold-light);
+    margin: 2px 0 4px;
+    text-shadow: 0 0 22px rgba(245,181,76,0.4);
+  }
+  .hero-stat .unit-small { font-size: 17px; margin-left: 2px; }
+
+  .stat-line {
+    font-size: 14px;
+    color: var(--lavender);
+    margin: 5px 0;
+  }
+  .stat-line strong { color: var(--cream); font-weight: 700; }
+
+  .breakdown {
+    font-size: 12.5px;
+    color: var(--text-dim);
+    margin-top: 12px;
+    line-height: 1.8;
+  }
+
+  .state-message {
+    font-size: 14.5px;
+    line-height: 1.8;
+    padding: 6px 4px 2px;
+    color: var(--lavender);
+  }
+  .state-message.achieved { color: var(--gold-light); font-size: 15.5px; }
+  .state-message.warning { color: var(--crimson-light); }
+
+  footer {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 24px;
+    line-height: 1.8;
+    opacity: 0.75;
+  }
+
+  a:focus-visible, button:focus-visible, input:focus-visible {
+    outline: 2px solid var(--gold-light);
+    outline-offset: 2px;
+  }
+
+  @media (max-width: 360px) {
+    .wrap { padding: 30px 14px 44px; }
+    .two-col { grid-template-columns: 1fr; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+</style>
 </head>
 <body>
+<noscript><p style="text-align:center;color:#fff;padding:24px;">このツールの利用には JavaScript が必要です。</p></noscript>
 
-<div class="sky-shard-calculator">
-    <div class="sky-title">
-        <span>☄️</span> Sky シャード＆星キャン計算ツール
+<div class="star-field" id="starField"></div>
+
+<div class="wrap">
+  <header class="page-head">
+    <div class="title-icon" aria-hidden="true"></div>
+    <h1>星のキャンドル計算機</h1>
+    <p class="subtitle">Sky 星を紡ぐ子どもたち・目標本数まであと何週間？</p>
+  </header>
+
+  <section class="card">
+    <h2>🎯 目標を設定</h2>
+    <div class="field">
+      <label for="target">目標本数</label>
+      <div class="input-suffix">
+        <input type="number" id="target" inputmode="decimal" min="0" step="any" placeholder="例: 60">
+        <span class="unit">本</span>
+      </div>
+    </div>
+    <div class="field">
+      <label for="current">所持本数</label>
+      <div class="input-suffix">
+        <input type="number" id="current" inputmode="decimal" min="0" step="any" placeholder="例: 5">
+        <span class="unit">本</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>🪶 週の集め方</h2>
+    <div class="field">
+      <div class="slider-row">
+        <label for="feathers">原罪で配る羽の枚数</label>
+        <span class="slider-readout" id="feathersReadout">63枚 = 15.75本</span>
+      </div>
+      <input type="range" id="feathers" min="0" max="63" step="1" value="63">
     </div>
 
-    <div class="sky-tabs">
-        <button class="sky-tab-btn active" onclick="switchSkyTab('date-tab')">📅 日付から予測</button>
-        <button class="sky-tab-btn" onclick="switchSkyTab('location-tab')">📍 場所から調べる</button>
-    </div>
+    <hr class="divider">
 
-    <div id="date-tab" class="sky-section active">
-        <div class="sky-form-group">
-            <label class="sky-label" for="date-picker">調べたい日付（あなたの現地時間）</label>
-            <input type="date" id="date-picker" class="sky-input" onchange="calculateByDate()">
+    <div class="sub-head">
+      <span class="shard-icon" aria-hidden="true"></span>
+      闇の噴出(シャード)
+    </div>
+    <div class="two-col">
+      <div class="field">
+        <label for="shardCount">獲得回数(週)</label>
+        <input type="number" id="shardCount" inputmode="decimal" min="0" step="any" placeholder="0">
+      </div>
+      <div class="field">
+        <label for="shardAmount">1回の獲得本数</label>
+        <div class="input-suffix">
+          <input type="number" id="shardAmount" inputmode="decimal" min="0" max="3.5" step="any" value="3.5">
+          <span class="unit">本</span>
         </div>
+      </div>
+    </div>
+    <p class="note">赤闇が降るタイミングは不定期です。実際の獲得ペースに合わせて調整してください。</p>
+  </section>
 
-        <div id="date-result" class="sky-result-card">
-            </div>
+  <section class="card result-card">
+    <h2 style="justify-content:center;">📊 結果</h2>
+
+    <div class="gauge-wrap">
+      <div class="candle">
+        <span class="spark" aria-hidden="true"></span>
+        <span class="spark" aria-hidden="true"></span>
+        <span class="spark" aria-hidden="true"></span>
+        <div class="flame" aria-hidden="true"></div>
+        <div class="wick" aria-hidden="true"></div>
+        <div class="candle-body">
+          <div class="candle-fill" id="candleFill"></div>
+        </div>
+      </div>
     </div>
 
-    <div id="location-tab" class="sky-section">
-        <div class="sky-form-group">
-            <label class="sky-label" for="realm-select">地方（エリア）</label>
-            <select id="realm-select" class="sky-select" onchange="updateLocationOptions()">
-                <option value="0">草原 (Daylight Prairie)</option>
-                <option value="1">雨林 (Hidden Forest)</option>
-                <option value="2">渓谷 (Valley of Triumph)</option>
-                <option value="3">暮土 (Golden Wasteland)</option>
-                <option value="4">書庫 (Vault of Knowledge)</option>
-            </select>
-        </div>
+    <div id="resultContent"></div>
+  </section>
 
-        <div class="sky-form-group">
-            <label class="sky-label" for="location-select">詳細な出現場所</label>
-            <select id="location-select" class="sky-select" onchange="calculateByLocation()">
-                </select>
-        </div>
-
-        <div id="location-result" class="sky-result-card is-red">
-            </div>
-    </div>
+  <footer>
+    非公式のファン制作ツールです。<br>
+    ゲーム内の数値は予告なく変更される場合があります。
+  </footer>
 </div>
 
 <script>
-    // シャードのデータベース（PlutoyDevの報酬割り当てに準拠）
-    const shardDatabase = {
-        0: {
-            name: "草原 (Daylight Prairie)",
-            locations: [
-                { name: "鳥の巣", candles: 2.0, isRed: true, note: "強闇（赤）。アクティビティ完了で星のキャンドルを獲得。" },
-                { name: "洞窟", candles: 2.0, isRed: true, note: "強闇（赤）。アクティビティ完了で星のキャンドルを獲得。" },
-                { name: "楽園の島々（汚染された間欠泉周辺）", candles: 3.5, isRed: true, note: "強闇（赤）。難易度が高めですが、最高効率の3.5本を獲得！" }
-            ]
-        },
-        1: {
-            name: "雨林 (Hidden Forest)",
-            locations: [
-                { name: "大樹の沼地 / 境界の地 (ツリーハウス)", candles: 2.5, isRed: true, note: "強闇（赤）。アクティビティ完了で星のキャンドルを獲得。" },
-                { name: "晴れ間 / 高台の広場", candles: 2.5, isRed: true, note: "強闇（赤）。アクティビティ完了で星のキャンドルを獲得。" },
-                { name: "地下洞窟", candles: 3.5, isRed: true, note: "強闇（赤）。雨林奥深くのエリア。最高効率の3.5本を獲得！" }
-            ]
-        },
-        2: {
-            name: "渓谷 (Valley of Triumph)",
-            locations: [
-                { name: "スケートリンク / 氷の湖", candles: 2.5, isRed: true, note: "強闇（赤）。アクティビティ完了で星のキャンドルを獲得。" },
-                { name: "夢の町", candles: 2.5, isRed: true, note: "強闇（赤）。アクティビティ完了で星のキャンドルを獲得。" },
-                { name: "隠者の峠", candles: 3.5, isRed: true, note: "強闇（赤）。山頂の隠者の家周辺。最高効率の3.5本を獲得！" }
-            ]
-        },
-        3: {
-            name: "暮土 (Golden Wasteland)",
-            locations: [
-                { name: "忘却の荒地 (方舟)", candles: 2.5, isRed: true, note: "強闇（赤）。アクティビティ完了で星のキャンドルを獲得。" },
-                { name: "墓所", candles: 2.5, isRed: true, note: "強闇（赤）。エビ（暗黒竜）に注意してください。" },
-                { name: "巨大な温室 / 難破船", candles: 3.5, isRed: true, note: "強闇（赤）。難易度が高いですが、最高効率の3.5本を獲得！" },
-                { name: "戦場", candles: 3.5, isRed: true, note: "強闇（赤）。城門前の広いエリア。最高効率の3.5本を獲得！" }
-            ]
-        },
-        4: {
-            name: "書庫 (Vault of Knowledge)",
-            locations: [
-                { name: "星の砂漠", candles: 3.5, isRed: true, note: "強闇（赤）。コラボエリア。最高効率の3.5本を獲得！" },
-                { name: "君主の隠れ家 / クラゲの入り江", candles: 3.5, isRed: true, note: "強闇（赤）。書庫のサブエリア。最高効率의 3.5本を獲得！" }
-            ]
-        }
-    };
+(function () {
+  // twinkling background stars
+  var starField = document.getElementById('starField');
+  var STAR_COUNT = 46;
+  for (var i = 0; i < STAR_COUNT; i++) {
+    var s = document.createElement('span');
+    s.className = 'star';
+    s.style.left = (Math.random() * 100) + '%';
+    s.style.top = (Math.random() * 100) + '%';
+    var size = (Math.random() * 1.6 + 1).toFixed(1);
+    s.style.width = size + 'px';
+    s.style.height = size + 'px';
+    s.style.animationDuration = (2.5 + Math.random() * 3.5).toFixed(1) + 's';
+    s.style.animationDelay = (Math.random() * 4).toFixed(1) + 's';
+    starField.appendChild(s);
+  }
 
-    // タブ切り替えロジック
-    function switchSkyTab(tabId) {
-        document.querySelectorAll('.sky-tab-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelectorAll('.sky-section').forEach(sec => sec.classList.remove('active'));
-        
-        if (tabId === 'date-tab') {
-            document.querySelectorAll('.sky-tab-btn')[0].classList.add('active');
-            document.getElementById('date-tab').classList.add('active');
-        } else {
-            document.querySelectorAll('.sky-tab-btn')[1].classList.add('active');
-            document.getElementById('location-tab').classList.add('active');
-        }
+  var els = {
+    target: document.getElementById('target'),
+    current: document.getElementById('current'),
+    feathers: document.getElementById('feathers'),
+    feathersReadout: document.getElementById('feathersReadout'),
+    shardCount: document.getElementById('shardCount'),
+    shardAmount: document.getElementById('shardAmount'),
+    candleFill: document.getElementById('candleFill'),
+    resultContent: document.getElementById('resultContent')
+  };
+
+  function fmt(n) {
+    var r = Math.round(n * 100) / 100;
+    return r.toLocaleString('ja-JP', { maximumFractionDigits: 2 });
+  }
+
+  function jpDate(date) {
+    var days = ['日', '月', '火', '水', '木', '金', '土'];
+    return date.getFullYear() + '年' + (date.getMonth() + 1) + '月' + date.getDate() + '日(' + days[date.getDay()] + ')';
+  }
+
+  function update() {
+    var target = Math.max(0, parseFloat(els.target.value) || 0);
+    var current = Math.max(0, parseFloat(els.current.value) || 0);
+    var feathers = Math.max(0, Math.min(63, parseInt(els.feathers.value, 10) || 0));
+    var shardCount = Math.max(0, parseFloat(els.shardCount.value) || 0);
+    var shardAmount = Math.max(0, parseFloat(els.shardAmount.value) || 0);
+
+    var edenWeekly = feathers * 0.25;
+    var shardWeekly = shardCount * shardAmount;
+    var totalWeekly = edenWeekly + shardWeekly;
+
+    var sliderPct = (feathers / 63) * 100;
+    els.feathers.style.setProperty('--fill', sliderPct + '%');
+    els.feathersReadout.textContent = feathers + '枚 = ' + fmt(edenWeekly) + '本';
+
+    var progressPct = target > 0 ? Math.min(100, (current / target) * 100) : 0;
+    els.candleFill.style.height = progressPct + '%';
+
+    var remaining = target - current;
+    var html = '';
+
+    if (target <= 0) {
+      html = '<p class="state-message">目標本数を入力すると、達成までの週数が表示されます。</p>';
+    } else if (remaining <= 0) {
+      html =
+        '<p class="state-message achieved">🎉 目標本数を達成しています！</p>' +
+        '<p class="breakdown">所持 ' + fmt(current) + '本 ／ 目標 ' + fmt(target) + '本</p>';
+    } else if (totalWeekly <= 0) {
+      html =
+        '<p class="state-message warning">週の獲得本数が0本のため計算できません。<br>羽の枚数かシャードの設定を見直してください。</p>' +
+        '<p class="breakdown">残り ' + fmt(remaining) + '本</p>';
+    } else {
+      var weeksNeeded = Math.ceil(remaining / totalWeekly);
+      var today = new Date();
+      var estDate = new Date(today.getTime() + weeksNeeded * 7 * 86400000);
+      html =
+        '<div class="hero-stat">あと ' + weeksNeeded + '<span class="unit-small">週間</span></div>' +
+        '<p class="stat-line">達成予定日　<strong>' + jpDate(estDate) + '</strong>頃</p>' +
+        '<p class="stat-line">残り　<strong>' + fmt(remaining) + '本</strong></p>' +
+        '<p class="breakdown">' +
+          '週あたり ' + fmt(totalWeekly) + '本（原罪 ' + fmt(edenWeekly) + '本 + シャード ' + fmt(shardWeekly) + '本）<br>' +
+          '進捗 ' + Math.round(progressPct) + '%' +
+        '</p>' +
+        '<p class="note">※7日ごとの獲得ペースをもとにした目安です。実際の日付とは前後する場合があります。</p>';
     }
 
-    // 米国太平洋時間（LA時間）の日付詳細を取得する関数
-    function getSkyTimeDetails(userDateInput) {
-        let targetDate;
-        if (userDateInput) {
-            // ユーザーが選択した日付の正午(12:00)ベースでオブジェクトを作成し、タイムゾーンのズレを最小化
-            targetDate = new Date(userDateInput + "T12:00:00");
-        } else {
-            targetDate = new Date();
-        }
+    els.resultContent.innerHTML = html;
+  }
 
-        // アメリカ/ロサンゼルス時間（Sky標準時間）の文字列に変換
-        const laString = targetDate.toLocaleString("en-US", { timeZone: "America/Los_Angeles" });
-        const laDate = new Date(laString);
+  [els.target, els.current, els.feathers, els.shardCount, els.shardAmount].forEach(function (el) {
+    el.addEventListener('input', update);
+  });
 
-        return {
-            year: laDate.getFullYear(),
-            month: laDate.getMonth() + 1,
-            day: laDate.getDate(),
-            weekday: laDate.getDay() // 0: 日, 1: 月...
-        };
-    }
-
-    // 1. 日付ベースの予測計算
-    function calculateByDate() {
-        const dateInput = document.getElementById('date-picker').value;
-        const skyTime = getSkyTimeDetails(dateInput);
-
-        // PlutoyDev/sky-shards の基本ロジック
-        // 1. 色の判定: 日付が「奇数」なら赤（強闇）、「偶数」なら黒（普通闇）
-        const isRedShard = (skyTime.day % 2 !== 0);
-        
-        // 2. 地方の判定: (日 - 1) % 5
-        const realmIndex = (skyTime.day - 1) % 5;
-        const realmInfo = shardDatabase[realmIndex];
-
-        let html = `
-            <div class="sky-res-row">
-                <span class="sky-label">対象（Sky標準時間）</span>
-                <span class="sky-res-val">${skyTime.year}年${skyTime.month}月${skyTime.day}日</span>
-            </div>
-            <div class="sky-res-row">
-                <span class="sky-label">シャードの種類</span>
-                <span class="sky-res-val">
-                    ${isRedShard ? '<span class="sky-badge-red">🔴 赤い闇（強闇）</span>' : '<span class="sky-badge-black">⚫ 黒い闇（普通闇）</span>'}
-                </span>
-            </div>
-            <div class="sky-res-row">
-                <span class="sky-label">出現する地方</span>
-                <span class="sky-res-val" style="color: var(--accent-gold);">${realmInfo.name}</span>
-            </div>
-        `;
-
-        if (isRedShard) {
-            html += `
-                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
-                    <span class="sky-label">🔮 本日の赤闇候補と星キャン獲得量:</span>
-                    <ul class="location-list">
-            `;
-            realmInfo.locations.forEach(loc => {
-                html += `<li><strong>${loc.name}</strong>: <span style="color:var(--accent-gold); font-weight:bold;">${loc.candles.toFixed(1)}本</span></li>`;
-            });
-            html += `
-                    </ul>
-                </div>
-                <div class="sky-info-text">
-                    ※赤闇（強闇）をクリアすると、原初の記憶へ案内され、上記の数の<strong>星のキャンドル</strong>を獲得できます。実際の出現場所は上記候補のいずれか1箇所にランダムまたは周期で決定されます。
-                </div>
-            `;
-        } else {
-            html += `
-                <div class="sky-info-text" style="border-left: 3px solid var(--text-muted);">
-                    ※本日は「黒い闇（普通闇）」の日です。クリアしても星のキャンドルは貰えませんが、通常の<strong>キャンドル光粒（光の欠片）</strong>が手に入ります。
-                </div>
-            `;
-        }
-
-        const resultCard = document.getElementById('date-result');
-        resultCard.innerHTML = html;
-        
-        // クラスの切り替えで左ボーダーの色を変更
-        if (isRedShard) {
-            resultCard.className = "sky-result-card is-red";
-        } else {
-            resultCard.className = "sky-result-card is-black";
-        }
-    }
-
-    // 2. 場所ベースの計算
-    function updateLocationOptions() {
-        const realmIndex = document.getElementById('realm-select').value;
-        const locations = shardDatabase[realmIndex].locations;
-        const locSelect = document.getElementById('location-select');
-        
-        locSelect.innerHTML = "";
-        locations.forEach((loc, index) => {
-            const opt = document.createElement('option');
-            opt.value = index;
-            opt.textContent = loc.name;
-            locSelect.appendChild(opt);
-        });
-
-        calculateByLocation();
-    }
-
-    function calculateByLocation() {
-        const realmIndex = document.getElementById('realm-select').value;
-        const locIndex = document.getElementById('location-select').value;
-        
-        if (locIndex === "") return;
-        
-        const locationData = shardDatabase[realmIndex].locations[locIndex];
-
-        let html = `
-            <div class="sky-res-row">
-                <span class="sky-label">選択した場所</span>
-                <span class="sky-res-val">${locationData.name}</span>
-            </div>
-            <div class="sky-res-row">
-                <span class="sky-label">シャード属性</span>
-                <span class="sky-res-val"><span class="sky-badge-red">強闇 (赤)</span></span>
-            </div>
-            <div class="sky-res-row" style="margin-top: 10px;">
-                <span class="sky-label">星のキャンドル報酬量</span>
-                <span class="sky-candle-badge">🕯️ ${locationData.candles.toFixed(1)} 本</span>
-            </div>
-            <div class="sky-info-text" style="margin-top: 15px; background-color: rgba(245, 158, 11, 0.05); border: 1px solid rgba(245, 158, 11, 0.1);">
-                ${locationData.note}
-            </div>
-        `;
-
-        document.getElementById('location-result').innerHTML = html;
-    }
-
-    // 初期化処理
-    window.addEventListener('DOMContentLoaded', () => {
-        // 1. 本日の日付をLA時間ベースで取得して設定
-        const skyTime = getSkyTimeDetails();
-        const yyyy = skyTime.year;
-        const mm = String(skyTime.month).padStart(2, '0');
-        const dd = String(skyTime.day).padStart(2, '0');
-        
-        document.getElementById('date-picker').value = `${yyyy}-${mm}-${dd}`;
-        
-        // 2. 初期計算を実行
-        calculateByDate();
-        updateLocationOptions();
-    });
+  update();
+})();
 </script>
-
 </body>
 </html>
