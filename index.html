@@ -307,6 +307,81 @@
   .predict-occ .t {
     color: var(--crimson-light);
     font-variant-numeric: tabular-nums;
+    font-weight: 600;
+  }
+  .predict-occ .arrow-mini { color: var(--text-dim); font-size: 9px; margin: 0 1px; }
+  .predict-occ .land-mini {
+    color: var(--gold-light);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Next upcoming red shard - shown larger/highlighted above the rest of the list */
+  .predict-next {
+    background: linear-gradient(160deg, rgba(196,87,75,0.16), rgba(196,87,75,0.06));
+    border: 1px solid rgba(196,87,75,0.4);
+    border-radius: 14px;
+    padding: 14px 16px 12px;
+    margin-bottom: 14px;
+  }
+  .predict-next-badge {
+    display: inline-block;
+    font-size: 10.5px;
+    letter-spacing: .05em;
+    color: var(--crimson-light);
+    background: rgba(196,87,75,0.2);
+    border-radius: 999px;
+    padding: 3px 10px;
+    margin-bottom: 8px;
+  }
+  .predict-next-date {
+    font-family: 'Kaisei Decol', serif;
+    font-size: 24px;
+    color: var(--cream);
+    line-height: 1.2;
+    text-shadow: 0 0 16px rgba(245,181,76,0.3);
+  }
+  .predict-next-place {
+    font-size: 13px;
+    color: var(--gold-light);
+    margin: 3px 0 12px;
+  }
+  .predict-next-times-header {
+    display: flex;
+    gap: 10px;
+    font-size: 10px;
+    color: var(--text-dim);
+    padding: 0 2px 4px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    margin-bottom: 4px;
+  }
+  .predict-next-times-header span { width: 58px; }
+  .predict-next-time-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 2px;
+    border-radius: 6px;
+  }
+  .predict-next-time-row:nth-child(odd) { background: rgba(255,255,255,0.035); }
+  .predict-next-time-row .gate {
+    width: 58px;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--cream);
+    font-variant-numeric: tabular-nums;
+  }
+  .predict-next-time-row .arrow { color: var(--text-dim); font-size: 13px; }
+  .predict-next-time-row .land {
+    width: 58px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--gold-light);
+    font-variant-numeric: tabular-nums;
+  }
+  .predict-next-note {
+    font-size: 11.5px;
+    color: var(--text-dim);
+    margin-top: 8px;
   }
 
   .predict-empty {
@@ -482,6 +557,8 @@
     line-height: 1.8;
     opacity: 0.75;
   }
+  footer a { color: var(--lavender); }
+  footer a:hover { color: var(--gold-light); }
 
   a:focus-visible, button:focus-visible, input:focus-visible {
     outline: 2px solid var(--gold-light);
@@ -598,8 +675,8 @@
   </section>
 
   <footer>
-    非公式のファン制作ツールです。<br>
-    ゲーム内の数値は予告なく変更される場合があります。
+    このサイトはSky 星を紡ぐ子どもたちの非公式ファンサイトです。thatgamecompanyは一切関与していません。<br>
+    作成・ご意見: <a href="https://x.com/Skyzztai" target="_blank" rel="noopener noreferrer">@Skyzztai</a>　参考データ: <a href="https://sky-children-of-the-light.fandom.com/ja/wiki/%E7%A0%B4%E7%89%87%E3%81%AE%E5%99%B4%E5%87%BA" target="_blank" rel="noopener noreferrer">破片の噴出 (Sky Wiki 日本語)</a>
   </footer>
 </div>
 
@@ -631,6 +708,34 @@
     candleFill: document.getElementById('candleFill'),
     resultContent: document.getElementById('resultContent')
   };
+
+  // 入力内容をブラウザに保存する。localStorageが使えない環境(プライベートモード、
+  // 一部のプレビュー環境など)では静かに諦め、通常の計算機能はそのまま動作する。
+  var STORAGE_KEY = 'skyStarCandleCalc_v1';
+  function saveState() {
+    try {
+      var state = {
+        target: els.target.value,
+        current: els.current.value,
+        feathers: els.feathers.value,
+        shardCount: els.shardCount.value,
+        shardAmount: els.shardAmount.value
+      };
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (err) { /* storage unavailable - ignore */ }
+  }
+  function loadState() {
+    try {
+      var raw = window.localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      var state = JSON.parse(raw);
+      if (state.target !== undefined) els.target.value = state.target;
+      if (state.current !== undefined) els.current.value = state.current;
+      if (state.feathers !== undefined) els.feathers.value = state.feathers;
+      if (state.shardCount !== undefined) els.shardCount.value = state.shardCount;
+      if (state.shardAmount !== undefined) els.shardAmount.value = state.shardAmount;
+    } catch (err) { /* no saved data, corrupted data, or storage unavailable - ignore */ }
+  }
 
   function fmt(n) {
     var r = Math.round(n * 100) / 100;
@@ -692,9 +797,13 @@
   }
 
   [els.target, els.current, els.feathers, els.shardCount, els.shardAmount].forEach(function (el) {
-    el.addEventListener('input', update);
+    el.addEventListener('input', function () {
+      update();
+      saveState();
+    });
   });
 
+  loadState();
   update();
 
   // ---- 赤闇(Red Shard)自動予測 ----
@@ -704,7 +813,7 @@
   // ③時刻ごとに発生しない曜日がある
   // ④レルム×時刻で着地場所が決まる
   // 時刻はSkyサーバー基準のPT(America/Los_Angeles)として扱う。
-  var REALMS = ['プレーリー', 'フォレスト', 'バレー', 'ウェイストランド', 'ヴォールト'];
+  var REALMS = ['草原', '雨林', '峡谷', '捨てられた地', '書庫'];
   var CYCLE12 = [
     { time: '7:40', color: 'red' },
     { time: '2:10', color: 'black' },
@@ -721,20 +830,20 @@
   ];
   var SKIP_WEEKDAYS = { '1:50': [6, 0], '2:10': [0, 1], '7:40': [1, 2], '2:20': [2, 3], '3:30': [3, 4] };
   var LOCATIONS = {
-    'プレーリー': { '1:50': 'Butterfly Field', '2:10': 'Village Islands', '7:40': 'Cave', '2:20': 'Bird Nest', '3:30': 'Sanctuary Island' },
-    'フォレスト': { '1:50': 'Forest Brook', '2:10': 'Boneyard', '7:40': 'Forest Garden', '2:20': 'Treehouse', '3:30': 'Elevated Clearing' },
-    'バレー': { '1:50': 'Ice Rink', '2:10': 'Ice Rink', '7:40': 'Village of Dreams', '2:20': 'Village of Dreams', '3:30': 'Hermit Valley' },
-    'ウェイストランド': { '1:50': 'Broken Temple', '2:10': 'Battlefield', '7:40': 'Graveyard', '2:20': 'Crabfield', '3:30': 'Forgotten Ark' },
-    'ヴォールト': { '1:50': 'Starlight Desert', '2:10': 'Starlight Desert', '7:40': 'Jellyfish Cove', '2:20': 'Jellyfish Cove', '3:30': 'Jellyfish Cove' }
+    '草原': { '1:50': '蝶々の住処', '2:10': '草原の村', '7:40': '草原の洞窟', '2:20': '鳥の塔', '3:30': '楽園の島々' },
+    '雨林': { '1:50': '雨林の小川', '2:10': '雨林の墓場', '7:40': '聖なる池', '2:20': 'ツリーハウス', '3:30': '高台広場' },
+    '峡谷': { '1:50': 'アイスリンク', '2:10': 'アイスリンク', '7:40': '夢見の町', '2:20': '夢見の町', '3:30': '隠者の峠' },
+    '捨てられた地': { '1:50': '倒壊した祠', '2:10': '戦場', '7:40': '墓所', '2:20': '蟹の沼地', '3:30': '忘れられた箱舟' },
+    '書庫': { '1:50': '星月夜の砂漠', '2:10': '星月夜の砂漠', '7:40': '海月の入り江', '2:20': '海月の入り江', '3:30': '海月の入り江' }
   };
   // 赤闇(強い噴出)の着地場所ごとの「最大」報酬本数。コミュニティ調査による目安であり、
   // 実際はアクティビティ(闇の花を燃やす)の達成度によって最大値より少なくなることがある(全体ではおよそ1〜3.5本)。
   var REWARD_MAX = {
-    'プレーリー': { '7:40': 2, '2:20': 2.5, '3:30': 3.5 },
-    'フォレスト': { '7:40': 2.5, '2:20': 3.5, '3:30': 3.5 },
-    'バレー': { '7:40': 2.5, '2:20': 2.5, '3:30': 3.5 },
-    'ウェイストランド': { '7:40': 2, '2:20': 2.5, '3:30': 3.5 },
-    'ヴォールト': { '7:40': 3.5, '2:20': 3.5, '3:30': 3.5 }
+    '草原': { '7:40': 2, '2:20': 2.5, '3:30': 3.5 },
+    '雨林': { '7:40': 2.5, '2:20': 3.5, '3:30': 3.5 },
+    '峡谷': { '7:40': 2.5, '2:20': 2.5, '3:30': 3.5 },
+    '捨てられた地': { '7:40': 2, '2:20': 2.5, '3:30': 3.5 },
+    '書庫': { '7:40': 3.5, '2:20': 3.5, '3:30': 3.5 }
   };
   var REPEAT_HOURS = { red: 6, black: 8 };
   var JP_WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土'];
@@ -853,18 +962,34 @@
     if (forecast.length === 0) {
       html = '<p class="predict-empty">今後7日間、赤闇の予測はありません。</p>';
     } else {
-      forecast.forEach(function (day) {
-        totalCandles += day.maxReward || 0;
-        html += '<div class="predict-day">';
-        html += '<div class="predict-day-head">' + day.ptLabel + '<span class="realm-tag">' + day.realm + '・' + day.location + (day.maxReward ? '・最大' + day.maxReward + '本' : '') + '</span></div>';
-        html += '<div class="predict-occ">候補 ';
-        html += day.entries.map(function (e, i) {
-          if (i === 0) return '<span class="t">' + e.gateLabel + '</span><span style="opacity:.6;">(着地' + e.landLabel + ')</span>';
-          return '<span class="t">' + e.gateLabel + '</span>';
-        }).join('・');
-        html += ' PT<span style="opacity:.7;">・いずれか1回</span></div>';
-        html += '</div>';
+      forecast.forEach(function (day) { totalCandles += day.maxReward || 0; });
+
+      var nextDay = forecast[0];
+      var restDays = forecast.slice(1);
+
+      html += '<div class="predict-next">';
+      html += '<span class="predict-next-badge">次の赤闇まで</span>';
+      html += '<div class="predict-next-date">' + nextDay.ptLabel + '</div>';
+      html += '<div class="predict-next-place">' + nextDay.realm + '・' + nextDay.location + (nextDay.maxReward ? '・最大' + nextDay.maxReward + '本' : '') + '</div>';
+      html += '<div class="predict-next-times-header"><span>ゲート</span><span>着地</span></div>';
+      nextDay.entries.forEach(function (e) {
+        html += '<div class="predict-next-time-row"><span class="gate">' + e.gateLabel + '</span><span class="arrow">→</span><span class="land">' + e.landLabel + '</span></div>';
       });
+      html += '<p class="predict-next-note">PT基準・いずれか1回で報酬確定</p>';
+      html += '</div>';
+
+      if (restDays.length > 0) {
+        restDays.forEach(function (day) {
+          html += '<div class="predict-day">';
+          html += '<div class="predict-day-head">' + day.ptLabel + '<span class="realm-tag">' + day.realm + '・' + day.location + (day.maxReward ? '・最大' + day.maxReward + '本' : '') + '</span></div>';
+          html += '<div class="predict-occ">候補 ';
+          html += day.entries.map(function (e) {
+            return '<span class="t">' + e.gateLabel + '</span><span class="arrow-mini">→</span><span class="land-mini">' + e.landLabel + '</span>';
+          }).join('・');
+          html += ' PT<span style="opacity:.7;">・いずれか1回</span></div>';
+          html += '</div>';
+        });
+      }
     }
     totalCandles = Math.round(totalCandles * 100) / 100;
 
@@ -889,6 +1014,7 @@
         els.shardAmount.value = Math.round((totalCandles / days) * 100) / 100;
       }
       update();
+      saveState();
       document.getElementById('predictAppliedMsg').style.display = 'block';
     } catch (err) { /* no-op */ }
   });
