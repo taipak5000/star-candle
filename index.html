@@ -556,12 +556,12 @@
       <div class="field">
         <label for="shardAmount">1回の獲得本数</label>
         <div class="input-suffix">
-          <input type="number" id="shardAmount" inputmode="decimal" min="0" max="3.5" step="any" value="3.5">
+          <input type="number" id="shardAmount" inputmode="decimal" min="0" max="3.5" step="any" value="3">
           <span class="unit">本</span>
         </div>
       </div>
     </div>
-    <p class="note">赤闇が降るタイミングは不定期です。実際の獲得ペースに合わせて調整してください。</p>
+    <p class="note">赤闇が降るタイミングや報酬本数(着地場所により1〜3.5本)は変動します。実際の獲得ペースに合わせて調整してください。</p>
 
     <div class="predict-box">
       <div class="predict-head">
@@ -570,11 +570,11 @@
       </div>
       <div class="predict-list" id="predictList"></div>
       <div class="predict-summary">
-        <span class="predict-count">予測回数 <strong id="predictTotal">0</strong>回</span>
-        <button type="button" class="predict-apply" id="predictApplyBtn">獲得回数に反映</button>
+        <span class="predict-count">予測 <strong id="predictDays">0</strong>日 ・ 最大 <strong id="predictTotalCandles">0</strong>本</span>
+        <button type="button" class="predict-apply" id="predictApplyBtn">この予測を反映</button>
       </div>
-      <p class="predict-applied-msg" id="predictAppliedMsg" style="display:none;">✓ 獲得回数(週)に反映しました</p>
-      <p class="note">コミュニティ観測による非公式の推測ルールです。実際とズレる場合があります。理論上出現する回数なので、実際に参加できる回数に合わせて調整してください。正確な時刻は <a href="https://sky-shards.pages.dev" target="_blank" rel="noopener noreferrer">sky-shards.pages.dev</a> でも確認できます。</p>
+      <p class="predict-applied-msg" id="predictAppliedMsg" style="display:none;">✓ 獲得回数(週)と1回の獲得本数に反映しました</p>
+      <p class="note">コミュニティ観測による非公式の推測ルールです。実際とズレる場合があります。赤闇の報酬は着地場所ごとに最大値が決まっており(2〜3.5本)、闇の花をどれだけ燃やせたかによって最大値より少なくなることもあります(全体ではおよそ1〜3.5本)。表示・反映される本数は各日の最大値をもとにした目安です。1日の報酬は1回までのため、候補時刻は「どれか1つで報酬確定」という意味です。今日の分をすでに獲得済みの場合は、反映後に1回・その本数分を減らしてください。正確な時刻は <a href="https://sky-shards.pages.dev" target="_blank" rel="noopener noreferrer">sky-shards.pages.dev</a> でも確認できます。</p>
     </div>
   </section>
 
@@ -727,6 +727,15 @@
     'ウェイストランド': { '1:50': 'Broken Temple', '2:10': 'Battlefield', '7:40': 'Graveyard', '2:20': 'Crabfield', '3:30': 'Forgotten Ark' },
     'ヴォールト': { '1:50': 'Starlight Desert', '2:10': 'Starlight Desert', '7:40': 'Jellyfish Cove', '2:20': 'Jellyfish Cove', '3:30': 'Jellyfish Cove' }
   };
+  // 赤闇(強い噴出)の着地場所ごとの「最大」報酬本数。コミュニティ調査による目安であり、
+  // 実際はアクティビティ(闇の花を燃やす)の達成度によって最大値より少なくなることがある(全体ではおよそ1〜3.5本)。
+  var REWARD_MAX = {
+    'プレーリー': { '7:40': 2, '2:20': 2.5, '3:30': 3.5 },
+    'フォレスト': { '7:40': 2.5, '2:20': 3.5, '3:30': 3.5 },
+    'バレー': { '7:40': 2.5, '2:20': 2.5, '3:30': 3.5 },
+    'ウェイストランド': { '7:40': 2, '2:20': 2.5, '3:30': 3.5 },
+    'ヴォールト': { '7:40': 3.5, '2:20': 3.5, '3:30': 3.5 }
+  };
   var REPEAT_HOURS = { red: 6, black: 8 };
   var JP_WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土'];
   var LANDING_LAG_SEC = 8 * 60 + 40;
@@ -824,6 +833,7 @@
           ptLabel: pt.month + '/' + pt.day + '(' + JP_WEEKDAYS[pt.weekday] + ')',
           realm: sched.realm,
           location: location,
+          maxReward: (REWARD_MAX[sched.realm] || {})[sched.time] || null,
           entries: entries
         });
       }
@@ -835,38 +845,49 @@
 
   function renderForecast() {
     var forecast = buildRedForecast(7);
-    var total = 0;
+    // 1日に浄化できる報酬は1回までなので、日数=獲得回数。本数は着地場所ごとの最大値を積算した目安。
+    var days = forecast.length;
+    var totalCandles = 0;
     var html = '';
 
     if (forecast.length === 0) {
       html = '<p class="predict-empty">今後7日間、赤闇の予測はありません。</p>';
     } else {
       forecast.forEach(function (day) {
+        totalCandles += day.maxReward || 0;
         html += '<div class="predict-day">';
-        html += '<div class="predict-day-head">' + day.ptLabel + '<span class="realm-tag">' + day.realm + '・' + day.location + '</span></div>';
-        html += '<div class="predict-occ">';
-        day.entries.forEach(function (e) {
-          total += 1;
-          html += '<span class="t">' + e.gateLabel + '</span> PT <span style="opacity:.7;">(着地 ' + e.landLabel + ')</span><br>';
-        });
-        html += '</div></div>';
+        html += '<div class="predict-day-head">' + day.ptLabel + '<span class="realm-tag">' + day.realm + '・' + day.location + (day.maxReward ? '・最大' + day.maxReward + '本' : '') + '</span></div>';
+        html += '<div class="predict-occ">候補 ';
+        html += day.entries.map(function (e, i) {
+          if (i === 0) return '<span class="t">' + e.gateLabel + '</span><span style="opacity:.6;">(着地' + e.landLabel + ')</span>';
+          return '<span class="t">' + e.gateLabel + '</span>';
+        }).join('・');
+        html += ' PT<span style="opacity:.7;">・いずれか1回</span></div>';
+        html += '</div>';
       });
     }
+    totalCandles = Math.round(totalCandles * 100) / 100;
 
     document.getElementById('predictList').innerHTML = html;
-    document.getElementById('predictTotal').textContent = total;
+    document.getElementById('predictDays').textContent = days;
+    document.getElementById('predictTotalCandles').textContent = totalCandles;
     document.getElementById('predictRange').textContent = '今後7日間・PT基準';
 
     var applyBtn = document.getElementById('predictApplyBtn');
-    applyBtn.setAttribute('data-count', total);
-    applyBtn.disabled = total === 0;
+    applyBtn.setAttribute('data-days', days);
+    applyBtn.setAttribute('data-total-candles', totalCandles);
+    applyBtn.disabled = days === 0;
     document.getElementById('predictAppliedMsg').style.display = 'none';
   }
 
   document.getElementById('predictApplyBtn').addEventListener('click', function () {
     try {
-      var count = parseInt(this.getAttribute('data-count'), 10) || 0;
-      els.shardCount.value = count;
+      var days = parseInt(this.getAttribute('data-days'), 10) || 0;
+      var totalCandles = parseFloat(this.getAttribute('data-total-candles')) || 0;
+      els.shardCount.value = days;
+      if (days > 0) {
+        els.shardAmount.value = Math.round((totalCandles / days) * 100) / 100;
+      }
       update();
       document.getElementById('predictAppliedMsg').style.display = 'block';
     } catch (err) { /* no-op */ }
