@@ -442,30 +442,6 @@
     margin: 0 2px;
   }
 
-  .predict-apply {
-    border: none;
-    border-radius: 10px;
-    padding: 9px 15px;
-    font-family: 'Zen Maru Gothic', sans-serif;
-    font-size: 12.5px;
-    font-weight: 700;
-    color: var(--indigo);
-    background: linear-gradient(160deg, var(--gold-light), var(--gold));
-    cursor: pointer;
-    transition: transform .15s, box-shadow .15s, opacity .15s;
-    white-space: nowrap;
-  }
-  .predict-apply:hover { box-shadow: 0 4px 14px rgba(245,181,76,0.4); }
-  .predict-apply:active { transform: scale(0.96); }
-  .predict-apply:disabled { opacity: 0.45; cursor: default; box-shadow: none; }
-
-  .predict-applied-msg {
-    font-size: 11.5px;
-    color: var(--gold-light);
-    margin: -4px 0 10px;
-    text-align: right;
-  }
-
   .result-card { text-align: center; border-color: rgba(245,181,76,0.28); }
 
   .gauge-wrap {
@@ -660,21 +636,6 @@
       <span class="shard-icon" aria-hidden="true"></span>
       闇の噴出(シャード)
     </div>
-    <div class="two-col">
-      <div class="field">
-        <label for="shardCount">獲得回数(週)</label>
-        <input type="number" id="shardCount" inputmode="decimal" min="0" step="any" placeholder="0">
-      </div>
-      <div class="field">
-        <label for="shardAmount">1回の獲得本数</label>
-        <div class="input-suffix">
-          <input type="number" id="shardAmount" inputmode="decimal" min="0" max="3.5" step="any" value="3">
-          <span class="unit">本</span>
-        </div>
-      </div>
-    </div>
-    <p class="note">赤闇が降るタイミングや報酬本数(着地場所により1〜3.5本)は変動します。実際の獲得ペースに合わせて調整してください。</p>
-
     <div class="predict-box">
       <div class="predict-head">
         <span class="predict-title">🔮 赤闇の自動予測(β)</span>
@@ -683,10 +644,8 @@
       <div class="predict-list" id="predictList"></div>
       <div class="predict-summary">
         <span class="predict-count">予測 <strong id="predictDays">0</strong>日 ・ 最大 <strong id="predictTotalCandles">0</strong>本</span>
-        <button type="button" class="predict-apply" id="predictApplyBtn">この予測を反映</button>
       </div>
-      <p class="predict-applied-msg" id="predictAppliedMsg" style="display:none;">✓ 獲得回数(週)と1回の獲得本数に反映しました</p>
-      <p class="note">コミュニティ観測による非公式の推測ルールです。実際とズレる場合があります。赤闇の報酬は着地場所ごとに最大値が決まっており(2〜3.5本)、闇の花をどれだけ燃やせたかによって最大値より少なくなることもあります(全体ではおよそ1〜3.5本)。表示・反映される本数は各日の最大値をもとにした目安です。1日の報酬は1回までのため、候補時刻は「どれか1つで報酬確定」という意味です。今日の分をすでに獲得済みの場合は、反映後に1回・その本数分を減らしてください。正確な時刻は <a href="https://sky-shards.pages.dev" target="_blank" rel="noopener noreferrer">sky-shards.pages.dev</a> でも確認できます。</p>
+      <p class="note">コミュニティ観測による非公式の推測ルールです。実際とズレる場合があります。赤闇の報酬は着地場所ごとに最大値が決まっており(2〜3.5本)、闇の花をどれだけ燃やせたかによって最大値より少なくなることもあります(全体ではおよそ1〜3.5本)。表示される本数は各日の最大値をもとにした目安です。1日の報酬は1回までのため、候補時刻は「どれか1つで報酬確定」という意味です。正確な時刻は <a href="https://sky-shards.pages.dev" target="_blank" rel="noopener noreferrer">sky-shards.pages.dev</a> でも確認できます。</p>
     </div>
   </section>
 
@@ -738,8 +697,6 @@
     current: document.getElementById('current'),
     feathers: document.getElementById('feathers'),
     feathersReadout: document.getElementById('feathersReadout'),
-    shardCount: document.getElementById('shardCount'),
-    shardAmount: document.getElementById('shardAmount'),
     candleFill: document.getElementById('candleFill'),
     resultContent: document.getElementById('resultContent')
   };
@@ -752,9 +709,7 @@
       var state = {
         target: els.target.value,
         current: els.current.value,
-        feathers: els.feathers.value,
-        shardCount: els.shardCount.value,
-        shardAmount: els.shardAmount.value
+        feathers: els.feathers.value
       };
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } catch (err) { /* storage unavailable - ignore */ }
@@ -767,8 +722,6 @@
       if (state.target !== undefined) els.target.value = state.target;
       if (state.current !== undefined) els.current.value = state.current;
       if (state.feathers !== undefined) els.feathers.value = state.feathers;
-      if (state.shardCount !== undefined) els.shardCount.value = state.shardCount;
-      if (state.shardAmount !== undefined) els.shardAmount.value = state.shardAmount;
     } catch (err) { /* no saved data, corrupted data, or storage unavailable - ignore */ }
   }
 
@@ -786,12 +739,9 @@
     var target = Math.max(0, parseFloat(els.target.value) || 0);
     var current = Math.max(0, parseFloat(els.current.value) || 0);
     var feathers = Math.max(0, Math.min(63, parseInt(els.feathers.value, 10) || 0));
-    var shardCount = Math.max(0, parseFloat(els.shardCount.value) || 0);
-    var shardAmount = Math.max(0, parseFloat(els.shardAmount.value) || 0);
 
     var edenWeekly = feathers * 0.25;
-    var shardWeekly = shardCount * shardAmount;
-    var totalWeekly = edenWeekly + shardWeekly;
+    var totalWeekly = edenWeekly;
 
     var sliderPct = (feathers / 63) * 100;
     els.feathers.style.setProperty('--fill', sliderPct + '%');
@@ -811,7 +761,7 @@
         '<p class="breakdown">所持 ' + fmt(current) + '本 ／ 目標 ' + fmt(target) + '本</p>';
     } else if (totalWeekly <= 0) {
       html =
-        '<p class="state-message warning">週の獲得本数が0本のため計算できません。<br>羽の枚数かシャードの設定を見直してください。</p>' +
+        '<p class="state-message warning">週の獲得本数が0本のため計算できません。<br>羽の枚数を見直してください。</p>' +
         '<p class="breakdown">残り ' + fmt(remaining) + '本</p>';
     } else {
       var weeksNeeded = Math.ceil(remaining / totalWeekly);
@@ -822,7 +772,7 @@
         '<p class="stat-line">達成予定日　<strong>' + jpDate(estDate) + '</strong>頃</p>' +
         '<p class="stat-line">残り　<strong>' + fmt(remaining) + '本</strong></p>' +
         '<p class="breakdown">' +
-          '週あたり ' + fmt(totalWeekly) + '本（原罪 ' + fmt(edenWeekly) + '本 + シャード ' + fmt(shardWeekly) + '本）<br>' +
+          '週あたり ' + fmt(totalWeekly) + '本<br>' +
           '進捗 ' + Math.round(progressPct) + '%' +
         '</p>' +
         '<p class="note">※7日ごとの獲得ペースをもとにした目安です。実際の日付とは前後する場合があります。</p>';
@@ -831,7 +781,7 @@
     els.resultContent.innerHTML = html;
   }
 
-  [els.target, els.current, els.feathers, els.shardCount, els.shardAmount].forEach(function (el) {
+  [els.target, els.current, els.feathers].forEach(function (el) {
     el.addEventListener('input', function () {
       update();
       saveState();
@@ -1076,27 +1026,7 @@
     document.getElementById('predictDays').textContent = days;
     document.getElementById('predictTotalCandles').textContent = totalCandles;
     document.getElementById('predictRange').textContent = '今後7日間・PT基準';
-
-    var applyBtn = document.getElementById('predictApplyBtn');
-    applyBtn.setAttribute('data-days', days);
-    applyBtn.setAttribute('data-total-candles', totalCandles);
-    applyBtn.disabled = days === 0;
-    document.getElementById('predictAppliedMsg').style.display = 'none';
   }
-
-  document.getElementById('predictApplyBtn').addEventListener('click', function () {
-    try {
-      var days = parseInt(this.getAttribute('data-days'), 10) || 0;
-      var totalCandles = parseFloat(this.getAttribute('data-total-candles')) || 0;
-      els.shardCount.value = days;
-      if (days > 0) {
-        els.shardAmount.value = Math.round((totalCandles / days) * 100) / 100;
-      }
-      update();
-      saveState();
-      document.getElementById('predictAppliedMsg').style.display = 'block';
-    } catch (err) { /* no-op */ }
-  });
 
   // 「獲得済み」チェック:チェックした日の最大獲得本数を所持本数に加算し、外すと減算する。
   // イベント委譲にしているため、renderForecast()が予測リストを再描画しても再登録は不要。
