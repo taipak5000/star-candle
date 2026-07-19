@@ -444,6 +444,25 @@
   .predict-day.is-checked {
     opacity: 0.5;
   }
+  .predict-countdown-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin: 0 0 6px;
+  }
+  .predict-countdown-label {
+    font-size: 12px;
+    color: var(--crimson-light);
+    white-space: nowrap;
+  }
+  .predict-countdown {
+    font-family: 'Kaisei Decol', serif;
+    font-size: 26px;
+    color: var(--gold-light);
+    line-height: 1.15;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 0 14px rgba(245,181,76,0.35);
+  }
   .predict-next-date {
     font-family: 'Kaisei Decol', serif;
     font-size: 24px;
@@ -498,6 +517,20 @@
     font-weight: 400;
     color: var(--text-dim);
     line-height: 1.4;
+  }
+  .predict-next-time-row.is-active {
+    background: rgba(245,181,76,0.16);
+  }
+  .active-badge {
+    margin-left: auto;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--indigo);
+    background: var(--gold-light);
+    border-radius: 999px;
+    padding: 2px 9px;
+    white-space: nowrap;
+    letter-spacing: 0.02em;
   }
   .predict-next-note {
     font-size: 11.5px;
@@ -1135,6 +1168,8 @@
   var LANDING_LAG_SEC = 8 * 60 + 40;
   var END_LAG_SEC = 4 * 60 * 60; // 終了時刻 = 出現(ゲート)時刻から4時間後(着地時刻からではない)
   var CHECKED_STORAGE_KEY = 'skyStarCandleCalc_checkedDays_v1';
+  var countdownTarget = null; // カウントダウン対象の時刻(Dateオブジェクト)
+  var countdownMode = null;   // 'land'=着地まで / 'end'=終了まで
 
   function loadCheckedDays() {
     try {
@@ -1188,6 +1223,19 @@
   }
 
   function pad2(n) { return String(n).padStart(2, '0'); }
+
+  // ミリ秒の残り時間を「N日 HH:MM:SS」形式の文字列にする。
+  // 対象時刻はJSTで表示している着地/終了の実時刻そのものなので、
+  // 日本時間の時刻に対するカウントダウンとして扱って問題ない。
+  function formatCountdown(ms) {
+    if (!(ms > 0)) ms = 0;
+    var totalSec = Math.floor(ms / 1000);
+    var days = Math.floor(totalSec / 86400);
+    var hours = Math.floor((totalSec % 86400) / 3600);
+    var mins = Math.floor((totalSec % 3600) / 60);
+    var secs = totalSec % 60;
+    return (days > 0 ? days + '日 ' : '') + pad2(hours) + ':' + pad2(mins) + ':' + pad2(secs);
+  }
 
   // 着地・終了の各時刻を日本時間(JST)で表示するためのラベルを作る。
   // PT基準で計算した「同じ日」のグループでも、+16時間(PDT時)のズレにより
@@ -1253,13 +1301,19 @@
         var h = Math.floor(mins / 60);
         var m = mins % 60;
         var gateDate = ptWallClockToDate(pt.year, pt.month, pt.day, h, m, offset);
-        if (gateDate.getTime() >= now.getTime() && gateDate.getTime() <= windowEnd) {
+        var endDate = new Date(gateDate.getTime() + END_LAG_SEC * 1000);
+        // 表示を消すかどうかは「開始(ゲート)時刻」ではなく「終了時刻」で判定する。
+        // 開始時刻基準だと、1回目の時刻に到達した瞬間、まだ受け取り可能な
+        // 1回目が一覧から消えてしまい分かりにくいため、終了時刻を過ぎるまで残す。
+        if (endDate.getTime() >= now.getTime() && gateDate.getTime() <= windowEnd) {
           var landingDate = new Date(gateDate.getTime() + LANDING_LAG_SEC * 1000);
-          var endDate = new Date(gateDate.getTime() + END_LAG_SEC * 1000);
           var land = jstLabel(landingDate);
           var end = jstLabel(endDate);
           entries.push({
             date: gateDate,
+            active: gateDate.getTime() <= now.getTime(), // 開始済み(現在進行中)かどうか
+            landingDate: landingDate, // カウントダウン計算用の実時刻
+            endDate: endDate,         // カウントダウン計算用の実時刻
             landDateKey: land.dateKey,
             landDateLabel: land.dateLabel,
             landShortDate: land.shortDate,
@@ -1309,6 +1363,8 @@
 
     if (forecast.length === 0) {
       html = '<p class="predict-empty">今後7日間、赤闇の予測はありません。</p>';
+      countdownTarget = null;
+      countdownMode = null;
     } else {
       forecast.forEach(function (day) { totalCandles += day.maxReward || 0; });
 
@@ -1321,14 +1377,26 @@
       html += '<span class="predict-next-badge">次の赤闇まで</span>';
       html += checkboxHtml(nextDay.dayKey, nextDay.maxReward || 0, nextChecked);
       html += '</div>';
+
+      // 一番近い回が「着地待ち」か「すでに着地して進行中」かで、
+      // カウントダウンの対象を着地時刻/終了時刻のどちらにするか切り替える。
+      var firstEntry = nextDay.entries[0];
+      countdownMode = firstEntry.active ? 'end' : 'land';
+      countdownTarget = firstEntry.active ? firstEntry.endDate : firstEntry.landingDate;
+      html += '<div class="predict-countdown-row">';
+      html += '<span class="predict-countdown-label">' + (countdownMode === 'end' ? '終了まで残り' : '着地まで残り') + '</span>';
+      html += '<span class="predict-countdown" id="predictCountdown">' + formatCountdown(countdownTarget.getTime() - new Date().getTime()) + '</span>';
+      html += '</div>';
+
       html += '<div class="predict-next-date">' + nextDay.dateLabel + '</div>';
       html += '<div class="predict-next-place">' + nextDay.realm + '・' + nextDay.location + (nextDay.maxReward ? '・最大' + nextDay.maxReward + '本' : '') + '</div>';
       html += '<div class="predict-next-times-header"><span>着地</span><span>終了</span></div>';
       nextDay.entries.forEach(function (e) {
-        html += '<div class="predict-next-time-row">' +
+        html += '<div class="predict-next-time-row' + (e.active ? ' is-active' : '') + '">' +
           '<span class="land"><span class="date-mini">' + e.landShortDate + '</span><span>' + e.landLabel + '</span></span>' +
           '<span class="arrow">→</span>' +
           '<span class="end"><span class="date-mini">' + e.endShortDate + '</span><span>' + e.endLabel + '</span></span>' +
+          (e.active ? '<span class="active-badge">進行中</span>' : '') +
           '</div>';
       });
       html += '<p class="predict-next-note">日本時間(JST)基準・いずれか1回で報酬確定</p>';
@@ -1357,6 +1425,22 @@
     document.getElementById('predictDays').textContent = days;
     document.getElementById('predictTotalCandles').textContent = totalCandles;
     document.getElementById('predictRange').textContent = '今後7日間・日本時間(JST)基準';
+  }
+
+  // 1秒ごとにカウントダウン表示だけを更新する(一覧全体は作り直さない)。
+  // 対象時刻(着地 or 終了)を過ぎたら、状態が変わった(進行中になった/日が切り替わった)
+  // ということなので、そのときだけrenderForecast()で一覧全体を最新化する。
+  function updateCountdownDisplay() {
+    try {
+      if (!countdownTarget) return;
+      var remainingMs = countdownTarget.getTime() - new Date().getTime();
+      if (remainingMs <= 0) {
+        renderForecast();
+        return;
+      }
+      var el = document.getElementById('predictCountdown');
+      if (el) el.textContent = formatCountdown(remainingMs);
+    } catch (err) { /* no-op */ }
   }
 
   // 「獲得済み」チェック:チェックした日の最大獲得本数を所持本数に加算し、外すと減算する。
@@ -1388,6 +1472,7 @@
 
   try {
     renderForecast();
+    setInterval(updateCountdownDisplay, 1000);
   } catch (err) {
     document.getElementById('predictList').innerHTML = '<p class="predict-empty">予測の計算中にエラーが発生しました。</p>';
   }
