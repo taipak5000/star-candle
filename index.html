@@ -379,6 +379,18 @@
     font-weight: 400;
     margin-left: 4px;
   }
+  .max-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--indigo);
+    background: var(--gold-light);
+    border-radius: 999px;
+    padding: 2px 8px;
+    margin-left: 6px;
+    white-space: nowrap;
+    vertical-align: middle;
+  }
 
   .predict-occ {
     font-size: 12px;
@@ -462,6 +474,11 @@
     line-height: 1.15;
     font-variant-numeric: tabular-nums;
     text-shadow: 0 0 14px rgba(245,181,76,0.35);
+  }
+  .predict-next-date-row {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
   }
   .predict-next-date {
     font-family: 'Kaisei Decol', serif;
@@ -920,7 +937,7 @@
       </div>
       <div class="predict-list" id="predictList"></div>
       <div class="predict-summary">
-        <span class="predict-count">予測 <strong id="predictDays">0</strong>日 ・ 最大 <strong id="predictTotalCandles">0</strong>本</span>
+        <span class="predict-count">今後7日間で赤闇が来る日数：<strong id="predictDays">0</strong>日</span>
       </div>
       <p class="note">コミュニティ観測による非公式の推測ルールです。実際とズレる場合があります。赤闇の報酬は着地場所ごとに最大値が決まっており(2〜3.5本)、闇の花をどれだけ燃やせたかによって最大値より少なくなることもあります。1日の報酬は1回までのため、候補時刻は「どれか1つで報酬確定」という意味です。</p>
     </div>
@@ -1347,9 +1364,8 @@
 
   function renderForecast() {
     var forecast = buildRedForecast(7);
-    // 1日に浄化できる報酬は1回までなので、日数=獲得回数。本数は着地場所ごとの最大値を積算した目安。
+    // 1日に浄化できる報酬は1回までなので、日数=獲得できる日数。本数は着地場所ごとの最大値の目安(日付の横に表示)。
     var days = forecast.length;
-    var totalCandles = 0;
     var html = '';
 
     var checkedDays = loadCheckedDays();
@@ -1366,8 +1382,6 @@
       countdownTarget = null;
       countdownMode = null;
     } else {
-      forecast.forEach(function (day) { totalCandles += day.maxReward || 0; });
-
       var nextDay = forecast[0];
       var restDays = forecast.slice(1);
       var nextChecked = !!checkedDays[nextDay.dayKey];
@@ -1388,8 +1402,8 @@
       html += '<span class="predict-countdown" id="predictCountdown">' + formatCountdown(countdownTarget.getTime() - new Date().getTime()) + '</span>';
       html += '</div>';
 
-      html += '<div class="predict-next-date">' + nextDay.dateLabel + '</div>';
-      html += '<div class="predict-next-place">' + nextDay.realm + '・' + nextDay.location + (nextDay.maxReward ? '・最大' + nextDay.maxReward + '本' : '') + '</div>';
+      html += '<div class="predict-next-date-row"><span class="predict-next-date">' + nextDay.dateLabel + '</span>' + (nextDay.maxReward ? '<span class="max-badge">最大' + nextDay.maxReward + '本</span>' : '') + '</div>';
+      html += '<div class="predict-next-place">' + nextDay.realm + '・' + nextDay.location + '</div>';
       html += '<div class="predict-next-times-header"><span>着地</span><span>終了</span></div>';
       nextDay.entries.forEach(function (e) {
         html += '<div class="predict-next-time-row' + (e.active ? ' is-active' : '') + '">' +
@@ -1407,7 +1421,7 @@
           var dChecked = !!checkedDays[day.dayKey];
           html += '<div class="predict-day' + (dChecked ? ' is-checked' : '') + '">';
           html += '<div class="predict-day-head">';
-          html += '<span>' + day.dateLabel + '<span class="realm-tag">' + day.realm + '・' + day.location + (day.maxReward ? '・最大' + day.maxReward + '本' : '') + '</span></span>';
+          html += '<span>' + day.dateLabel + (day.maxReward ? '<span class="max-badge">最大' + day.maxReward + '本</span>' : '') + '<span class="realm-tag">' + day.realm + '・' + day.location + '</span></span>';
           html += checkboxHtml(day.dayKey, day.maxReward || 0, dChecked);
           html += '</div>';
           html += '<div class="predict-occ">候補 ';
@@ -1419,11 +1433,8 @@
         });
       }
     }
-    totalCandles = Math.round(totalCandles * 100) / 100;
-
     document.getElementById('predictList').innerHTML = html;
     document.getElementById('predictDays').textContent = days;
-    document.getElementById('predictTotalCandles').textContent = totalCandles;
     document.getElementById('predictRange').textContent = '今後7日間・日本時間(JST)基準';
   }
 
