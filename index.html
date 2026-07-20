@@ -111,6 +111,14 @@
     box-shadow: 0 10px 30px rgba(0,0,0,0.25);
   }
 
+  /* backdrop-filterを持つ.cardは各々が独立したスタッキングコンテキストになるため、
+     カード内のポップアップにz-indexを付けるだけでは次のカードの裏に隠れてしまう。
+     ポップアップ表示中はカードごと引き上げて手前に出す。 */
+  .card.has-open-popup {
+    position: relative;
+    z-index: 30;
+  }
+
   .card h2 {
     font-family: 'Kaisei Decol', serif;
     font-size: 16.5px;
@@ -158,27 +166,144 @@
     box-shadow: 0 0 0 3px rgba(245,181,76,0.22);
   }
 
-  input[type="date"] {
+  .date-picker { position: relative; }
+
+  .date-picker-trigger {
     width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     padding: 12px 14px;
     border-radius: 12px;
     border: 1px solid var(--card-border);
     background: rgba(0,0,0,0.2);
-    color: var(--cream);
+    color: var(--text-dim);
     font-family: 'Zen Maru Gothic', sans-serif;
     font-size: 15px;
+    text-align: left;
+    cursor: pointer;
     outline: none;
     transition: border-color .2s, box-shadow .2s;
-    color-scheme: dark;
   }
-  input[type="date"]:focus {
+  .date-picker-trigger.has-value { color: var(--cream); }
+  .date-picker-trigger:hover { border-color: rgba(245,181,76,0.5); }
+  .date-picker-trigger.is-active {
     border-color: var(--gold);
     box-shadow: 0 0 0 3px rgba(245,181,76,0.22);
   }
-  input[type="date"]::-webkit-calendar-picker-indicator {
-    filter: invert(0.85);
+  .date-picker-icon { font-size: 14px; opacity: .75; margin-left: 8px; flex-shrink: 0; }
+
+  .date-picker-popup {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + 8px);
+    z-index: 20;
+    background: var(--violet-deep);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 14px;
+    box-shadow: 0 14px 34px rgba(0,0,0,0.45);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(-6px);
+    transition: opacity .16s ease, transform .16s ease, visibility .16s;
+  }
+  .date-picker-popup.is-open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+
+  .date-picker-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .date-picker-month {
+    font-family: 'Kaisei Decol', serif;
+    font-size: 15px;
+    color: var(--cream);
+  }
+  .date-picker-nav {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid var(--card-border);
+    background: rgba(255,255,255,0.04);
+    color: var(--gold-light);
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .date-picker-nav:hover { border-color: var(--gold); background: rgba(245,181,76,0.14); }
+
+  .date-picker-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+  }
+  .date-picker-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+  }
+  .date-picker-cell {
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 8px;
+    background: none;
+    color: var(--cream);
+    font-family: 'Zen Maru Gothic', sans-serif;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
     cursor: pointer;
   }
+  .date-picker-cell.is-empty { cursor: default; }
+  .date-picker-cell:not(.is-empty):not(.is-past):hover { background: rgba(245,181,76,0.16); }
+  .date-picker-cell.is-today { box-shadow: inset 0 0 0 1px var(--gold); }
+  .date-picker-cell.is-selected {
+    background: linear-gradient(160deg, var(--gold-light), var(--gold));
+    color: var(--indigo);
+    font-weight: 700;
+    box-shadow: none;
+  }
+  .date-picker-cell.is-past,
+  .date-picker-cell:disabled {
+    color: var(--text-dim);
+    opacity: .35;
+    cursor: not-allowed;
+  }
+
+  .date-picker-clear {
+    display: block;
+    width: 100%;
+    margin-top: 10px;
+    padding-top: 8px;
+    border: none;
+    border-top: 1px dashed rgba(255,255,255,0.14);
+    background: none;
+    color: var(--text-dim);
+    font-family: inherit;
+    font-size: 12px;
+    text-align: center;
+    cursor: pointer;
+  }
+  .date-picker-clear:hover { color: var(--crimson-light); }
 
   .unit {
     position: absolute;
@@ -1062,8 +1187,26 @@
       </div>
     </div>
     <div class="field">
-      <label for="targetDate">目標日(任意)</label>
-      <input type="date" id="targetDate">
+      <label for="targetDateTrigger">目標日(任意)</label>
+      <div class="date-picker" id="datePicker">
+        <button type="button" class="date-picker-trigger" id="targetDateTrigger" aria-haspopup="true" aria-expanded="false">
+          <span id="targetDateTriggerText">日付を選択(任意)</span>
+          <span class="date-picker-icon" aria-hidden="true">📅</span>
+        </button>
+        <div class="date-picker-popup" id="datePickerPopup">
+          <div class="date-picker-header">
+            <button type="button" class="date-picker-nav" id="datePickerPrev" aria-label="前の月">‹</button>
+            <span class="date-picker-month" id="datePickerMonthLabel"></span>
+            <button type="button" class="date-picker-nav" id="datePickerNext" aria-label="次の月">›</button>
+          </div>
+          <div class="date-picker-weekdays">
+            <span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span>
+          </div>
+          <div class="date-picker-grid" id="datePickerGrid"></div>
+          <button type="button" class="date-picker-clear" id="datePickerClear">選択をクリア</button>
+        </div>
+      </div>
+      <input type="date" id="targetDate" style="display:none" tabindex="-1" aria-hidden="true">
     </div>
   </section>
 
@@ -1346,6 +1489,127 @@
 
   loadState();
   update();
+
+  // ---- 目標日:カスタムカレンダーピッカー ----
+  // ネイティブの<input type="date">はサイトのテーマに合わせて装飾できないため、
+  // 値の保持だけをtargetDate(非表示)に任せ、見た目は独自のカレンダーUIで作る。
+  var datePickerEl = document.getElementById('datePicker');
+  var datePickerTrigger = document.getElementById('targetDateTrigger');
+  var datePickerTriggerText = document.getElementById('targetDateTriggerText');
+  var datePickerPopup = document.getElementById('datePickerPopup');
+  var datePickerGrid = document.getElementById('datePickerGrid');
+  var datePickerMonthLabel = document.getElementById('datePickerMonthLabel');
+  var datePickerPrevBtn = document.getElementById('datePickerPrev');
+  var datePickerNextBtn = document.getElementById('datePickerNext');
+  var datePickerClearBtn = document.getElementById('datePickerClear');
+  var datePickerViewDate = new Date();
+  datePickerViewDate.setDate(1);
+
+  function formatDateValue(d) {
+    var y = d.getFullYear();
+    var m = ('0' + (d.getMonth() + 1)).slice(-2);
+    var day = ('0' + d.getDate()).slice(-2);
+    return y + '-' + m + '-' + day;
+  }
+
+  function updateDateTriggerText() {
+    if (els.targetDate.value) {
+      var p = els.targetDate.value.split('-');
+      var d = new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10));
+      datePickerTriggerText.textContent = jpDate(d);
+      datePickerTrigger.classList.add('has-value');
+    } else {
+      datePickerTriggerText.textContent = '日付を選択(任意)';
+      datePickerTrigger.classList.remove('has-value');
+    }
+  }
+
+  function renderDatePickerGrid() {
+    var year = datePickerViewDate.getFullYear();
+    var month = datePickerViewDate.getMonth();
+    var firstWeekday = new Date(year, month, 1).getDay();
+    var daysInMonth = new Date(year, month + 1, 0).getDate();
+    var todayStr = formatDateValue(new Date());
+    var selectedStr = els.targetDate.value;
+
+    datePickerMonthLabel.textContent = year + '年' + (month + 1) + '月';
+
+    var html = '';
+    for (var i = 0; i < firstWeekday; i++) {
+      html += '<span class="date-picker-cell is-empty"></span>';
+    }
+    for (var d = 1; d <= daysInMonth; d++) {
+      var cellStr = formatDateValue(new Date(year, month, d));
+      var isPast = cellStr < todayStr;
+      var cls = 'date-picker-cell';
+      if (cellStr === selectedStr) cls += ' is-selected';
+      if (cellStr === todayStr) cls += ' is-today';
+      if (isPast) cls += ' is-past';
+      html += '<button type="button" class="' + cls + '" data-date="' + cellStr + '"' + (isPast ? ' disabled' : '') + '>' + d + '</button>';
+    }
+    datePickerGrid.innerHTML = html;
+  }
+
+  function openDatePicker() {
+    var p = els.targetDate.value ? els.targetDate.value.split('-') : null;
+    datePickerViewDate = p ? new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, 1) : new Date();
+    datePickerViewDate.setDate(1);
+    renderDatePickerGrid();
+    datePickerPopup.classList.add('is-open');
+    datePickerTrigger.classList.add('is-active');
+    datePickerTrigger.setAttribute('aria-expanded', 'true');
+    // .cardはbackdrop-filterで独自のスタッキングコンテキストを作るため、
+    // popup側のz-indexだけでは次のカード(週の集め方)の裏に隠れてしまう。
+    // 開いている間だけ親カードごと引き上げることで解決する。
+    var cardEl = datePickerEl.closest('.card');
+    if (cardEl) cardEl.classList.add('has-open-popup');
+  }
+  function closeDatePicker() {
+    datePickerPopup.classList.remove('is-open');
+    datePickerTrigger.classList.remove('is-active');
+    datePickerTrigger.setAttribute('aria-expanded', 'false');
+    var cardEl = datePickerEl.closest('.card');
+    if (cardEl) cardEl.classList.remove('has-open-popup');
+  }
+
+  datePickerTrigger.addEventListener('click', function (ev) {
+    ev.stopPropagation();
+    if (datePickerPopup.classList.contains('is-open')) closeDatePicker();
+    else openDatePicker();
+  });
+  datePickerPrevBtn.addEventListener('click', function (ev) {
+    ev.stopPropagation();
+    datePickerViewDate.setMonth(datePickerViewDate.getMonth() - 1);
+    renderDatePickerGrid();
+  });
+  datePickerNextBtn.addEventListener('click', function (ev) {
+    ev.stopPropagation();
+    datePickerViewDate.setMonth(datePickerViewDate.getMonth() + 1);
+    renderDatePickerGrid();
+  });
+  datePickerGrid.addEventListener('click', function (ev) {
+    var cell = ev.target.closest ? ev.target.closest('.date-picker-cell') : null;
+    if (!cell || cell.disabled || cell.classList.contains('is-empty')) return;
+    els.targetDate.value = cell.getAttribute('data-date');
+    els.targetDate.dispatchEvent(new Event('input', { bubbles: true }));
+    updateDateTriggerText();
+    closeDatePicker();
+  });
+  datePickerClearBtn.addEventListener('click', function (ev) {
+    ev.stopPropagation();
+    els.targetDate.value = '';
+    els.targetDate.dispatchEvent(new Event('input', { bubbles: true }));
+    updateDateTriggerText();
+    closeDatePicker();
+  });
+  document.addEventListener('click', function (ev) {
+    if (!datePickerEl.contains(ev.target)) closeDatePicker();
+  });
+  document.addEventListener('keydown', function (ev) {
+    if (ev.key === 'Escape') closeDatePicker();
+  });
+
+  updateDateTriggerText();
 
   // ---- 赤闇(Red Shard)自動予測 ----
   // コミュニティが観測データから逆算した非公式ルールに基づく実装。
