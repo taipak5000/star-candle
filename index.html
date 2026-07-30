@@ -882,6 +882,147 @@
   .pace-ok { color: var(--gold-light); }
   .pace-warn { color: var(--crimson-light); }
 
+  .shard-estimate-box {
+    margin: 10px 0;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: rgba(196,87,75,0.12);
+    border: 1px solid rgba(196,87,75,0.4);
+    font-size: 13px;
+    color: var(--lavender);
+    line-height: 1.7;
+    text-align: left;
+  }
+  .shard-estimate-box strong { color: var(--crimson-light); font-weight: 700; }
+
+  /* ── 赤闇カレンダー(月表示) ── */
+  .shard-cal-btn {
+    display: block;
+    width: 100%;
+    margin-top: 10px;
+    padding: 10px 14px;
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.06);
+    color: var(--gold-light);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .shard-cal-btn:hover { background: rgba(245,181,76,0.14); border-color: var(--gold); }
+
+  .shard-cal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .shard-cal-overlay.is-visible { display: flex; }
+  .shard-cal-card {
+    width: 100%;
+    max-width: 380px;
+    max-height: 86vh;
+    overflow-y: auto;
+    background: linear-gradient(165deg, var(--indigo) 0%, var(--violet-deep) 100%);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    box-sizing: border-box;
+  }
+  .shard-cal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .shard-cal-title { font-family: 'Kaisei Decol', serif; font-size: 16px; color: var(--cream); }
+  .shard-cal-close {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    border: 1px solid var(--card-border);
+    background: rgba(255,255,255,0.04);
+    color: var(--gold-light);
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .shard-cal-nav-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .shard-cal-month { font-family: 'Kaisei Decol', serif; font-size: 15px; color: var(--cream); }
+  .shard-cal-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+  }
+  .shard-cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+  }
+  .shard-cal-cell {
+    aspect-ratio: 1 / 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 8px;
+    background: none;
+    color: var(--cream);
+    font-family: 'Zen Maru Gothic', sans-serif;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    cursor: default;
+    padding: 0;
+  }
+  .shard-cal-cell.is-empty { visibility: hidden; cursor: default; }
+  .shard-cal-cell.is-today { box-shadow: inset 0 0 0 1px var(--gold); }
+  .shard-cal-cell.is-red {
+    background: rgba(196,87,75,0.3);
+    color: var(--crimson-light);
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .shard-cal-cell.is-red:hover { background: rgba(196,87,75,0.48); }
+  .shard-cal-cell.is-red.is-selected { box-shadow: inset 0 0 0 2px var(--gold-light); }
+  .shard-cal-reward { font-size: 8.5px; margin-top: 1px; opacity: .9; }
+  .shard-cal-legend {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 12px;
+  }
+  .shard-cal-legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 3px;
+    background: rgba(196,87,75,0.55);
+    display: inline-block;
+  }
+  .shard-cal-day-detail {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px dashed rgba(255,255,255,0.14);
+    font-size: 12.5px;
+    color: var(--cream);
+    line-height: 1.7;
+  }
+  .shard-cal-day-detail strong { color: var(--crimson-light); }
+
   footer {
     text-align: center;
     font-size: 11px;
@@ -1377,9 +1518,30 @@
       <div class="predict-summary">
         <span class="predict-count">今後7日間で赤闇が来る日数：<strong id="predictDays">0</strong>日</span>
       </div>
+      <button type="button" class="shard-cal-btn" id="shardCalBtn">📅 カレンダーで1か月分見る</button>
       <p class="note">コミュニティ観測による非公式の推測ルールです。実際とズレる場合があります。赤闇の報酬は着地場所ごとに最大値が決まっており(2〜3.5本)、闇の花をどれだけ燃やせたかによって最大値より少なくなることもあります。1日の報酬は1回までのため、候補時刻は「どれか1つで報酬確定」という意味です。</p>
     </div>
   </section>
+
+  <div class="shard-cal-overlay" id="shardCalOverlay">
+    <div class="shard-cal-card">
+      <div class="shard-cal-header">
+        <span class="shard-cal-title">🔮 赤闇カレンダー</span>
+        <button type="button" class="shard-cal-close" id="shardCalCloseBtn">✕</button>
+      </div>
+      <div class="shard-cal-nav-row">
+        <button type="button" class="date-picker-nav" id="shardCalPrevBtn">‹</button>
+        <span class="shard-cal-month" id="shardCalMonthLabel"></span>
+        <button type="button" class="date-picker-nav" id="shardCalNextBtn">›</button>
+      </div>
+      <div class="shard-cal-weekdays">
+        <span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span>
+      </div>
+      <div class="shard-cal-grid" id="shardCalGrid"></div>
+      <div class="shard-cal-legend"><span class="shard-cal-legend-dot"></span>赤闇が来る日(タップで詳細)</div>
+      <div class="shard-cal-day-detail" id="shardCalDayDetail" style="display:none;"></div>
+    </div>
+  </div>
 
   <section class="card">
     <h2>🥤 週の消費</h2>
@@ -1780,6 +1942,20 @@
       }
     }
 
+    // 赤闇をすべて回収すると仮定した場合の達成予定日。まだ赤闇予測の定数(REWARD_MAX等)が
+    // 準備できていない初回描画時はエラーになりうるため、静かにスキップする(その場合はこの
+    // すぐ後にある2回目のupdate()呼び出しで正しく反映される)。
+    var shardEstimateInfo = '';
+    if (remaining > 0) {
+      try {
+        var shardResult = estimateGoalDateAllShards(current, target, totalWeekly);
+        if (shardResult) {
+          shardEstimateInfo = '<div class="shard-estimate-box">🔮 今後の赤闇をすべて回収すると仮定した場合<br>' +
+            '達成予定日　<strong>' + jpDate(shardResult.date) + '</strong>頃</div>';
+        }
+      } catch (err) { /* no-op */ }
+    }
+
     if (target <= 0) {
       html = '<p class="state-message">目標本数を入力すると、達成までの週数が表示されます。</p>';
     } else if (remaining <= 0) {
@@ -1793,7 +1969,8 @@
       html =
         '<p class="state-message warning">' + warnMsg + '</p>' +
         '<p class="breakdown">残り ' + fmt(remaining) + '本<br>' + weeklyLine + '</p>' +
-        targetDateInfo;
+        targetDateInfo +
+        shardEstimateInfo;
     } else {
       var weeksNeeded = Math.ceil(remaining / totalWeekly);
       var today = new Date();
@@ -1803,6 +1980,7 @@
         '<p class="stat-line">達成予定日　<strong>' + jpDate(estDate) + '</strong>頃</p>' +
         '<p class="stat-line">残り　<strong>' + fmt(remaining) + '本</strong></p>' +
         targetDateInfo +
+        shardEstimateInfo +
         '<p class="breakdown">' +
           weeklyLine + '<br>' +
           '進捗 ' + Math.round(progressPct) + '%' +
@@ -2174,6 +2352,41 @@
     return byDay;
   }
 
+  // 目標本数に対して、今後発生するすべての赤闇を取得すると仮定した場合の達成予定日を試算する。
+  // 羽による週ペース(totalWeekly)を日割りで毎日加算しつつ、実際に赤闇の来る日には
+  // その着地場所の最大報酬も上乗せする。すでに「獲得済み」チェック済みの日は所持本数(current)に
+  // 反映済みのため、二重加算しないよう除外する。
+  function estimateGoalDateAllShards(current, target, totalWeekly) {
+    if (!(target > 0) || current >= target) return null;
+    var dailyPace = totalWeekly / 7;
+    var checkedDays = loadCheckedDays();
+    var now = new Date();
+    var cumulative = current;
+    var seenDays = {};
+    var MAX_DAYS = 3650; // 安全のため約10年で打ち切る
+
+    for (var i = 0; i <= MAX_DAYS; i++) {
+      var probe = new Date(now.getTime() + i * 86400000);
+      cumulative += dailyPace;
+
+      var pt = getPTDateParts(probe);
+      var dayKey = pt.year + '-' + pt.month + '-' + pt.day;
+      if (!seenDays[dayKey]) {
+        seenDays[dayKey] = true;
+        var sched = getDaySchedule(pt.day, pt.weekday);
+        if (sched.color === 'red' && !sched.skipped && !checkedDays[dayKey]) {
+          var reward = (REWARD_MAX[sched.realm] || {})[sched.time] || 0;
+          cumulative += reward;
+        }
+      }
+
+      if (cumulative >= target) {
+        return { date: probe, daysNeeded: i + 1 };
+      }
+    }
+    return null;
+  }
+
   function checkboxHtml(dayKey, reward, checked) {
     return '<label class="predict-check"><input type="checkbox" class="day-check" data-day-key="' + dayKey + '" data-reward="' + reward + '"' + (checked ? ' checked' : '') + '><span>獲得済み</span></label>';
   }
@@ -2306,6 +2519,155 @@
   } catch (err) {
     document.getElementById('predictList').innerHTML = '<p class="predict-empty">予測の計算中にエラーが発生しました。</p>';
   }
+
+  // 赤闇予測の定数がすべて揃った状態で、達成予定日の表示(赤闇をすべて回収した場合の試算)を
+  // 正しく反映させるため、ここでもう一度だけ計算し直す。
+  update();
+
+  // ---- 赤闇カレンダー(月表示) ----
+  // buildRedForecast()と同じ判定ルール(getDaySchedule)を、直近7日間に限らず
+  // 任意の月に対して使えるようにしたもの。曜日は暦上の概念なので
+  // タイムゾーンに関係なく年月日から直接求められる(new Date(y, m-1, d).getDay())。
+  var shardCalOverlay = document.getElementById('shardCalOverlay');
+  var shardCalBtn = document.getElementById('shardCalBtn');
+  var shardCalCloseBtn = document.getElementById('shardCalCloseBtn');
+  var shardCalPrevBtn = document.getElementById('shardCalPrevBtn');
+  var shardCalNextBtn = document.getElementById('shardCalNextBtn');
+  var shardCalMonthLabel = document.getElementById('shardCalMonthLabel');
+  var shardCalGrid = document.getElementById('shardCalGrid');
+  var shardCalDayDetail = document.getElementById('shardCalDayDetail');
+  var shardCalViewDate = new Date();
+  shardCalViewDate.setDate(1);
+  var shardCalSelectedKey = null; // 詳細表示中の日付("y-m-d")。未選択ならnull
+
+  function getRedDaySchedule(year, month, day) {
+    var weekday = new Date(year, month - 1, day).getDay();
+    var sched = getDaySchedule(day, weekday);
+    if (sched.color !== 'red' || sched.skipped) return null;
+    return sched;
+  }
+
+  // buildRedForecast()の候補時刻算出ロジックを、特定の年月日1件に対して使えるようにしたもの。
+  function buildShardDayEntries(year, month, day, sched) {
+    var refDate = new Date(year, month - 1, day, 12, 0, 0);
+    var offset = getPTOffsetMinutes(refDate);
+    var entries = [];
+    getOccurrenceMinutes(sched.time, 'red').forEach(function (mins) {
+      var h = Math.floor(mins / 60);
+      var m = mins % 60;
+      var gateDate = ptWallClockToDate(year, month, day, h, m, offset);
+      var endDate = new Date(gateDate.getTime() + END_LAG_SEC * 1000);
+      var landingDate = new Date(gateDate.getTime() + LANDING_LAG_SEC * 1000);
+      var land = jstLabel(landingDate);
+      var end = jstLabel(endDate);
+      entries.push({ landShortDate: land.shortDate, landLabel: land.timeLabel, endShortDate: end.shortDate, endLabel: end.timeLabel });
+    });
+    return entries;
+  }
+
+  function renderShardCalDayDetail() {
+    if (!shardCalSelectedKey) {
+      shardCalDayDetail.style.display = 'none';
+      shardCalDayDetail.innerHTML = '';
+      return;
+    }
+    var parts = shardCalSelectedKey.split('-');
+    var y = parseInt(parts[0], 10), m = parseInt(parts[1], 10), d = parseInt(parts[2], 10);
+    var sched = getRedDaySchedule(y, m, d);
+    if (!sched) {
+      shardCalDayDetail.style.display = 'none';
+      return;
+    }
+    var location = (LOCATIONS[sched.realm] || {})[sched.time] || '?';
+    var maxReward = (REWARD_MAX[sched.realm] || {})[sched.time] || null;
+    var entries = buildShardDayEntries(y, m, d, sched);
+    var occText = entries.map(function (e) {
+      return e.landShortDate + ' ' + e.landLabel + '→' + e.endShortDate + ' ' + e.endLabel;
+    }).join('・');
+    shardCalDayDetail.style.display = 'block';
+    shardCalDayDetail.innerHTML =
+      '<strong>' + jpDate(new Date(y, m - 1, d)) + '</strong><br>' +
+      sched.realm + '・' + location + (maxReward ? '　最大' + maxReward + '本' : '') + '<br>' +
+      '<span style="opacity:.85; font-size:11.5px;">候補(着地→終了・JST) ' + occText + '</span>';
+  }
+
+  function renderShardCalGrid() {
+    var year = shardCalViewDate.getFullYear();
+    var month = shardCalViewDate.getMonth(); // 0-11
+    var firstWeekday = new Date(year, month, 1).getDay();
+    var daysInMonth = new Date(year, month + 1, 0).getDate();
+    var todayStr = formatDateValue(new Date());
+
+    shardCalMonthLabel.textContent = year + '年' + (month + 1) + '月';
+
+    var html = '';
+    for (var i = 0; i < firstWeekday; i++) {
+      html += '<span class="shard-cal-cell is-empty"></span>';
+    }
+    for (var d = 1; d <= daysInMonth; d++) {
+      var cellStr = formatDateValue(new Date(year, month, d));
+      var sched = getRedDaySchedule(year, month + 1, d);
+      var cls = 'shard-cal-cell';
+      if (cellStr === todayStr) cls += ' is-today';
+      if (sched) {
+        var maxReward = (REWARD_MAX[sched.realm] || {})[sched.time] || null;
+        cls += ' is-red';
+        if (cellStr === shardCalSelectedKey) cls += ' is-selected';
+        html += '<button type="button" class="' + cls + '" data-date="' + cellStr + '">' +
+          '<span>' + d + '</span>' +
+          (maxReward ? '<span class="shard-cal-reward">' + maxReward + '本</span>' : '') +
+          '</button>';
+      } else {
+        html += '<span class="' + cls + '">' + d + '</span>';
+      }
+    }
+    shardCalGrid.innerHTML = html;
+
+    // 表示中の月から外れた選択は解除する(data-dateはゼロ埋め形式のため、文字列の
+    // 前方一致ではなく年月を数値として比較する)
+    if (shardCalSelectedKey) {
+      var selParts = shardCalSelectedKey.split('-');
+      if (parseInt(selParts[0], 10) !== year || parseInt(selParts[1], 10) !== (month + 1)) {
+        shardCalSelectedKey = null;
+      }
+    }
+    renderShardCalDayDetail();
+  }
+
+  function openShardCal() {
+    shardCalViewDate = new Date();
+    shardCalViewDate.setDate(1);
+    shardCalSelectedKey = null;
+    renderShardCalGrid();
+    shardCalOverlay.classList.add('is-visible');
+  }
+  function closeShardCal() {
+    shardCalOverlay.classList.remove('is-visible');
+  }
+
+  shardCalBtn.addEventListener('click', openShardCal);
+  shardCalCloseBtn.addEventListener('click', closeShardCal);
+  shardCalOverlay.addEventListener('click', function (ev) {
+    if (ev.target === shardCalOverlay) closeShardCal();
+  });
+  shardCalPrevBtn.addEventListener('click', function () {
+    shardCalViewDate.setMonth(shardCalViewDate.getMonth() - 1);
+    renderShardCalGrid();
+  });
+  shardCalNextBtn.addEventListener('click', function () {
+    shardCalViewDate.setMonth(shardCalViewDate.getMonth() + 1);
+    renderShardCalGrid();
+  });
+  shardCalGrid.addEventListener('click', function (ev) {
+    var cell = ev.target.closest ? ev.target.closest('.shard-cal-cell.is-red') : null;
+    if (!cell) return;
+    var key = cell.getAttribute('data-date');
+    shardCalSelectedKey = (shardCalSelectedKey === key) ? null : key;
+    renderShardCalGrid();
+  });
+  document.addEventListener('keydown', function (ev) {
+    if (ev.key === 'Escape') closeShardCal();
+  });
 
   // ---- 獲得履歴ログ ----
   // 羽ボタン・赤闇チェックによる所持本数の増減を記録する。「取り消す」でその操作だけを
