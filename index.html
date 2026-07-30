@@ -1122,9 +1122,10 @@
     cursor: pointer;
   }
   .pf-icon-btn:hover { background: rgba(255,255,255,0.16); }
-  .pf-add-row { display: flex; gap: 8px; margin-top: 14px; }
+  .pf-add-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
   .pf-input {
     flex: 1;
+    min-width: 0;
     background: rgba(255,255,255,0.06);
     border: 1px solid var(--card-border);
     border-radius: 8px;
@@ -1723,7 +1724,7 @@
     var html = '';
     list.forEach(function (p) {
       if (pfEditingId === p.id) {
-        html += '<div class="pf-row">' +
+        html += '<div class="pf-row" style="flex-wrap: wrap;">' +
           '<input type="text" class="pf-row-input" id="pfEditInput" value="' + pfEscapeHtml(p.name) + '" maxlength="20" ' +
           'onkeydown="if(event.key===\'Enter\') pfConfirmRenameInline(\'' + p.id + '\'); if(event.key===\'Escape\') pfCancelRowState();">' +
           '<button type="button" class="pf-icon-btn pf-row-btn-ok" onclick="pfConfirmRenameInline(\'' + p.id + '\')">保存</button>' +
