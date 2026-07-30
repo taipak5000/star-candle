@@ -1016,6 +1016,20 @@
     font-size: 14px;
     cursor: pointer;
   }
+  .pf-row-input {
+    flex: 1;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--gold);
+    border-radius: 8px;
+    padding: 6px 8px;
+    color: var(--cream);
+    font-size: 14px;
+    font-family: inherit;
+    min-width: 0;
+  }
+  .pf-row-confirm-text { flex: 1; font-size: 12.5px; color: var(--cream); line-height: 1.4; }
+  .pf-row-btn-ok { background: var(--gold); color: var(--indigo); border: none; font-weight: 700; }
+  .pf-row-btn-danger { background: var(--crimson); color: #fff; border: none; }
 
   /* ═══ サイドバーレイアウト ═══ */
   .page-head-top {
@@ -1499,28 +1513,9 @@
     pfSwitchProfile(id);
   }
 
-  function pfRenameProfile(id) {
-    var list = pfLoadProfiles() || [];
-    var target = null;
-    for (var i = 0; i < list.length; i++) { if (list[i].id === id) { target = list[i]; break; } }
-    if (!target) return;
-    var name = prompt('新しい名前を入力してください', target.name);
-    if (name === null) return;
-    name = name.trim();
-    if (!name) return;
-    target.name = name.slice(0, 20);
-    pfSaveProfiles(list);
-    pfRenderModal();
-    pfRenderBar();
-  }
-
   function pfDeleteProfile(id) {
     var list = pfLoadProfiles() || [];
-    if (list.length <= 1) { alert('最後の1つは削除できません'); return; }
-    var target = null;
-    for (var i = 0; i < list.length; i++) { if (list[i].id === id) { target = list[i]; break; } }
-    if (!target) return;
-    if (!confirm('「' + target.name + '」を削除しますか？このプロフィールの保存データも削除されます。')) return;
+    if (list.length <= 1) return;
     var remaining = list.filter(function (p) { return p.id !== id; });
     pfSaveProfiles(remaining);
     try {
@@ -1553,6 +1548,11 @@
     bar.innerHTML = '🗂️ <b>' + pfEscapeHtml(active.name) + '</b>&nbsp;に切替中（タップで切替）';
   }
 
+  // 名前変更中・削除確認中のプロフィールID（ポップアップブロックの影響を受ける
+  // prompt()/confirm() は使わず、モーダル内にインラインで表示する）
+  var pfEditingId = null;
+  var pfDeletingId = null;
+
   function pfRenderModal() {
     var body = document.getElementById('pfModalBody');
     if (!body) return;
@@ -1560,21 +1560,87 @@
     var activeId = pfGetActiveId();
     var html = '';
     list.forEach(function (p) {
+      if (pfEditingId === p.id) {
+        html += '<div class="pf-row">' +
+          '<input type="text" class="pf-row-input" id="pfEditInput" value="' + pfEscapeHtml(p.name) + '" maxlength="20" ' +
+          'onkeydown="if(event.key===\'Enter\') pfConfirmRenameInline(\'' + p.id + '\'); if(event.key===\'Escape\') pfCancelRowState();">' +
+          '<button type="button" class="pf-icon-btn pf-row-btn-ok" onclick="pfConfirmRenameInline(\'' + p.id + '\')">保存</button>' +
+          '<button type="button" class="pf-icon-btn" onclick="pfCancelRowState()">取消</button>' +
+          '</div>';
+        return;
+      }
+      if (pfDeletingId === p.id) {
+        html += '<div class="pf-row" style="flex-wrap: wrap;">' +
+          '<span class="pf-row-confirm-text">「' + pfEscapeHtml(p.name) + '」を削除しますか？このプロフィールの保存データも削除されます。</span>' +
+          '<button type="button" class="pf-icon-btn pf-row-btn-danger" onclick="pfConfirmDeleteInline(\'' + p.id + '\')">削除</button>' +
+          '<button type="button" class="pf-icon-btn" onclick="pfCancelRowState()">取消</button>' +
+          '</div>';
+        return;
+      }
       html += '<div class="pf-row' + (p.id === activeId ? ' active' : '') + '">' +
         '<span class="pf-row-name" onclick="pfSwitchProfile(\'' + p.id + '\')">' + (p.id === activeId ? '✅ ' : '') + pfEscapeHtml(p.name) + '</span>' +
-        '<button type="button" class="pf-icon-btn" onclick="pfRenameProfile(\'' + p.id + '\')">✏️</button>' +
-        '<button type="button" class="pf-icon-btn" onclick="pfDeleteProfile(\'' + p.id + '\')">🗑️</button>' +
+        '<button type="button" class="pf-icon-btn" onclick="pfStartRename(\'' + p.id + '\')">✏️</button>' +
+        (list.length > 1 ? '<button type="button" class="pf-icon-btn" onclick="pfStartDelete(\'' + p.id + '\')">🗑️</button>' : '') +
         '</div>';
     });
     body.innerHTML = html;
+
+    if (pfEditingId !== null) {
+      var input = document.getElementById('pfEditInput');
+      if (input) { input.focus(); input.select(); }
+    }
+  }
+
+  function pfStartRename(id) {
+    pfDeletingId = null;
+    pfEditingId = id;
+    pfRenderModal();
+  }
+
+  function pfStartDelete(id) {
+    pfEditingId = null;
+    pfDeletingId = id;
+    pfRenderModal();
+  }
+
+  function pfCancelRowState() {
+    pfEditingId = null;
+    pfDeletingId = null;
+    pfRenderModal();
+  }
+
+  function pfConfirmRenameInline(id) {
+    var input = document.getElementById('pfEditInput');
+    var next = input ? input.value : '';
+    pfEditingId = null;
+    if (next && next.trim()) {
+      var list = pfLoadProfiles() || [];
+      var target = null;
+      for (var i = 0; i < list.length; i++) { if (list[i].id === id) { target = list[i]; break; } }
+      if (target) {
+        target.name = next.trim().slice(0, 20);
+        pfSaveProfiles(list);
+        pfRenderBar();
+      }
+    }
+    pfRenderModal();
+  }
+
+  function pfConfirmDeleteInline(id) {
+    pfDeletingId = null;
+    pfDeleteProfile(id);
   }
 
   function pfOpenModal() {
+    pfEditingId = null;
+    pfDeletingId = null;
     pfRenderModal();
     var overlay = document.getElementById('pfModalOverlay');
     if (overlay) overlay.classList.add('is-visible');
   }
   function pfCloseModal() {
+    pfEditingId = null;
+    pfDeletingId = null;
     var overlay = document.getElementById('pfModalOverlay');
     if (overlay) overlay.classList.remove('is-visible');
   }
@@ -1583,8 +1649,11 @@
   window.pfCloseModal = pfCloseModal;
   window.pfSwitchProfile = pfSwitchProfile;
   window.pfAddProfile = pfAddProfile;
-  window.pfRenameProfile = pfRenameProfile;
-  window.pfDeleteProfile = pfDeleteProfile;
+  window.pfStartRename = pfStartRename;
+  window.pfStartDelete = pfStartDelete;
+  window.pfCancelRowState = pfCancelRowState;
+  window.pfConfirmRenameInline = pfConfirmRenameInline;
+  window.pfConfirmDeleteInline = pfConfirmDeleteInline;
 
   pfRenderBar();
 
