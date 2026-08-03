@@ -1151,6 +1151,15 @@
     cursor: pointer;
   }
   .pf-hint { margin: 12px 0 0; font-size: 11.5px; color: var(--text-dim); line-height: 1.5; }
+  .pf-currency-section { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--card-border); }
+  .pf-currency-title { font-size: 12px; font-weight: 700; color: var(--text-dim); margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.4px; }
+  .pf-currency-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 5px 2px; }
+  .pf-currency-label { font-size: 13px; color: var(--cream); }
+  .pf-currency-input {
+    width: 90px; background: rgba(255,255,255,0.06); border: 1px solid var(--card-border); border-radius: 8px;
+    padding: 6px 8px; font-size: 14px; color: var(--cream); font-family: inherit; text-align: right;
+  }
+  .pf-currency-input:focus { border-color: var(--gold); }
   .pf-close-btn {
     display: block;
     width: 100%;
@@ -1427,6 +1436,10 @@
         <button type="button" class="pf-add-btn" onclick="pfAddProfile()">追加</button>
       </div>
       <p class="pf-hint">プロフィールを切り替えると、目標設定やチェック状況などがそのプロフィール専用の保存内容に切り替わります。サブアカウントなど複数アカウントをお持ちの方にご利用いただけます。</p>
+      <div class="pf-currency-section">
+        <div class="pf-currency-title">💰 所持通貨</div>
+        <div id="pfCurrencyBody"></div>
+      </div>
       <button type="button" class="pf-close-btn" onclick="pfCloseModal()">閉じる</button>
     </div>
   </div>
@@ -1799,10 +1812,76 @@
     pfDeleteProfile(id);
   }
 
+  // ═══ 💰 所持通貨の統一管理（プロフィール切替モーダル内、全サイト共通） ═══
+  // candle/heartはitemのwishOwnCurrencyを、seasonCandleはcompanionの記録
+  // データを直接読み書きし、二重管理を避ける。昇華キャンドル・シーズン
+  // ハート・イベント通貨はどのサイトにも記録先が無いため新規キーで管理する。
+  var PF_CURRENCY_FIELDS = [
+    { key: 'candle',         icon: '🕯️', label: 'キャンドル' },
+    { key: 'heart',          icon: '💗', label: 'ハート' },
+    { key: 'ascendedCandle', icon: '🕯️✨', label: '昇華キャンドル' },
+    { key: 'seasonCandle',   icon: '🕯️🍂', label: 'シーズンキャンドル' },
+    { key: 'seasonHeart',    icon: '💗🍂', label: 'シーズンハート' },
+    { key: 'eventCurrency',  icon: '🎫', label: 'イベント通貨' }
+  ];
+  function pfCompanionDataKey() {
+    var id = pfGetActiveId();
+    return id === DEFAULT_PROFILE_ID ? 'sky_companion_v4_data' : ('sky_companion_v4_data__' + id);
+  }
+  function pfLoadCurrency() {
+    var wish, companionData, extra;
+    try { wish = JSON.parse(localStorage.getItem(nsKey('wishOwnCurrency'))) || {}; } catch (e) { wish = {}; }
+    try { companionData = JSON.parse(localStorage.getItem(pfCompanionDataKey())) || {}; } catch (e) { companionData = {}; }
+    try { extra = JSON.parse(localStorage.getItem(nsKey('skyCurrencyExtra_v1'))) || {}; } catch (e) { extra = {}; }
+    return {
+      candle: wish.candle || 0,
+      heart: wish.heart || 0,
+      seasonCandle: companionData.ownedCandles || 0,
+      ascendedCandle: extra.ascendedCandle || 0,
+      seasonHeart: extra.seasonHeart || 0,
+      eventCurrency: extra.eventCurrency || 0
+    };
+  }
+  function pfSaveCurrencyField(field, rawValue) {
+    var n = Math.max(0, Number(rawValue) || 0);
+    if (field === 'candle' || field === 'heart') {
+      var key = nsKey('wishOwnCurrency');
+      var wish;
+      try { wish = JSON.parse(localStorage.getItem(key)) || {}; } catch (e) { wish = {}; }
+      wish[field] = n;
+      localStorage.setItem(key, JSON.stringify(wish));
+    } else if (field === 'seasonCandle') {
+      var ckey = pfCompanionDataKey();
+      var data;
+      try { data = JSON.parse(localStorage.getItem(ckey)) || {}; } catch (e) { data = {}; }
+      data.ownedCandles = n;
+      localStorage.setItem(ckey, JSON.stringify(data));
+    } else {
+      var ekey = nsKey('skyCurrencyExtra_v1');
+      var extra;
+      try { extra = JSON.parse(localStorage.getItem(ekey)) || {}; } catch (e) { extra = {}; }
+      extra[field] = n;
+      localStorage.setItem(ekey, JSON.stringify(extra));
+    }
+  }
+  function pfRenderCurrency() {
+    var body = document.getElementById('pfCurrencyBody');
+    if (!body) return;
+    var c = pfLoadCurrency();
+    body.innerHTML = PF_CURRENCY_FIELDS.map(function (f) {
+      return '<div class="pf-currency-row">' +
+        '<span class="pf-currency-label">' + f.icon + ' ' + f.label + '</span>' +
+        '<input type="number" min="0" class="pf-currency-input" value="' + c[f.key] + '" ' +
+        'onchange="pfSaveCurrencyField(\'' + f.key + '\', this.value)">' +
+        '</div>';
+    }).join('');
+  }
+
   function pfOpenModal() {
     pfEditingId = null;
     pfDeletingId = null;
     pfRenderModal();
+    pfRenderCurrency();
     var overlay = document.getElementById('pfModalOverlay');
     if (overlay) overlay.classList.add('is-visible');
   }
@@ -1822,6 +1901,7 @@
   window.pfCancelRowState = pfCancelRowState;
   window.pfConfirmRenameInline = pfConfirmRenameInline;
   window.pfConfirmDeleteInline = pfConfirmDeleteInline;
+  window.pfSaveCurrencyField = pfSaveCurrencyField;
 
   pfRenderBar();
 
