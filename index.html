@@ -1902,7 +1902,8 @@
     { key: 'candle',         icon: '🕯️', label: 'キャンドル' },
     { key: 'heart',          icon: '💗', label: 'ハート' },
     { key: 'ascendedCandle', icon: '🕯️✨', label: '星のキャンドル' },
-    { key: 'seasonCandle',   icon: '🕯️🍂', label: 'シーズンキャンドル' }
+    { key: 'seasonCandle',   icon: '🕯️🍂', label: 'シーズンキャンドル' },
+    { key: 'giftPass',       icon: '🎟️', label: 'ギフトパス' }
   ];
   function pfCompanionDataKey() {
     var id = pfGetActiveId();
@@ -1917,7 +1918,8 @@
       candle: wish.candle || 0,
       heart: wish.heart || 0,
       seasonCandle: companionData.ownedCandles || 0,
-      ascendedCandle: extra.ascendedCandle || 0
+      ascendedCandle: extra.ascendedCandle || 0,
+      giftPass: extra.giftPass || 0
     };
   }
   function pfSaveCurrencyField(field, rawValue) {
