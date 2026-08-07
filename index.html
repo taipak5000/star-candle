@@ -1133,6 +1133,8 @@
   .pf-color-input::-webkit-color-swatch { border: none; border-radius: 50%; }
   .pf-color-input::-moz-color-swatch { border: none; border-radius: 50%; }
   .pf-color-clear-btn { font-size: 10px; }
+  .pf-tint-overlay { position: fixed; inset: 0; pointer-events: none; z-index: 2;
+    background-color: var(--pf-tint-rgb, transparent); }
   .pf-add-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
   .pf-input {
     flex: 1;
@@ -1419,6 +1421,7 @@
 </style>
 </head>
 <body>
+<div class="pf-tint-overlay" aria-hidden="true"></div>
 <noscript><p style="text-align:center;color:#fff;padding:24px;">このツールの利用には JavaScript が必要です。</p></noscript>
 
 <div class="star-field" id="starField"></div>
@@ -1704,29 +1707,25 @@
     return found || list[0];
   }
 
-  // プロフィールごとのアカウントカラー（任意）。このサイトのイメージカラー（金色）に反映する。
-  var PF_THEME_MAIN_VAR = '--gold';
-  var PF_THEME_LIGHT_VAR = '--gold-light';
+  // プロフィールごとのアカウントカラー（任意）。フォントやボタンではなく画面背景への
+  // うっすらとした色重ねとして反映する。CSS変数名・仕組みは全サイト共通。
+  var PF_TINT_VAR = '--pf-tint-rgb';
   function pfHexToRgb(hex) {
     var m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex);
     return m ? { r: parseInt(m[1], 16), g: parseInt(m[2], 16), b: parseInt(m[3], 16) } : null;
   }
-  function pfLightenHex(hex, amt) {
-    var c = pfHexToRgb(hex);
-    if (!c) return hex;
-    var f = function (v) { return Math.min(255, Math.round(v + (255 - v) * amt)).toString(16).padStart(2, '0'); };
-    return '#' + f(c.r) + f(c.g) + f(c.b);
-  }
   function pfApplyThemeColor(hex) {
     var root = document.documentElement.style;
     if (!hex || !pfIsSafeColor(hex)) {
-      root.removeProperty(PF_THEME_MAIN_VAR);
-      root.removeProperty(PF_THEME_LIGHT_VAR);
+      root.removeProperty(PF_TINT_VAR);
       return;
     }
-    root.setProperty(PF_THEME_MAIN_VAR, hex);
-    root.setProperty(PF_THEME_LIGHT_VAR, pfLightenHex(hex, 0.3));
+    var c = pfHexToRgb(hex);
+    root.setProperty(PF_TINT_VAR, 'rgba(' + c.r + ', ' + c.g + ', ' + c.b + ', 0.07)');
   }
+  window.addEventListener('storage', function (e) {
+    if (e.key === PROFILES_KEY) pfApplyThemeColor(pfGetActiveProfile().color);
+  });
   function pfSetProfileColor(id, color) {
     if (!pfIsSafeColor(color)) return;
     var list = pfEnsureInit();
