@@ -1133,8 +1133,11 @@
   .pf-color-input::-webkit-color-swatch { border: none; border-radius: 50%; }
   .pf-color-input::-moz-color-swatch { border: none; border-radius: 50%; }
   .pf-color-clear-btn { font-size: 10px; }
-  .pf-tint-overlay { position: fixed; inset: 0; pointer-events: none; z-index: 2;
-    background-color: var(--pf-tint-rgb, transparent); }
+  .pf-tint-overlay { display: none; }
+  body { background:
+      linear-gradient(var(--pf-tint-rgb, transparent), var(--pf-tint-rgb, transparent)),
+      radial-gradient(ellipse 90% 45% at 50% 100%, rgba(245,181,76,0.16), transparent 60%),
+      linear-gradient(165deg, var(--indigo) 0%, var(--violet) 55%, var(--violet-deep) 100%) !important; }
   .pf-add-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
   .pf-input {
     flex: 1;
