@@ -2185,11 +2185,30 @@
     els.resultContent.innerHTML = html;
   }
 
-  [els.target, els.current, els.targetDate, els.feathers, els.buyDrink].forEach(function (el) {
+  // 所持本数をプロフィール共通の所持星のキャンドル数(wishOwnCurrency.starCandle)へ書き戻す。
+  // アイテム所持管理など他サイトの「所持通貨」表示にも同じ値が反映されるようにするため。
+  // ページ読み込み時(loadState直後のupdate)では呼ばない = 他サイトで先に更新された値を
+  // 開いただけで上書きしてしまわないようにする。ユーザーが実際に本数を動かした時だけ同期する。
+  // pfSaveCurrencyFieldのフィールド名は歴史的経緯で'ascendedCandle'だが、実体は
+  // wishOwnCurrency.starCandleに保存される（pfLoadCurrency/pfSaveCurrencyField参照）。
+  function syncCurrentToSharedCurrency() {
+    pfSaveCurrencyField('ascendedCandle', els.current.value);
+    // プロフィールモーダルを開いたまま所持本数を編集した場合、モーダル内の「所持通貨」表示は
+    // 開いた時点のスナップショットのままになってしまうため、開いていれば即座に再描画する
+    var overlay = document.getElementById('pfModalOverlay');
+    if (overlay && overlay.classList.contains('is-visible')) pfRenderCurrency();
+  }
+
+  [els.target, els.targetDate, els.feathers, els.buyDrink].forEach(function (el) {
     el.addEventListener('input', function () {
       update();
       saveState();
     });
+  });
+  els.current.addEventListener('input', function () {
+    update();
+    saveState();
+    syncCurrentToSharedCurrency();
   });
 
   // 「＋◯本を所持本数に加算」ボタン:羽スライダーの換算本数(枚数×0.25)を
@@ -2202,6 +2221,7 @@
     els.current.value = Math.round((current + edenWeekly) * 100) / 100;
     update();
     saveState();
+    syncCurrentToSharedCurrency();
     addHistoryEntry('feather', '羽 ' + feathers + '枚', edenWeekly, null);
   });
 
@@ -2701,6 +2721,7 @@
       saveCheckedDays(checkedDays);
       update();
       saveState();
+      syncCurrentToSharedCurrency();
       addHistoryEntry('shard', '赤闇 ' + shardDayLabel(key), delta, key);
       var container = cb.closest('.predict-next, .predict-day');
       if (container) container.classList.toggle('is-checked', cb.checked);
@@ -2967,6 +2988,7 @@
       renderHistory();
       update();
       saveState();
+      syncCurrentToSharedCurrency();
     } catch (err) { /* no-op */ }
   });
 
