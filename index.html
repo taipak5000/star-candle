@@ -1463,82 +1463,82 @@
 <div class="wrap">
   <header class="page-head">
     <div class="page-head-top">
-      <button type="button" class="sidebar-toggle-btn" id="sidebarToggleBtn">☰ ツール</button>
-      <button type="button" class="force-refresh-btn" id="forceRefreshBtn" title="他サイトで更新した所持通貨などが反映されない場合、リロードの代わりにこちらをお試しください">🔄 最新の状態に更新</button>
+      <button type="button" class="sidebar-toggle-btn" id="sidebarToggleBtn" data-i18n="sidebar.hamburgerToggle">☰ ツール</button>
+      <button type="button" class="force-refresh-btn" id="forceRefreshBtn" data-i18n="header.forceRefreshBtn" data-i18n-title="header.forceRefreshTitle" title="他サイトで更新した所持通貨などが反映されない場合、リロードの代わりにこちらをお試しください">🔄 最新の状態に更新</button>
     </div>
     <div class="title-icon" aria-hidden="true"></div>
-    <h1>星のキャンドル計算機</h1>
-    <p class="subtitle">Sky 星を紡ぐ子どもたち・目標本数まであと何週間？</p>
+    <h1 data-i18n="header.title">星のキャンドル計算機</h1>
+    <p class="subtitle" data-i18n="header.subtitle">Sky 星を紡ぐ子どもたち・目標本数まであと何週間？</p>
   </header>
 
   <div class="pf-bar" id="pfBar"></div>
 
   <div class="pf-modal-overlay" id="pfModalOverlay">
     <div class="pf-modal-card">
-      <h3>🗂️ プロフィール（保存枠）</h3>
+      <h3 data-i18n="profile.modalTitle">🗂️ プロフィール（保存枠）</h3>
       <div id="pfModalBody"></div>
       <div class="pf-add-row">
-        <input type="text" id="pfNewProfileInput" class="pf-input" placeholder="新しいプロフィール名" maxlength="20">
-        <button type="button" class="pf-add-btn" onclick="pfAddProfile()">追加</button>
+        <input type="text" id="pfNewProfileInput" class="pf-input" data-i18n-placeholder="profile.newNamePlaceholder" placeholder="新しいプロフィール名" maxlength="20">
+        <button type="button" class="pf-add-btn" data-i18n="profile.addBtn" onclick="pfAddProfile()">追加</button>
       </div>
-      <p class="pf-hint">プロフィールを切り替えると、目標設定やチェック状況などがそのプロフィール専用の保存内容に切り替わります。サブアカウントなど複数アカウントをお持ちの方にご利用いただけます。</p>
+      <p class="pf-hint" data-i18n="profile.switchHint">プロフィールを切り替えると、目標設定やチェック状況などがそのプロフィール専用の保存内容に切り替わります。サブアカウントなど複数アカウントをお持ちの方にご利用いただけます。</p>
       <div class="pf-currency-section">
         <div class="pf-currency-title" onclick="pfToggleCurrency()">
-          <span>💰 所持通貨</span>
-          <span class="pf-currency-toggle-label" id="pfCurrencyToggleLabel">閉じる ▲</span>
+          <span data-i18n="currency.sectionLabel">💰 所持通貨</span>
+          <span class="pf-currency-toggle-label" id="pfCurrencyToggleLabel" data-i18n="currency.toggleCloseLabel">閉じる ▲</span>
         </div>
         <div id="pfCurrencyBody"></div>
       </div>
-      <button type="button" class="pf-icon-btn" style="width:100%; margin-top:10px; padding:8px;" onclick="dmOpenModal()">💾 データのバックアップ・復元・削除</button>
-      <button type="button" class="pf-close-btn" onclick="pfCloseModal()">閉じる</button>
+      <button type="button" class="pf-icon-btn" style="width:100%; margin-top:10px; padding:8px;" data-i18n="profile.backupOpenBtn" onclick="dmOpenModal()">💾 データのバックアップ・復元・削除</button>
+      <button type="button" class="pf-close-btn" data-i18n="profile.closeBtn" onclick="pfCloseModal()">閉じる</button>
     </div>
   </div>
 
   <div class="pf-modal-overlay" id="dashModalOverlay">
     <div class="pf-modal-card">
-      <h3>🗓️ 今日・今週・今月</h3>
-      <div id="dashBody"><p class="pf-hint">読み込み中…</p></div>
-      <button type="button" class="pf-close-btn" onclick="pfDashClose()">閉じる</button>
+      <h3 data-i18n="dashboard.modalTitle">🗓️ 今日・今週・今月</h3>
+      <div id="dashBody"><p class="pf-hint" data-i18n="dashboard.loading">読み込み中…</p></div>
+      <button type="button" class="pf-close-btn" data-i18n="profile.closeBtn" onclick="pfDashClose()">閉じる</button>
     </div>
   </div>
 
   <!-- ▸ データのバックアップ・復元・削除モーダル -->
   <div class="pf-modal-overlay" id="dmModalOverlay">
     <div class="pf-modal-card">
-      <h3>💾 データのバックアップ・復元・削除</h3>
-      <p class="pf-hint" style="margin-top:0;">このブラウザに保存されている taipak5000.github.io 系ツール（item・wings・companion・spirit-catalog 等）のデータをまとめて書き出し・読み込み・削除できます。全プロフィール分がまとめて対象になります。</p>
-      <button type="button" class="pf-add-btn" style="width:100%; margin-bottom:8px;" onclick="dmExport()">⬇️ データをエクスポート（ファイルに保存）</button>
+      <h3 data-i18n="backup.modalTitle">💾 データのバックアップ・復元・削除</h3>
+      <p class="pf-hint" style="margin-top:0;" data-i18n="backup.hint">このブラウザに保存されている taipak5000.github.io 系ツール（item・wings・companion・spirit-catalog 等）のデータをまとめて書き出し・読み込み・削除できます。全プロフィール分がまとめて対象になります。</p>
+      <button type="button" class="pf-add-btn" style="width:100%; margin-bottom:8px;" data-i18n="backup.exportBtn" onclick="dmExport()">⬇️ データをエクスポート（ファイルに保存）</button>
       <input type="file" id="dmImportFile" accept="application/json" style="display:none" onchange="dmImportFileSelected(event)">
-      <button type="button" class="pf-icon-btn" style="width:100%; margin-bottom:8px; padding:8px;" onclick="document.getElementById('dmImportFile').click()">⬆️ ファイルからインポート</button>
+      <button type="button" class="pf-icon-btn" style="width:100%; margin-bottom:8px; padding:8px;" data-i18n="backup.importBtn" onclick="document.getElementById('dmImportFile').click()">⬆️ ファイルからインポート</button>
       <div id="dmImportConfirmArea"></div>
       <div id="dmWipeArea">
-        <button type="button" class="pf-icon-btn pf-row-btn-danger" style="width:100%; padding:8px;" onclick="dmStartWipe()">🗑️ 全データを削除</button>
+        <button type="button" class="pf-icon-btn pf-row-btn-danger" style="width:100%; padding:8px;" data-i18n="backup.wipeBtn" onclick="dmStartWipe()">🗑️ 全データを削除</button>
       </div>
       <div id="dmStatus" class="pf-hint"></div>
-      <button type="button" class="pf-close-btn" onclick="dmCloseModal()">閉じる</button>
+      <button type="button" class="pf-close-btn" data-i18n="profile.closeBtn" onclick="dmCloseModal()">閉じる</button>
     </div>
   </div>
 
   <!-- ▸ ホーム画面アイコンカスタマイズモーダル -->
   <div class="pf-modal-overlay" id="iconCustomModal">
     <div class="pf-modal-card">
-      <h3>🎨 ホーム画面アイコンをカスタマイズ</h3>
+      <h3 data-i18n="iconCustom.modalTitle">🎨 ホーム画面アイコンをカスタマイズ</h3>
 
-      <p class="pf-hint" style="margin-top:0;">
+      <p class="pf-hint" style="margin-top:0;" data-i18n="iconCustom.instructions">
         スマホの「ホーム画面に追加」をしたときのアイコンを、好きな絵文字や画像に変更できます。<br>
         <b>追加する前に</b>設定してください。追加した後に変更しても、既に追加済みのアイコンは自動更新されません（変更したい場合は一度削除して追加し直してください）。
       </p>
 
       <div style="display:flex; gap:8px; margin:14px 0;">
-        <button type="button" class="pf-icon-btn" id="iconModeEmojiBtn" onclick="pfIconSetMode('emoji')" style="flex:1; padding:8px;">😀 絵文字</button>
-        <button type="button" class="pf-icon-btn" id="iconModeImageBtn" onclick="pfIconSetMode('image')" style="flex:1; padding:8px;">🖼️ 画像</button>
+        <button type="button" class="pf-icon-btn" id="iconModeEmojiBtn" onclick="pfIconSetMode('emoji')" style="flex:1; padding:8px;" data-i18n="iconCustom.emojiModeBtn">😀 絵文字</button>
+        <button type="button" class="pf-icon-btn" id="iconModeImageBtn" onclick="pfIconSetMode('image')" style="flex:1; padding:8px;" data-i18n="iconCustom.imageModeBtn">🖼️ 画像</button>
       </div>
 
       <div id="iconEmojiPanel">
-        <p style="font-size:12px; font-weight:700; color:var(--text-dim); margin:0 0 6px;">絵文字</p>
+        <p style="font-size:12px; font-weight:700; color:var(--text-dim); margin:0 0 6px;" data-i18n="iconCustom.emojiLabel">絵文字</p>
         <input type="text" id="iconEmojiInput" maxlength="8" value="🕯️" oninput="pfIconUpdatePreview()"
           style="font-size:28px; text-align:center; width:100%; padding:10px; border-radius:8px; border:1px solid var(--card-border); background:rgba(255,255,255,0.06); color:var(--cream); box-sizing:border-box;">
-        <p style="font-size:12px; font-weight:700; color:var(--text-dim); margin:10px 0 6px;">背景色</p>
+        <p style="font-size:12px; font-weight:700; color:var(--text-dim); margin:10px 0 6px;" data-i18n="iconCustom.bgColorLabel">背景色</p>
         <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
           <button type="button" onclick="pfIconPickSwatch('#F5B54C')" style="width:32px; height:32px; border-radius:50%; background:#F5B54C; border:2px solid transparent;"></button>
           <button type="button" onclick="pfIconPickSwatch('#1B1B3A')" style="width:32px; height:32px; border-radius:50%; background:#1B1B3A; border:2px solid transparent;"></button>
@@ -1553,22 +1553,22 @@
           <button type="button" onclick="pfIconPickSwatch('#32ADE6')" style="width:32px; height:32px; border-radius:50%; background:#32ADE6; border:2px solid transparent;"></button>
           <button type="button" onclick="pfIconPickSwatch('#48484A')" style="width:32px; height:32px; border-radius:50%; background:#48484A; border:2px solid transparent;"></button>
         </div>
-        <p style="font-size:11.5px; color:var(--text-dim); margin:0 0 6px;">🎨 タップして好きな色を自由に選ぶこともできます</p>
+        <p style="font-size:11.5px; color:var(--text-dim); margin:0 0 6px;" data-i18n="iconCustom.freeColorHint">🎨 タップして好きな色を自由に選ぶこともできます</p>
         <input type="color" id="iconBgColorInput" value="#F5B54C" oninput="pfIconUpdatePreview()" style="width:100%; height:40px; border:none; border-radius:8px; background:none;">
       </div>
 
       <div id="iconImagePanel" style="display:none;">
-        <p style="font-size:12px; font-weight:700; color:var(--text-dim); margin:0 0 6px;">画像をアップロード</p>
+        <p style="font-size:12px; font-weight:700; color:var(--text-dim); margin:0 0 6px;" data-i18n="iconCustom.uploadImageLabel">画像をアップロード</p>
         <input type="file" id="iconImageInput" accept="image/*" onchange="pfIconHandleFile(event)">
       </div>
 
       <div style="display:flex; flex-direction:column; align-items:center; margin:18px 0;">
-        <p style="font-size:12px; font-weight:700; color:var(--text-dim); margin:0 0 6px;">プレビュー</p>
+        <p style="font-size:12px; font-weight:700; color:var(--text-dim); margin:0 0 6px;" data-i18n="iconCustom.previewLabel">プレビュー</p>
         <canvas id="iconPreviewCanvas" width="96" height="96" style="border-radius:22px; box-shadow:0 2px 8px rgba(0,0,0,0.4);"></canvas>
       </div>
 
-      <button type="button" class="pf-add-btn" style="width:100%; box-sizing:border-box; padding:10px;" onclick="pfIconSave()">保存して適用</button>
-      <button type="button" class="pf-close-btn" onclick="pfIconReset()">デフォルトに戻す</button>
+      <button type="button" class="pf-add-btn" style="width:100%; box-sizing:border-box; padding:10px;" data-i18n="iconCustom.saveBtn" onclick="pfIconSave()">保存して適用</button>
+      <button type="button" class="pf-close-btn" data-i18n="iconCustom.resetBtn" onclick="pfIconReset()">デフォルトに戻す</button>
       <p id="iconSaveStatus" style="text-align:center; font-size:12px; color:var(--text-dim); margin-top:10px;"></p>
     </div>
   </div>
@@ -1579,77 +1579,80 @@
 
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-head">
-        <div class="sidebar-section-label">🔗 関連ツール</div>
-        <button type="button" class="sidebar-close-btn" id="sidebarCloseBtn">×</button>
+        <div class="sidebar-section-label" data-i18n="sidebar.relatedToolsLabel">🔗 関連ツール</div>
+        <button type="button" class="sidebar-close-btn" id="sidebarCloseBtn" data-i18n="sidebar.closeBtn">×</button>
+      </div>
+      <div style="margin-bottom:14px;">
+        <button type="button" class="sidebar-nav-link" id="langToggleBtn" style="width:100%; box-sizing:border-box; border:1px solid var(--card-border); background:rgba(255,255,255,0.06); cursor:pointer; justify-content:center;" onclick="toggleLang()">EN</button>
       </div>
       <nav>
         <a href="https://taipak5000.github.io/tai-item/" class="sidebar-nav-link">
-          📁 アイテム所持管理
+          📁 <span data-i18n="tools.item">アイテム所持管理</span>
         </a>
         <a href="https://taipak5000.github.io/tai-emote/" class="sidebar-nav-link">
-          🎭 エモート所持率管理
+          🎭 <span data-i18n="tools.emote">エモート所持率管理</span>
         </a>
         <a href="https://taipak5000.github.io/share/" class="sidebar-nav-link">
-          📍 創作物管理ツール
+          📍 <span data-i18n="tools.share">創作物管理ツール</span>
         </a>
         <a href="https://taipak5000.github.io/tai-nomacan/" class="sidebar-nav-link">
-          🕯️ ノマキャン計算機
+          🕯️ <span data-i18n="tools.taiNomacan">ノマキャン計算機</span>
         </a>
         <a href="https://taipak5000.github.io/star-candle/" class="sidebar-nav-link current-tool">
-          🕯️ 星のキャンドル計算機
+          🕯️ <span data-i18n="tools.starCandle">星のキャンドル計算機</span>
         </a>
         <a href="https://taipak5000.github.io/companion/" class="sidebar-nav-link">
-          ✨ 精霊同行ツール
+          ✨ <span data-i18n="tools.companion">精霊同行ツール</span>
         </a>
         <a href="https://taipak5000.github.io/wings/" class="sidebar-nav-link">
-          🪽 羽トラッカー
+          🪽 <span data-i18n="tools.wings">羽トラッカー</span>
         </a>
         <a href="https://taipak5000.github.io/tai-transfer/" class="sidebar-nav-link">
-          🔄 データ引継ぎ
+          🔄 <span data-i18n="tools.dataTransfer">データ引継ぎ</span>
         </a>
       </nav>
       <div style="margin-top:18px; padding-top:14px; border-top:1px solid var(--card-border);">
-        <div class="sidebar-section-label">📱 ホーム画面アイコン</div>
-        <button type="button" class="sidebar-nav-link" style="width:100%; box-sizing:border-box; border:1px solid var(--card-border); background:rgba(255,255,255,0.06); cursor:pointer; justify-content:center;" onclick="pfIconOpenModal()">🎨 アイコンを<br>カスタマイズ</button>
+        <div class="sidebar-section-label" data-i18n="sidebar.homeScreenIconLabel">📱 ホーム画面アイコン</div>
+        <button type="button" class="sidebar-nav-link" style="width:100%; box-sizing:border-box; border:1px solid var(--card-border); background:rgba(255,255,255,0.06); cursor:pointer; justify-content:center;" data-i18n="sidebar.customizeIconBtn" onclick="pfIconOpenModal()">🎨 アイコンを<br>カスタマイズ</button>
       </div>
     </aside>
 
     <div class="main-content-wrapper">
 
   <section class="card">
-    <h2>🎯 目標を設定</h2>
+    <h2 data-i18n="goal.heading">🎯 目標を設定</h2>
     <div class="field">
-      <label for="target">目標本数</label>
+      <label for="target" data-i18n="goal.targetLabel">目標本数</label>
       <div class="input-suffix">
-        <input type="number" id="target" inputmode="decimal" min="0" step="any" placeholder="例: 60">
-        <span class="unit">本</span>
+        <input type="number" id="target" inputmode="decimal" min="0" step="any" data-i18n-placeholder="goal.targetPlaceholder" placeholder="例: 60">
+        <span class="unit" data-i18n="goal.unit">本</span>
       </div>
     </div>
     <div class="field">
-      <label for="current">所持本数</label>
+      <label for="current" data-i18n="goal.currentLabel">所持本数</label>
       <div class="input-suffix">
-        <input type="number" id="current" inputmode="decimal" min="0" step="any" placeholder="例: 5">
-        <span class="unit">本</span>
+        <input type="number" id="current" inputmode="decimal" min="0" step="any" data-i18n-placeholder="goal.currentPlaceholder" placeholder="例: 5">
+        <span class="unit" data-i18n="goal.unit">本</span>
       </div>
     </div>
     <div class="field">
-      <label for="targetDateTrigger">目標日(任意)</label>
+      <label for="targetDateTrigger" data-i18n="goal.targetDateLabel">目標日(任意)</label>
       <div class="date-picker" id="datePicker">
         <button type="button" class="date-picker-trigger" id="targetDateTrigger" aria-haspopup="true" aria-expanded="false">
-          <span id="targetDateTriggerText">日付を選択(任意)</span>
+          <span id="targetDateTriggerText" data-i18n="goal.dateSelectPlaceholder">日付を選択(任意)</span>
           <span class="date-picker-icon" aria-hidden="true">📅</span>
         </button>
         <div class="date-picker-popup" id="datePickerPopup">
           <div class="date-picker-header">
-            <button type="button" class="date-picker-nav" id="datePickerPrev" aria-label="前の月">‹</button>
+            <button type="button" class="date-picker-nav" id="datePickerPrev" data-i18n-aria-label="goal.prevMonth" aria-label="前の月">‹</button>
             <span class="date-picker-month" id="datePickerMonthLabel"></span>
-            <button type="button" class="date-picker-nav" id="datePickerNext" aria-label="次の月">›</button>
+            <button type="button" class="date-picker-nav" id="datePickerNext" data-i18n-aria-label="goal.nextMonth" aria-label="次の月">›</button>
           </div>
-          <div class="date-picker-weekdays">
+          <div class="date-picker-weekdays" id="datePickerWeekdays">
             <span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span>
           </div>
           <div class="date-picker-grid" id="datePickerGrid"></div>
-          <button type="button" class="date-picker-clear" id="datePickerClear">選択をクリア</button>
+          <button type="button" class="date-picker-clear" id="datePickerClear" data-i18n="goal.clearSelection">選択をクリア</button>
         </div>
       </div>
       <input type="date" id="targetDate" style="display:none" tabindex="-1" aria-hidden="true">
@@ -1657,10 +1660,10 @@
   </section>
 
   <section class="card">
-    <h2>🪶 週の集め方</h2>
+    <h2 data-i18n="weekly.heading">🪶 週の集め方</h2>
     <div class="field">
       <div class="slider-row">
-        <label for="feathers">原罪で配る羽の枚数</label>
+        <label for="feathers" data-i18n="weekly.featherLabel">原罪で配る羽の枚数</label>
         <span class="slider-readout" id="feathersReadout">63枚 = 15.75本</span>
       </div>
       <input type="range" id="feathers" min="0" max="63" step="1" value="63">
@@ -1671,26 +1674,26 @@
 
     <div class="sub-head">
       <span class="shard-icon" aria-hidden="true"></span>
-      闇の噴出(シャード)
+      <span data-i18n="weekly.shardSubHead">闇の噴出(シャード)</span>
     </div>
     <div class="predict-box">
       <div class="predict-head">
-        <span class="predict-title">🔮 赤闇の自動予測(β)</span>
+        <span class="predict-title" data-i18n="weekly.predictTitle">🔮 赤闇の自動予測(β)</span>
         <span class="predict-range" id="predictRange"></span>
       </div>
       <div class="predict-list" id="predictList"></div>
       <div class="predict-summary">
-        <span class="predict-count">今後7日間で赤闇が来る日数：<strong id="predictDays">0</strong>日</span>
+        <span class="predict-count"><span data-i18n="weekly.predictCountPrefix">今後7日間で赤闇が来る日数：</span><strong id="predictDays">0</strong><span id="predictDaysSuffix" data-i18n="weekly.predictCountSuffix">日</span></span>
       </div>
-      <button type="button" class="shard-cal-btn" id="shardCalBtn">📅 カレンダーで1か月分見る</button>
-      <p class="note">コミュニティ観測による非公式の推測ルールです。実際とズレる場合があります。赤闇の報酬は着地場所ごとに最大値が決まっており(2〜3.5本)、闇の花をどれだけ燃やせたかによって最大値より少なくなることもあります。1日の報酬は1回までのため、候補時刻は「どれか1つで報酬確定」という意味です。</p>
+      <button type="button" class="shard-cal-btn" id="shardCalBtn" data-i18n="weekly.calendarBtn">📅 カレンダーで1か月分見る</button>
+      <p class="note" data-i18n="weekly.note">コミュニティ観測による非公式の推測ルールです。実際とズレる場合があります。赤闇の報酬は着地場所ごとに最大値が決まっており(2〜3.5本)、闇の花をどれだけ燃やせたかによって最大値より少なくなることもあります。1日の報酬は1回までのため、候補時刻は「どれか1つで報酬確定」という意味です。</p>
     </div>
   </section>
 
   <div class="shard-cal-overlay" id="shardCalOverlay">
     <div class="shard-cal-card">
       <div class="shard-cal-header">
-        <span class="shard-cal-title">🔮 赤闇カレンダー</span>
+        <span class="shard-cal-title" data-i18n="shardCal.title">🔮 赤闇カレンダー</span>
         <button type="button" class="shard-cal-close" id="shardCalCloseBtn">✕</button>
       </div>
       <div class="shard-cal-nav-row">
@@ -1698,22 +1701,22 @@
         <span class="shard-cal-month" id="shardCalMonthLabel"></span>
         <button type="button" class="date-picker-nav" id="shardCalNextBtn">›</button>
       </div>
-      <div class="shard-cal-weekdays">
+      <div class="shard-cal-weekdays" id="shardCalWeekdays">
         <span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span>
       </div>
       <div class="shard-cal-grid" id="shardCalGrid"></div>
-      <div class="shard-cal-legend"><span class="shard-cal-legend-dot"></span>赤闇が来る日(タップで詳細)</div>
+      <div class="shard-cal-legend"><span class="shard-cal-legend-dot"></span><span data-i18n="shardCal.legend">赤闇が来る日(タップで詳細)</span></div>
       <div class="shard-cal-day-detail" id="shardCalDayDetail" style="display:none;"></div>
     </div>
   </div>
 
   <section class="card">
-    <h2>🥤 週の消費</h2>
+    <h2 data-i18n="consumption.heading">🥤 週の消費</h2>
     <div class="field">
       <div class="toggle-field">
         <div class="toggle-text">
-          <span class="toggle-title">リサイズドリンクを毎週購入する</span>
-          <span class="toggle-sub">週1回・星のキャンドル8本で交換</span>
+          <span class="toggle-title" data-i18n="consumption.toggleTitle">リサイズドリンクを毎週購入する</span>
+          <span class="toggle-sub" data-i18n="consumption.toggleSub">週1回・星のキャンドル8本で交換</span>
         </div>
         <label class="switch">
           <input type="checkbox" id="buyDrink">
@@ -1724,7 +1727,7 @@
   </section>
 
   <section class="card result-card">
-    <h2 style="justify-content:center;">📊 結果</h2>
+    <h2 style="justify-content:center;" data-i18n="result.heading">📊 結果</h2>
 
     <div class="gauge-wrap">
       <div class="candle">
@@ -1743,11 +1746,11 @@
   </section>
 
   <section class="card">
-    <h2>📜 獲得履歴</h2>
+    <h2 data-i18n="history.heading">📜 獲得履歴</h2>
     <div class="history-list" id="historyList"></div>
     <div class="history-footer">
-      <p class="note">羽ボタン・赤闇のチェックによる増減を記録します(最大50件)。「取り消す」でその操作だけを元に戻せます。</p>
-      <button type="button" class="history-clear-btn" id="historyClearBtn">履歴を全て消去</button>
+      <p class="note" data-i18n="history.note">羽ボタン・赤闇のチェックによる増減を記録します(最大50件)。「取り消す」でその操作だけを元に戻せます。</p>
+      <button type="button" class="history-clear-btn" id="historyClearBtn" data-i18n="history.clearBtn">履歴を全て消去</button>
     </div>
   </section>
 
@@ -1755,9 +1758,9 @@
   </div> <!-- /.app-layout -->
 
   <footer>
-    このサイトはSky 星を紡ぐ子どもたちの非公式ファンサイトです。thatgamecompanyは一切関与していません。<br>
-    作成・ご意見: <a href="https://x.com/Skyzztai" target="_blank" rel="noopener noreferrer">@Skyzztai</a>　参考データ: <a href="https://sky-children-of-the-light.fandom.com/ja/wiki/%E7%A0%B4%E7%89%87%E3%81%AE%E5%99%B4%E5%87%BA" target="_blank" rel="noopener noreferrer">破片の噴出 (Sky Wiki 日本語)</a><br>
-    <a href="https://taipak5000.github.io/tai-info/" target="_blank" rel="noopener noreferrer">⚙️ 設定・更新情報・クレジット・プライバシーポリシー</a>
+    <span data-i18n="footer.disclaimer">このサイトはSky 星を紡ぐ子どもたちの非公式ファンサイトです。thatgamecompanyは一切関与していません。</span><br>
+    <span data-i18n="footer.creditLabel">作成・ご意見:</span> <a href="https://x.com/Skyzztai" target="_blank" rel="noopener noreferrer">@Skyzztai</a>　<span data-i18n="footer.referenceLabel">参考データ:</span> <a href="https://sky-children-of-the-light.fandom.com/ja/wiki/%E7%A0%B4%E7%89%87%E3%81%AE%E5%99%B4%E5%87%BA" target="_blank" rel="noopener noreferrer" data-i18n="footer.referenceLink">破片の噴出 (Sky Wiki 日本語)</a><br>
+    <a href="https://taipak5000.github.io/tai-info/" target="_blank" rel="noopener noreferrer" data-i18n="footer.infoLink">⚙️ 設定・更新情報・クレジット・プライバシーポリシー</a>
   </footer>
 </div>
 
@@ -1778,6 +1781,312 @@
     s.style.animationDelay = (Math.random() * 4).toFixed(1) + 's';
     starField.appendChild(s);
   }
+
+  // ═══ 🌐 UI言語切替（日本語/English）: taipak5000.github.io 配下の各ツール共通 ═══
+  // 'sky_app_lang' は端末（ブラウザ）ごとの表示言語設定であり、プロフィール（保存枠）を
+  // 切り替えても変わらない共通設定のため、nsKey()は使わずプレーンなグローバルキーとして
+  // 扱う（sky_app_themeと同じ扱い）。
+  var LANG_STORAGE_KEY = 'sky_app_lang';
+  var LANG = (function () {
+    try { return localStorage.getItem(LANG_STORAGE_KEY) || 'ja'; } catch (e) { return 'ja'; }
+  })();
+
+  // 翻訳辞書。sidebar/tools/profile/currency/dashboard/realm/backup/iconCustom/footerは
+  // taipak5000.github.io系ツール共通のUIチェイン（itemのi18n.js/profiles.jsが原本）。
+  // このサイト固有の文言（goal/weekly/consumption/result/history/forecast/shardCal等）は
+  // このファイル用に新規に用意したもの。
+  var I18N = {
+    page: {
+      title: { ja: '星のキャンドル計算機', en: 'Star Candle Calculator' }
+    },
+    sidebar: {
+      hamburgerToggle: { ja: '☰ ツール', en: '☰ Tools' },
+      closeBtn: { ja: '×', en: '×' },
+      relatedToolsLabel: { ja: '🔗 関連ツール', en: '🔗 Related Tools' },
+      homeScreenIconLabel: { ja: '📱 ホーム画面アイコン', en: '📱 Home Screen Icon' },
+      customizeIconBtn: { ja: '🎨 アイコンを<br>カスタマイズ', en: '🎨 Customize Icon' },
+      langToggleBtn: { ja: 'EN', en: '日本語' }
+    },
+    tools: {
+      item: { ja: 'アイテム所持管理', en: 'Item Collection' },
+      emote: { ja: 'エモート所持率管理', en: 'Emote Collection' },
+      share: { ja: '創作物管理ツール', en: 'Creation Manager' },
+      taiNomacan: { ja: 'ノマキャン計算機', en: 'Nomacan Calculator' },
+      starCandle: { ja: '星のキャンドル計算機', en: 'Star Candle Calculator' },
+      companion: { ja: '精霊同行ツール', en: 'Spirit Companion Tool' },
+      wings: { ja: '羽トラッカー', en: 'Wing Tracker' },
+      dataTransfer: { ja: 'データ引継ぎ', en: 'Data Transfer' }
+    },
+    profile: {
+      barActiveSuffix: { ja: 'に切替中（タップで切替）', en: ' active (tap to switch)' },
+      dashboardBtnTitle: { ja: '今日・今週・今月ダッシュボード', en: 'Today / this week / this month' },
+      modalTitle: { ja: '🗂️ プロフィール（保存枠）', en: '🗂️ Profiles' },
+      newNamePlaceholder: { ja: '新しいプロフィール名', en: 'New profile name' },
+      addBtn: { ja: '追加', en: 'Add' },
+      defaultName: { ja: 'メイン', en: 'Main' },
+      switchHint: { ja: 'プロフィールを切り替えると、目標設定やチェック状況などがそのプロフィール専用の保存内容に切り替わります。サブアカウントなど複数アカウントをお持ちの方にご利用いただけます。', en: "Switching profiles swaps your goal settings, checked-off status, and other data for that profile's own saved data. This is useful if you have multiple accounts, such as a sub-account." },
+      renameSaveBtn: { ja: '保存', en: 'Save' },
+      cancelBtn: { ja: '取消', en: 'Cancel' },
+      deleteConfirmText: { ja: '「{name}」を削除しますか？このプロフィールの保存データも削除されます。', en: 'Delete "{name}"? This profile\'s saved data will also be deleted.' },
+      deleteBtn: { ja: '削除', en: 'Delete' },
+      accountColorTitle: { ja: 'アカウントカラー', en: 'Account color' },
+      resetColorTitle: { ja: 'カラーを初期値に戻す', en: 'Reset color to default' },
+      closeBtn: { ja: '閉じる', en: 'Close' },
+      backupOpenBtn: { ja: '💾 データのバックアップ・復元・削除', en: '💾 Backup / restore / erase data' }
+    },
+    currency: {
+      sectionLabel: { ja: '💰 所持通貨', en: '💰 Owned Currency' },
+      toggleOpenLabel: { ja: '開く ▼', en: 'Open ▼' },
+      toggleCloseLabel: { ja: '閉じる ▲', en: 'Close ▲' },
+      candle: { ja: 'キャンドル', en: 'Candles' },
+      heart: { ja: 'ハート', en: 'Hearts' },
+      ascendedCandle: { ja: '星のキャンドル', en: 'Star Candles' },
+      seasonCandle: { ja: 'シーズンキャンドル', en: 'Season Candles' },
+      giftPass: { ja: 'ギフトパス', en: 'Gift Pass' }
+    },
+    dashboard: {
+      modalTitle: { ja: '🗓️ 今日・今週・今月', en: '🗓️ Today / This Week / This Month' },
+      loading: { ja: '読み込み中…', en: 'Loading…' },
+      loadFailed: { ja: '読み込みに失敗しました', en: 'Failed to load' },
+      sectionDaily: { ja: 'デイリー', en: 'Daily' },
+      sectionToday: { ja: '今日', en: 'Today' },
+      sectionWeek: { ja: '今週', en: 'This Week' },
+      sectionMonth: { ja: '今月', en: 'This Month' },
+      nextIn: { ja: '次まで', en: 'Next in' },
+      nextEventIn: { ja: '次回まで', en: 'Next in' },
+      noShardToday: { ja: '本日は闇の破片の出現はありません', en: 'No shard eruptions today' },
+      redShard: { ja: '赤闇', en: 'Red Shard' },
+      blackShard: { ja: '黒闇', en: 'Black Shard' },
+      shardErupts: { ja: 'が出現', en: ' erupts' },
+      grandCandle: { ja: '大キャンドル', en: 'Grand Candle' },
+      changesIn: { ja: '次の変更まで', en: 'Changes in' },
+      questSeasonCandle: { ja: 'クエスト・シーズンキャンドル', en: 'Quest & Season Candle' },
+      geyser: { ja: 'ウニ焼き', en: 'Geyser' },
+      breadBaking: { ja: 'パン焼き', en: 'Bread Baking' },
+      turtleDarkness: { ja: '亀闇', en: 'Turtle Darkness' },
+      currentlyActive: { ja: 'が開催中', en: ' is currently active' },
+      endsIn: { ja: '終了まで', en: 'Ends in' },
+      seasonEndsInSuffix: { ja: '終了まで', en: ' ends in' },
+      revisitSpirit: { ja: '再訪精霊', en: 'Revisit Spirit' },
+      revisitHereNow: { ja: 'が来訪中', en: ' is here now' },
+      revisitReturnsIn: { ja: 'の次回来訪まで', en: ' returns in' },
+      noCurrentSeasonEvent: { ja: '現在開催中の季節・イベントはありません', en: 'No current seasons or events' },
+      eyeOfEden: { ja: '原罪', en: 'Eye of Eden' },
+      weeklyResetIn: { ja: '週間リセットまで', en: 'Weekly reset in' },
+      everySundayPacific: { ja: '毎週日曜0時・太平洋時間', en: 'Every Sunday 00:00 Pacific Time' },
+      nextUpdate: { ja: '次回アップデート予定', en: 'Next Update' },
+      seasonLoadFailed: { ja: 'シーズン情報が取得できませんでした', en: 'Could not load season info' },
+      dayUnit: { ja: '日', en: 'd' },
+      shardLineTemplate: { ja: '{color}（<b>{realm}・{location}</b>）が出現：', en: '{color} (<b>{realm} · {location}</b>) erupts: ' },
+      labelSep: { ja: '：', en: ': ' },
+      quoteOpen: { ja: '「', en: '' },
+      quoteClose: { ja: '」', en: '' }
+    },
+    realm: {
+      prairie: { ja: '草原', en: 'Prairie' },
+      forest: { ja: '雨林', en: 'Forest' },
+      valley: { ja: '峡谷', en: 'Valley' },
+      wasteland: { ja: '捨てられた地', en: 'Wasteland' },
+      vault: { ja: '書庫', en: 'Vault' }
+    },
+    backup: {
+      modalTitle: { ja: '💾 データのバックアップ・復元・削除', en: '💾 Backup / Restore / Erase Data' },
+      hint: { ja: 'このブラウザに保存されている taipak5000.github.io 系ツール（item・wings・companion・spirit-catalog 等）のデータをまとめて書き出し・読み込み・削除できます。全プロフィール分がまとめて対象になります。', en: 'Back up, restore, or erase all locally-stored data for the taipak5000.github.io tool suite (item, wings, companion, spirit-catalog, etc.) at once. This covers all profiles together.' },
+      exportBtn: { ja: '⬇️ データをエクスポート（ファイルに保存）', en: '⬇️ Export data (save to file)' },
+      importBtn: { ja: '⬆️ ファイルからインポート', en: '⬆️ Import from file' },
+      wipeBtn: { ja: '🗑️ 全データを削除', en: '🗑️ Erase all data' },
+      exportSuccess: { ja: '書き出しました（{n}件のキー）。', en: 'Exported ({n} keys).' },
+      importFileReadError: { ja: 'ファイルの読み込みに失敗しました（JSON形式ではありません）。', en: 'Failed to read file (not valid JSON).' },
+      importFileInvalid: { ja: 'このツールで書き出したファイルではないようです。', en: "This doesn't look like a file exported from this tool." },
+      importConfirmText: { ja: '{n}件のキーをインポートします。現在保存されているデータは上書きされます（インポートするファイルに無いキーはそのまま残ります）。よろしいですか？', en: 'Import {n} keys? Currently stored data will be overwritten for matching keys (keys not present in the file are left as-is). Continue?' },
+      importExecuteBtn: { ja: 'インポート実行', en: 'Import' },
+      importSuccess: { ja: 'インポートしました。ページを再読み込みします…', en: 'Imported. Reloading…' },
+      wipeConfirmText: { ja: 'すべてのプロフィール・所持アイテム・お気に入り・精霊ツリーの進捗など、このブラウザに保存されている全データを削除します。この操作は取り消せません。先にエクスポートしておくことをおすすめします。本当に削除しますか？', en: 'This will erase ALL locally stored data (profiles, owned items, favorites, spirit tree progress, etc.) across the whole tool suite. This cannot be undone. Exporting a backup first is recommended. Really erase everything?' },
+      wipeExecuteBtn: { ja: '完全に削除する', en: 'Erase everything' },
+      wipeSuccess: { ja: '削除しました。ページを再読み込みします…', en: 'Erased. Reloading…' }
+    },
+    iconCustom: {
+      modalTitle: { ja: '🎨 ホーム画面アイコンをカスタマイズ', en: '🎨 Customize Home Screen Icon' },
+      instructions: { ja: 'スマホの「ホーム画面に追加」をしたときのアイコンを、好きな絵文字や画像に変更できます。<br><b>追加する前に</b>設定してください。追加した後に変更しても、既に追加済みのアイコンは自動更新されません（変更したい場合は一度削除して追加し直してください）。', en: "You can change the icon used when adding this site to your phone's home screen. Set this up before adding it — changing it afterward won't update an icon that's already been added (remove and re-add it if you want to change it later)." },
+      emojiModeBtn: { ja: '😀 絵文字', en: '😀 Emoji' },
+      imageModeBtn: { ja: '🖼️ 画像', en: '🖼️ Image' },
+      emojiLabel: { ja: '絵文字', en: 'Emoji' },
+      bgColorLabel: { ja: '背景色', en: 'Background Color' },
+      freeColorHint: { ja: '🎨 タップして好きな色を自由に選ぶこともできます', en: '🎨 Or tap below to pick any color freely' },
+      uploadImageLabel: { ja: '画像をアップロード', en: 'Upload Image' },
+      previewLabel: { ja: 'プレビュー', en: 'Preview' },
+      resetBtn: { ja: 'デフォルトに戻す', en: 'Reset to Default' },
+      saveBtn: { ja: '保存して適用', en: 'Save & Apply' },
+      selectImageFirst: { ja: '画像を選択してください', en: 'Please select an image' },
+      saveFailed: { ja: '保存に失敗しました(容量オーバーの可能性があります)', en: 'Failed to save (storage may be full)' },
+      saved: { ja: '✅ 保存しました。これでホーム画面に追加すると反映されます', en: '✅ Saved. This will apply next time you add this to your home screen.' },
+      resetDone: { ja: 'デフォルトのアイコンに戻しました', en: 'Reset to the default icon.' }
+    },
+    footer: {
+      disclaimer: { ja: 'このサイトはSky 星を紡ぐ子どもたちの非公式ファンサイトです。thatgamecompanyは一切関与していません。', en: 'This is an unofficial fan site for Sky: Children of the Light. thatgamecompany is not involved in any way.' },
+      creditLabel: { ja: '作成・ご意見:', en: 'Created by / feedback:' },
+      referenceLabel: { ja: '参考データ:', en: 'Reference data:' },
+      referenceLink: { ja: '破片の噴出 (Sky Wiki 日本語)', en: 'Shard Eruptions (Sky Wiki, Japanese)' },
+      infoLink: { ja: '⚙️ 設定・更新情報・クレジット・プライバシーポリシー', en: "⚙️ Settings / What's New / Credits / Privacy Policy" }
+    },
+    header: {
+      title: { ja: '星のキャンドル計算機', en: 'Star Candle Calculator' },
+      subtitle: { ja: 'Sky 星を紡ぐ子どもたち・目標本数まであと何週間？', en: 'Sky: Children of the Light — how many weeks until your goal?' },
+      forceRefreshBtn: { ja: '🔄 最新の状態に更新', en: '🔄 Refresh Now' },
+      forceRefreshTitle: { ja: '他サイトで更新した所持通貨などが反映されない場合、リロードの代わりにこちらをお試しください', en: "If currency updated on other sites isn't showing up here, try this instead of a normal reload" }
+    },
+    goal: {
+      heading: { ja: '🎯 目標を設定', en: '🎯 Set Your Goal' },
+      targetLabel: { ja: '目標本数', en: 'Target Amount' },
+      currentLabel: { ja: '所持本数', en: 'Current Amount' },
+      targetDateLabel: { ja: '目標日(任意)', en: 'Target Date (optional)' },
+      unit: { ja: '本', en: 'candles' },
+      targetPlaceholder: { ja: '例: 60', en: 'e.g. 60' },
+      currentPlaceholder: { ja: '例: 5', en: 'e.g. 5' },
+      dateSelectPlaceholder: { ja: '日付を選択(任意)', en: 'Select a date (optional)' },
+      prevMonth: { ja: '前の月', en: 'Previous month' },
+      nextMonth: { ja: '次の月', en: 'Next month' },
+      clearSelection: { ja: '選択をクリア', en: 'Clear selection' }
+    },
+    weekly: {
+      heading: { ja: '🪶 週の集め方', en: '🪶 Weekly Gains' },
+      featherLabel: { ja: '原罪で配る羽の枚数', en: 'Feathers from Eye of Eden' },
+      readout: { ja: '{n}枚 = {amount}本', en: '{n} feathers = {amount} candles' },
+      addBtn: { ja: '＋ {amount}本を所持本数に加算', en: '+ Add {amount} candles to current amount' },
+      shardSubHead: { ja: '闇の噴出(シャード)', en: 'Shard Eruptions' },
+      predictTitle: { ja: '🔮 赤闇の自動予測(β)', en: '🔮 Auto Red Shard Forecast (Beta)' },
+      predictCountPrefix: { ja: '今後7日間で赤闇が来る日数：', en: 'Red Shard days in the next 7 days: ' },
+      predictCountSuffix: { ja: '日', en: '' },
+      calendarBtn: { ja: '📅 カレンダーで1か月分見る', en: '📅 View a Full Month in the Calendar' },
+      note: { ja: 'コミュニティ観測による非公式の推測ルールです。実際とズレる場合があります。赤闇の報酬は着地場所ごとに最大値が決まっており(2〜3.5本)、闇の花をどれだけ燃やせたかによって最大値より少なくなることもあります。1日の報酬は1回までのため、候補時刻は「どれか1つで報酬確定」という意味です。', en: 'This is an unofficial rule inferred from community observation, and may not exactly match what happens in-game. Red Shard rewards have a maximum set by each landing spot (2–3.5 candles), and you may get less than that maximum depending on how much of the Dark Flower you managed to burn. Since you can only receive the reward once per day, the candidate times mean "any one of them confirms the reward."' }
+    },
+    consumption: {
+      heading: { ja: '🥤 週の消費', en: '🥤 Weekly Consumption' },
+      toggleTitle: { ja: 'リサイズドリンクを毎週購入する', en: 'Buy a Resize Drink every week' },
+      toggleSub: { ja: '週1回・星のキャンドル8本で交換', en: 'Once a week, for 8 Star Candles' }
+    },
+    result: {
+      heading: { ja: '📊 結果', en: '📊 Result' },
+      enterTarget: { ja: '目標本数を入力すると、達成までの週数が表示されます。', en: 'Enter a target amount to see how many weeks until you reach your goal.' },
+      achieved: { ja: '🎉 目標本数を達成しています！', en: "🎉 You've reached your target!" },
+      achievedBreakdown: { ja: '所持 {current}本 ／ 目標 {target}本', en: 'Current {current} candles / Target {target} candles' },
+      warnDrink: { ja: '週の収支がプラスにならないため、目標に到達できません。<br>羽の枚数か、リサイズドリンクの購入設定を見直してください。', en: "Your weekly balance isn't positive, so you won't reach your goal.<br>Review your feather count or your Resize Drink setting." },
+      warnZero: { ja: '週の獲得本数が0本のため計算できません。<br>羽の枚数を見直してください。', en: "Your weekly gain is 0 candles, so this can't be calculated.<br>Review your feather count." },
+      remainingBreakdown: { ja: '残り {remaining}本<br>{weeklyLine}', en: 'Remaining {remaining} candles<br>{weeklyLine}' },
+      weeklyLine: { ja: '週あたり {weekly}本', en: 'Per week: {weekly} candles' },
+      weeklyLineDetail: { ja: '　(羽 {feathers}本 − リサイズドリンク {drink}本)', en: ' (feathers {feathers} candles − resize drink {drink} candles)' },
+      paceNeededBy: { ja: '{date}までに必要なペース　<strong>週{pace}本</strong>', en: 'Pace needed by {date}: <strong>{pace} candles/week</strong>' },
+      paceOk: { ja: '✓ 今のペースで間に合う見込みです', en: '✓ On pace to make it in time' },
+      paceWarn: { ja: '△ 今のペースだと週{n}本足りません', en: "△ You're short by {n} candles/week at your current pace" },
+      shardEstimate: { ja: '🔮 今後の赤闇をすべて回収すると仮定した場合<br>達成予定日　<strong>{date}</strong>頃', en: '🔮 Assuming you collect every future Red Shard<br>Estimated goal date: <strong>{date}</strong>' },
+      heroPrefix: { ja: 'あと ', en: '' },
+      heroSuffix: { ja: '週間', en: ' more weeks' },
+      goalDateLine: { ja: '達成予定日　<strong>{date}</strong>頃', en: 'Estimated goal date: <strong>{date}</strong> (approx.)' },
+      remainingLine: { ja: '残り　<strong>{remaining}本</strong>', en: 'Remaining: <strong>{remaining} candles</strong>' },
+      progressLine: { ja: '{weeklyLine}<br>進捗 {pct}%', en: '{weeklyLine}<br>Progress {pct}%' },
+      footnote: { ja: '※7日ごとの獲得ペースをもとにした目安です。実際の日付とは前後する場合があります。', en: '*This is an estimate based on your gain rate over each 7-day period. The actual date may differ.' }
+    },
+    history: {
+      heading: { ja: '📜 獲得履歴', en: '📜 History' },
+      note: { ja: '羽ボタン・赤闇のチェックによる増減を記録します(最大50件)。「取り消す」でその操作だけを元に戻せます。', en: 'Records increases and decreases from the feather button and Red Shard checks (up to 50 entries). Use "Undo" to revert just that one action.' },
+      clearBtn: { ja: '履歴を全て消去', en: 'Clear all history' },
+      empty: { ja: 'まだ履歴はありません。羽ボタンや赤闇のチェックで記録されます。', en: 'No history yet. It will be recorded when you use the feather button or check off a Red Shard.' },
+      undoBtn: { ja: '取り消す', en: 'Undo' },
+      featherEntry: { ja: '羽 {n}枚', en: '{n} Feathers' },
+      shardEntry: { ja: '赤闇 {day}', en: 'Red Shard {day}' },
+      confirmClear: { ja: '獲得履歴をすべて消去します。よろしいですか？(所持本数自体は変わりません)', en: "This will clear all history. Are you sure? (Your current amount won't change.)" }
+    },
+    forecast: {
+      nextRedShard: { ja: '次の赤闇まで', en: 'Next Red Shard' },
+      collected: { ja: '獲得済み', en: 'Collected' },
+      timeUntilEnd: { ja: '終了まで残り', en: 'Time until end' },
+      timeUntilLanding: { ja: '着地まで残り', en: 'Time until landing' },
+      headerLanding: { ja: '着地', en: 'Landing' },
+      headerEnd: { ja: '終了', en: 'End' },
+      active: { ja: '進行中', en: 'Active' },
+      maxReward: { ja: '最大{n}本', en: 'Max {n} candles' },
+      candidatesPrefix: { ja: '候補 ', en: 'Candidates: ' },
+      jstAnyOne: { ja: ' JST・いずれか1回', en: ' JST, any one confirms it' },
+      nextNote: { ja: '日本時間(JST)基準・いずれか1回で報酬確定', en: 'Based on Japan time (JST) · Any one confirms the reward' },
+      range: { ja: '今後7日間・日本時間(JST)基準', en: 'Next 7 days · Based on Japan time (JST)' },
+      empty: { ja: '今後7日間、赤闇の予測はありません。', en: 'No Red Shard forecast for the next 7 days.' },
+      error: { ja: '予測の計算中にエラーが発生しました。', en: 'An error occurred while calculating the forecast.' },
+      realmLocationSep: { ja: '・', en: ' · ' },
+      listSep: { ja: '・', en: ', ' }
+    },
+    shardCal: {
+      title: { ja: '🔮 赤闇カレンダー', en: '🔮 Red Shard Calendar' },
+      legend: { ja: '赤闇が来る日(タップで詳細)', en: 'Days with a Red Shard (tap for details)' },
+      maxRewardShort: { ja: '　最大{n}本', en: ' Max {n} candles' },
+      candidatesLabel: { ja: '候補(着地→終了・JST) ', en: 'Candidates (landing → end, JST): ' }
+    }
+  };
+
+  function t(key, vars) {
+    var parts = key.split('.');
+    var node = I18N;
+    for (var i = 0; i < parts.length; i++) {
+      node = node ? node[parts[i]] : undefined;
+    }
+    var str = node ? (node[LANG] !== undefined ? node[LANG] : (node.ja !== undefined ? node.ja : '')) : '';
+    if (vars) {
+      Object.keys(vars).forEach(function (k) {
+        str = str.split('{' + k + '}').join(vars[k]);
+      });
+    }
+    return str;
+  }
+
+  var WEEKDAYS_JA = ['日', '月', '火', '水', '木', '金', '土'];
+  var WEEKDAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  var MONTHS_EN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  function weekdayLabel(idx) { return LANG === 'ja' ? WEEKDAYS_JA[idx] : WEEKDAYS_EN[idx]; }
+  function monthYearLabel(year, month1) {
+    return LANG === 'ja' ? (year + '年' + month1 + '月') : (MONTHS_EN[month1 - 1] + ' ' + year);
+  }
+
+  function applyI18n() {
+    var els1 = document.querySelectorAll('[data-i18n]');
+    for (var i = 0; i < els1.length; i++) { els1[i].innerHTML = t(els1[i].getAttribute('data-i18n')); }
+    var els2 = document.querySelectorAll('[data-i18n-placeholder]');
+    for (var j = 0; j < els2.length; j++) { els2[j].setAttribute('placeholder', t(els2[j].getAttribute('data-i18n-placeholder'))); }
+    var els3 = document.querySelectorAll('[data-i18n-title]');
+    for (var k = 0; k < els3.length; k++) { els3[k].setAttribute('title', t(els3[k].getAttribute('data-i18n-title'))); }
+    var els4 = document.querySelectorAll('[data-i18n-aria-label]');
+    for (var m = 0; m < els4.length; m++) { els4[m].setAttribute('aria-label', t(els4[m].getAttribute('data-i18n-aria-label'))); }
+    document.documentElement.lang = LANG;
+    document.title = t('page.title');
+    var langBtn = document.getElementById('langToggleBtn');
+    if (langBtn) langBtn.textContent = t('sidebar.langToggleBtn');
+  }
+
+  // 言語トグル。表示を切り替え、動的に生成される各種UI(結果カード・履歴・
+  // 赤闇予測・ダッシュボード等)を最新の言語で再描画する。
+  function toggleLang() {
+    LANG = LANG === 'ja' ? 'en' : 'ja';
+    try { localStorage.setItem(LANG_STORAGE_KEY, LANG); } catch (e) { /* noop */ }
+    applyI18n();
+    if (typeof update === 'function') update();
+    if (typeof renderHistory === 'function') renderHistory();
+    if (typeof renderForecast === 'function') {
+      try { renderForecast(); } catch (e) { /* noop */ }
+    }
+    if (typeof renderWeekdayHeaders === 'function') renderWeekdayHeaders();
+    if (typeof updateDateTriggerText === 'function') updateDateTriggerText();
+    if (typeof renderDatePickerGrid === 'function' && datePickerPopup && datePickerPopup.classList.contains('is-open')) renderDatePickerGrid();
+    if (typeof renderShardCalGrid === 'function' && shardCalOverlay && shardCalOverlay.classList.contains('is-visible')) renderShardCalGrid();
+    pfRenderBar();
+    var pfOverlay = document.getElementById('pfModalOverlay');
+    if (pfOverlay && pfOverlay.classList.contains('is-visible')) { pfRenderModal(); pfRenderCurrency(); }
+    var dashOverlay = document.getElementById('dashModalOverlay');
+    if (dashOverlay && dashOverlay.classList.contains('is-visible') && pfDashCache) {
+      var dashBodyEl = document.getElementById('dashBody');
+      if (dashBodyEl) dashBodyEl.innerHTML = pfDashBuildHtml(pfDashCache);
+    }
+  }
+  window.toggleLang = toggleLang;
+
+  applyI18n();
 
   // ═══ プロフィール（保存枠）管理: taipak5000.github.io 配下の各ツール共通 ═══
   var PROFILES_KEY = 'skyProfiles_v1';
@@ -1816,7 +2125,7 @@
   function pfEnsureInit() {
     var list = pfLoadProfiles();
     if (!list) {
-      list = [{ id: DEFAULT_PROFILE_ID, name: 'メイン' }];
+      list = [{ id: DEFAULT_PROFILE_ID, name: t('profile.defaultName') }];
       pfSaveProfiles(list);
     }
     try {
@@ -1828,7 +2137,7 @@
     try { return localStorage.getItem(ACTIVE_PROFILE_KEY) || DEFAULT_PROFILE_ID; } catch (e) { return DEFAULT_PROFILE_ID; }
   }
   function pfGetActiveProfile() {
-    var list = pfLoadProfiles() || [{ id: DEFAULT_PROFILE_ID, name: 'メイン' }];
+    var list = pfLoadProfiles() || [{ id: DEFAULT_PROFILE_ID, name: t('profile.defaultName') }];
     var id = pfGetActiveId();
     var found = null;
     for (var i = 0; i < list.length; i++) { if (list[i].id === id) { found = list[i]; break; } }
@@ -1953,8 +2262,8 @@
     pfApplyThemeColor(active.color);
     var bar = document.getElementById('pfBar');
     if (!bar) return;
-    bar.innerHTML = '<span class="pf-bar-text" onclick="pfOpenModal()">🗂️ <b>' + pfEscapeHtml(active.name) + '</b>&nbsp;に切替中（タップで切替）</span>' +
-      '<button type="button" class="pf-dash-btn" onclick="pfDashOpen()" title="今日・今週・今月ダッシュボード">🗓️</button>';
+    bar.innerHTML = '<span class="pf-bar-text" onclick="pfOpenModal()">🗂️ <b>' + pfEscapeHtml(active.name) + '</b>&nbsp;' + t('profile.barActiveSuffix') + '</span>' +
+      '<button type="button" class="pf-dash-btn" onclick="pfDashOpen()" title="' + t('profile.dashboardBtnTitle') + '">🗓️</button>';
   }
 
   /* ================================================================
@@ -1988,6 +2297,15 @@
   // 忠実に移植したもの。月の日付・曜日だけから決定論的に計算できるため手動更新データは不要。
   var SHARD_REALM_JA = { prairie: '草原', forest: '雨林', valley: '峡谷', wasteland: '捨てられた地', vault: '書庫' };
   var SHARD_REALMS = ['prairie', 'forest', 'valley', 'wasteland', 'vault'];
+  // レルムの日本語表記 -> realmキー の逆引き。REALMS配列やgetDaySchedule()が返す
+  // レルム名(日本語文字列)をUI言語に応じて表示するために使う。着地場所の固有名詞
+  // (LOCATIONS/SHARD_LOCATIONS)はこの翻訳対象外(データカタログ的な内容のため対象外)。
+  var REALM_JA_TO_KEY = {};
+  Object.keys(SHARD_REALM_JA).forEach(function (k) { REALM_JA_TO_KEY[SHARD_REALM_JA[k]] = k; });
+  function realmLabel(jaName) {
+    var key = REALM_JA_TO_KEY[jaName];
+    return key ? t('realm.' + key) : jaName;
+  }
   // 各出現グループごとの、レルム内の具体的な出現エリア名（9-bit.jpの闇の破片場所一覧と
   // PlutoyDev/sky-shardsのshardsInfo.mapsを突き合わせて確認したもの）
   var SHARD_LOCATIONS = [
@@ -2043,8 +2361,8 @@
       firstStartFake.setHours(group.offsetH, group.offsetM, 0, 0);
       var intervalMs = group.intervalH * 3600000;
       for (var i = 0; i < 3; i++) {
-        var t = new Date(firstStartFake.getTime() + intervalMs * i + realOffsetMs);
-        if (t.getTime() > Date.now()) return t;
+        var candidateTime = new Date(firstStartFake.getTime() + intervalMs * i + realOffsetMs);
+        if (candidateTime.getTime() > Date.now()) return candidateTime;
       }
     }
     return null;
@@ -2104,7 +2422,7 @@
     var hh = String(Math.floor((totalSec % 86400) / 3600)).padStart(2, '0');
     var mm = String(Math.floor((totalSec % 3600) / 60)).padStart(2, '0');
     var ss = String(totalSec % 60).padStart(2, '0');
-    return days > 0 ? (days + '日 ' + hh + ':' + mm + ':' + ss) : (hh + ':' + mm + ':' + ss);
+    return days > 0 ? (days + t('dashboard.dayUnit') + ' ' + hh + ':' + mm + ':' + ss) : (hh + ':' + mm + ':' + ss);
   }
   // 複数の未来時刻候補から一番近いものを選ぶ（全て過去なら null）
   function pfDashSoonestFuture(dates) {
@@ -2153,8 +2471,8 @@
     var shard = pfDashShardInfo();
     if (shard.hasShard) {
       var shardIcon = shard.isRed ? '🔴' : '⚫';
-      var shardColorLabel = shard.isRed ? '赤闇' : '黒闇';
-      var shardRealmLabel = SHARD_REALM_JA[shard.realm];
+      var shardColorLabel = shard.isRed ? t('dashboard.redShard') : t('dashboard.blackShard');
+      var shardRealmLabel = t('realm.' + shard.realm);
       var shardLocationLabel = shard.location;
       var shardNow = new Date();
       var shardTimes = shard.occurrences.map(function (occ) {
@@ -2162,58 +2480,58 @@
         return '<span class="dash-shard-time' + (past ? ' past' : '') + '">' + pfDashFormatShardTime(occ) + '</span>';
       }).join(' / ');
       var shardSoon = pfDashSoonestFuture(shard.occurrences) || pfDashNextShardTime();
-      var shardCountdownHtml = shardSoon ? ('<span class="dash-countdown">次まで ' + pfDashCountdown(shardSoon) + '</span>') : '';
-      dailyRows.push(pfDashRow(shardIcon, shardColorLabel + '（<b>' + shardRealmLabel + '・' + shardLocationLabel + '</b>）が出現：<span class="dash-shard-times">' + shardTimes + '</span>' + shardCountdownHtml));
+      var shardCountdownHtml = shardSoon ? ('<span class="dash-countdown">' + t('dashboard.nextIn') + ' ' + pfDashCountdown(shardSoon) + '</span>') : '';
+      dailyRows.push(pfDashRow(shardIcon, t('dashboard.shardLineTemplate', { color: shardColorLabel, realm: shardRealmLabel, location: shardLocationLabel }) + '<span class="dash-shard-times">' + shardTimes + '</span>' + shardCountdownHtml));
     } else {
       var nextShard = pfDashNextShardTime();
-      var nextShardHtml = nextShard ? ('<span class="dash-countdown">次まで ' + pfDashCountdown(nextShard) + '</span>') : '';
-      dailyRows.push(pfDashRow('🌑', '本日は闇の破片の出現はありません' + nextShardHtml));
+      var nextShardHtml = nextShard ? ('<span class="dash-countdown">' + t('dashboard.nextIn') + ' ' + pfDashCountdown(nextShard) + '</span>') : '';
+      dailyRows.push(pfDashRow('🌑', t('dashboard.noShardToday') + nextShardHtml));
     }
     var candleRealm = pfDashGrandCandleRealm();
-    dailyRows.push(pfDashRow('🕯️', '大キャンドル：<b>' + SHARD_REALM_JA[candleRealm] + '</b><span class="dash-countdown">次の変更まで ' + pfDashCountdown(pfDashNextPacificMidnight()) + '</span>'));
+    dailyRows.push(pfDashRow('🕯️', t('dashboard.grandCandle') + t('dashboard.labelSep') + '<b>' + t('realm.' + candleRealm) + '</b><span class="dash-countdown">' + t('dashboard.changesIn') + ' ' + pfDashCountdown(pfDashNextPacificMidnight()) + '</span>'));
     var questCandleRealm = pfDashGrandCandleRealm(-1);
-    dailyRows.push(pfDashRow('📜', 'クエスト・シーズンキャンドル：<b>' + SHARD_REALM_JA[questCandleRealm] + '</b><span class="dash-countdown">次の変更まで ' + pfDashCountdown(pfDashNextPacificMidnight()) + '</span>'));
-    dailyRows.push(pfDashRow('🌋', 'ウニ焼き<span class="dash-countdown">次回まで ' + pfDashCountdown(pfDashNextEvenHourEvent(5)) + '</span>'));
-    dailyRows.push(pfDashRow('🍞', 'パン焼き<span class="dash-countdown">次回まで ' + pfDashCountdown(pfDashNextEvenHourEvent(35)) + '</span>'));
-    dailyRows.push(pfDashRow('🐢', '亀闇<span class="dash-countdown">次回まで ' + pfDashCountdown(pfDashNextEvenHourEvent(50)) + '</span>'));
+    dailyRows.push(pfDashRow('📜', t('dashboard.questSeasonCandle') + t('dashboard.labelSep') + '<b>' + t('realm.' + questCandleRealm) + '</b><span class="dash-countdown">' + t('dashboard.changesIn') + ' ' + pfDashCountdown(pfDashNextPacificMidnight()) + '</span>'));
+    dailyRows.push(pfDashRow('🌋', t('dashboard.geyser') + '<span class="dash-countdown">' + t('dashboard.nextEventIn') + ' ' + pfDashCountdown(pfDashNextEvenHourEvent(5)) + '</span>'));
+    dailyRows.push(pfDashRow('🍞', t('dashboard.breadBaking') + '<span class="dash-countdown">' + t('dashboard.nextEventIn') + ' ' + pfDashCountdown(pfDashNextEvenHourEvent(35)) + '</span>'));
+    dailyRows.push(pfDashRow('🐢', t('dashboard.turtleDarkness') + '<span class="dash-countdown">' + t('dashboard.nextEventIn') + ' ' + pfDashCountdown(pfDashNextEvenHourEvent(50)) + '</span>'));
     var dailyHtml = dailyRows.join('');
 
     var todayRows = [];
     if (data.season && data.season.name && data.season.endDate && new Date() < new Date(data.season.endDate)) {
-      todayRows.push(pfDashRow('🌟', '<b>' + pfEscapeHtml(data.season.name) + '</b> が開催中'));
+      todayRows.push(pfDashRow('🌟', '<b>' + pfEscapeHtml(data.season.name) + '</b>' + t('dashboard.currentlyActive')));
     }
     pfDashActiveScheduledEvents(data.eventSchedule).forEach(function (ev) {
-      todayRows.push(pfDashRow('🌟', '<b>' + pfEscapeHtml(ev.name) + '</b> が開催中<span class="dash-countdown">終了まで ' + pfDashCountdown(new Date(ev.end)) + '</span>'));
+      todayRows.push(pfDashRow('🌟', '<b>' + pfEscapeHtml(ev.name) + '</b>' + t('dashboard.currentlyActive') + '<span class="dash-countdown">' + t('dashboard.endsIn') + ' ' + pfDashCountdown(new Date(ev.end)) + '</span>'));
     });
     var rv = pfDashRevisitStatus(data.revisit);
     if (rv && data.revisit) {
       var revisitLabel = rv.active
-        ? '再訪精霊 「<b>' + pfEscapeHtml(data.revisit.name) + '</b>」が来訪中'
-        : '再訪精霊 「<b>' + pfEscapeHtml(data.revisit.name) + '</b>」の次回来訪まで';
+        ? t('dashboard.revisitSpirit') + ' ' + t('dashboard.quoteOpen') + '<b>' + pfEscapeHtml(data.revisit.name) + '</b>' + t('dashboard.quoteClose') + t('dashboard.revisitHereNow')
+        : t('dashboard.revisitSpirit') + ' ' + t('dashboard.quoteOpen') + '<b>' + pfEscapeHtml(data.revisit.name) + '</b>' + t('dashboard.quoteClose') + t('dashboard.revisitReturnsIn');
       todayRows.push(pfDashRow('🕊️', revisitLabel + '<span class="dash-countdown">' + pfDashCountdown(rv.target) + '</span>'));
     }
-    var todayHtml = todayRows.length ? todayRows.join('') : '<div class="dash-empty">現在開催中の季節・イベントはありません</div>';
+    var todayHtml = todayRows.length ? todayRows.join('') : '<div class="dash-empty">' + t('dashboard.noCurrentSeasonEvent') + '</div>';
 
-    var weekHtml = pfDashRow('🌩️', '原罪：週間リセットまで<span class="dash-countdown">' + pfDashCountdown(pfDashNextEdenResetTarget()) + '</span><span class="dash-note">毎週日曜0時・太平洋時間</span>');
+    var weekHtml = pfDashRow('🌩️', t('dashboard.eyeOfEden') + t('dashboard.labelSep') + t('dashboard.weeklyResetIn') + '<span class="dash-countdown">' + pfDashCountdown(pfDashNextEdenResetTarget()) + '</span><span class="dash-note">' + t('dashboard.everySundayPacific') + '</span>');
     if (data.nextUpdate && data.nextUpdate.date) {
       var updateTarget = new Date(data.nextUpdate.date);
       if (new Date() < updateTarget) {
-        weekHtml += pfDashRow('🔧', '次回アップデート予定<span class="dash-countdown">' + pfDashCountdown(updateTarget) + '</span>');
+        weekHtml += pfDashRow('🔧', t('dashboard.nextUpdate') + '<span class="dash-countdown">' + pfDashCountdown(updateTarget) + '</span>');
       }
     }
 
     var monthHtml;
     if (data.season && data.season.endDate) {
       var end = new Date(data.season.endDate);
-      monthHtml = pfDashRow('🎨', '「<b>' + pfEscapeHtml(data.season.name) + '</b>」終了まで<span class="dash-countdown">' + pfDashCountdown(end) + '</span>');
+      monthHtml = pfDashRow('🎨', t('dashboard.quoteOpen') + '<b>' + pfEscapeHtml(data.season.name) + '</b>' + t('dashboard.quoteClose') + t('dashboard.seasonEndsInSuffix') + '<span class="dash-countdown">' + pfDashCountdown(end) + '</span>');
     } else {
-      monthHtml = '<div class="dash-empty">シーズン情報が取得できませんでした</div>';
+      monthHtml = '<div class="dash-empty">' + t('dashboard.seasonLoadFailed') + '</div>';
     }
 
-    return '<div class="dash-section"><p class="dash-section-label">デイリー</p>' + dailyHtml + '</div>' +
-      '<div class="dash-section"><p class="dash-section-label">今日</p>' + todayHtml + '</div>' +
-      '<div class="dash-section"><p class="dash-section-label">今週</p>' + weekHtml + '</div>' +
-      '<div class="dash-section"><p class="dash-section-label">今月</p>' + monthHtml + '</div>';
+    return '<div class="dash-section"><p class="dash-section-label">' + t('dashboard.sectionDaily') + '</p>' + dailyHtml + '</div>' +
+      '<div class="dash-section"><p class="dash-section-label">' + t('dashboard.sectionToday') + '</p>' + todayHtml + '</div>' +
+      '<div class="dash-section"><p class="dash-section-label">' + t('dashboard.sectionWeek') + '</p>' + weekHtml + '</div>' +
+      '<div class="dash-section"><p class="dash-section-label">' + t('dashboard.sectionMonth') + '</p>' + monthHtml + '</div>';
   }
   var pfDashCache = null;
   var pfDashLoading = null;
@@ -2234,7 +2552,7 @@
     if (overlay) overlay.classList.add('is-visible');
     var body = document.getElementById('dashBody');
     if (pfDashCache) { body.innerHTML = pfDashBuildHtml(pfDashCache); pfDashStartTimer(); return; }
-    body.innerHTML = '<p class="pf-hint">読み込み中…</p>';
+    body.innerHTML = '<p class="pf-hint">' + t('dashboard.loading') + '</p>';
     if (!pfDashLoading) pfDashLoading = pfDashLoadData();
     pfDashLoading.then(function (data) {
       pfDashCache = data;
@@ -2242,7 +2560,7 @@
       pfDashStartTimer();
     }).catch(function (e) {
       console.error('pfDashOpen', e);
-      body.innerHTML = '<div class="dash-empty">読み込みに失敗しました</div>';
+      body.innerHTML = '<div class="dash-empty">' + t('dashboard.loadFailed') + '</div>';
     });
   }
   function pfDashClose() {
@@ -2267,24 +2585,24 @@
         html += '<div class="pf-row" style="flex-wrap: wrap;">' +
           '<input type="text" class="pf-row-input" id="pfEditInput" value="' + pfEscapeHtml(p.name) + '" maxlength="20" ' +
           'onkeydown="if(event.key===\'Enter\') pfConfirmRenameInline(\'' + p.id + '\'); if(event.key===\'Escape\') pfCancelRowState();">' +
-          '<button type="button" class="pf-icon-btn pf-row-btn-ok" onclick="pfConfirmRenameInline(\'' + p.id + '\')">保存</button>' +
-          '<button type="button" class="pf-icon-btn" onclick="pfCancelRowState()">取消</button>' +
+          '<button type="button" class="pf-icon-btn pf-row-btn-ok" onclick="pfConfirmRenameInline(\'' + p.id + '\')">' + t('profile.renameSaveBtn') + '</button>' +
+          '<button type="button" class="pf-icon-btn" onclick="pfCancelRowState()">' + t('profile.cancelBtn') + '</button>' +
           '</div>';
         return;
       }
       if (pfDeletingId === p.id) {
         html += '<div class="pf-row" style="flex-wrap: wrap;">' +
-          '<span class="pf-row-confirm-text">「' + pfEscapeHtml(p.name) + '」を削除しますか？このプロフィールの保存データも削除されます。</span>' +
-          '<button type="button" class="pf-icon-btn pf-row-btn-danger" onclick="pfConfirmDeleteInline(\'' + p.id + '\')">削除</button>' +
-          '<button type="button" class="pf-icon-btn" onclick="pfCancelRowState()">取消</button>' +
+          '<span class="pf-row-confirm-text">' + t('profile.deleteConfirmText', { name: pfEscapeHtml(p.name) }) + '</span>' +
+          '<button type="button" class="pf-icon-btn pf-row-btn-danger" onclick="pfConfirmDeleteInline(\'' + p.id + '\')">' + t('profile.deleteBtn') + '</button>' +
+          '<button type="button" class="pf-icon-btn" onclick="pfCancelRowState()">' + t('profile.cancelBtn') + '</button>' +
           '</div>';
         return;
       }
       var colorVal = pfIsSafeColor(p.color) ? p.color : '#F5B54C';
       html += '<div class="pf-row' + (p.id === activeId ? ' active' : '') + '">' +
-        '<input type="color" class="pf-color-input" value="' + colorVal + '" title="アカウントカラー" onchange="pfSetProfileColor(\'' + p.id + '\', this.value)">' +
+        '<input type="color" class="pf-color-input" value="' + colorVal + '" title="' + t('profile.accountColorTitle') + '" onchange="pfSetProfileColor(\'' + p.id + '\', this.value)">' +
         '<span class="pf-row-name" onclick="pfSwitchProfile(\'' + p.id + '\')">' + (p.id === activeId ? '✅ ' : '') + pfEscapeHtml(p.name) + '</span>' +
-        (p.color ? '<button type="button" class="pf-icon-btn pf-color-clear-btn" title="カラーを初期値に戻す" onclick="pfClearProfileColor(\'' + p.id + '\')">↺</button>' : '') +
+        (p.color ? '<button type="button" class="pf-icon-btn pf-color-clear-btn" title="' + t('profile.resetColorTitle') + '" onclick="pfClearProfileColor(\'' + p.id + '\')">↺</button>' : '') +
         '<button type="button" class="pf-icon-btn" onclick="pfStartRename(\'' + p.id + '\')">✏️</button>' +
         (list.length > 1 ? '<button type="button" class="pf-icon-btn" onclick="pfStartDelete(\'' + p.id + '\')">🗑️</button>' : '') +
         '</div>';
@@ -2342,11 +2660,11 @@
   // データを直接読み書きし、二重管理を避ける。昇華キャンドル・シーズン
   // ハート・イベント通貨はどのサイトにも記録先が無いため新規キーで管理する。
   var PF_CURRENCY_FIELDS = [
-    { key: 'candle',         icon: '🕯️', label: 'キャンドル' },
-    { key: 'heart',          icon: '💗', label: 'ハート' },
-    { key: 'ascendedCandle', icon: '🕯️✨', label: '星のキャンドル' },
-    { key: 'seasonCandle',   icon: '🕯️🍂', label: 'シーズンキャンドル' },
-    { key: 'giftPass',       icon: '🎟️', label: 'ギフトパス' }
+    { key: 'candle',         icon: '🕯️' },
+    { key: 'heart',          icon: '💗' },
+    { key: 'ascendedCandle', icon: '🕯️✨' },
+    { key: 'seasonCandle',   icon: '🕯️🍂' },
+    { key: 'giftPass',       icon: '🎟️' }
   ];
   function pfCompanionDataKey() {
     var id = pfGetActiveId();
@@ -2400,7 +2718,7 @@
     var c = pfLoadCurrency();
     body.innerHTML = PF_CURRENCY_FIELDS.map(function (f) {
       return '<div class="pf-currency-row">' +
-        '<span class="pf-currency-label">' + f.icon + ' ' + f.label + '</span>' +
+        '<span class="pf-currency-label">' + f.icon + ' ' + t('currency.' + f.key) + '</span>' +
         '<input type="number" min="0" class="pf-currency-input" value="' + c[f.key] + '" ' +
         'onchange="pfSaveCurrencyField(\'' + f.key + '\', this.value)">' +
         '</div>';
@@ -2417,7 +2735,7 @@
     var body = document.getElementById('pfCurrencyBody');
     var label = document.getElementById('pfCurrencyToggleLabel');
     if (body) body.style.display = pfCurrencyOpen ? '' : 'none';
-    if (label) label.textContent = pfCurrencyOpen ? '閉じる ▲' : '開く ▼';
+    if (label) label.textContent = pfCurrencyOpen ? t('currency.toggleCloseLabel') : t('currency.toggleOpenLabel');
   }
 
   function pfOpenModal() {
@@ -2473,7 +2791,7 @@
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
-    document.getElementById('dmStatus').textContent = '書き出しました（' + Object.keys(dump).length + '件のキー）。';
+    document.getElementById('dmStatus').textContent = t('backup.exportSuccess', { n: Object.keys(dump).length });
   }
 
   var dmPendingImport = null;
@@ -2485,21 +2803,21 @@
     reader.onload = function () {
       var parsed;
       try { parsed = JSON.parse(reader.result); } catch (e) {
-        document.getElementById('dmStatus').textContent = 'ファイルの読み込みに失敗しました（JSON形式ではありません）。';
+        document.getElementById('dmStatus').textContent = t('backup.importFileReadError');
         return;
       }
       var data = parsed && parsed.data && typeof parsed.data === 'object' ? parsed.data : null;
       if (!data) {
-        document.getElementById('dmStatus').textContent = 'このツールで書き出したファイルではないようです。';
+        document.getElementById('dmStatus').textContent = t('backup.importFileInvalid');
         return;
       }
       dmPendingImport = data;
       var count = Object.keys(data).length;
       document.getElementById('dmImportConfirmArea').innerHTML =
         '<div class="pf-row" style="flex-wrap: wrap;">' +
-        '<span class="pf-row-confirm-text">' + count + '件のキーをインポートします。現在保存されているデータは上書きされます（インポートするファイルに無いキーはそのまま残ります）。よろしいですか？</span>' +
-        '<button type="button" class="pf-icon-btn pf-row-btn-ok" onclick="dmConfirmImport()">インポート実行</button>' +
-        '<button type="button" class="pf-icon-btn" onclick="dmCancelImport()">取消</button>' +
+        '<span class="pf-row-confirm-text">' + t('backup.importConfirmText', { n: count }) + '</span>' +
+        '<button type="button" class="pf-icon-btn pf-row-btn-ok" onclick="dmConfirmImport()">' + t('backup.importExecuteBtn') + '</button>' +
+        '<button type="button" class="pf-icon-btn" onclick="dmCancelImport()">' + t('profile.cancelBtn') + '</button>' +
         '</div>';
     };
     reader.readAsText(file);
@@ -2515,7 +2833,7 @@
     });
     dmPendingImport = null;
     document.getElementById('dmImportConfirmArea').innerHTML = '';
-    document.getElementById('dmStatus').textContent = 'インポートしました。ページを再読み込みします…';
+    document.getElementById('dmStatus').textContent = t('backup.importSuccess');
     setTimeout(function () { location.reload(); }, 800);
   }
 
@@ -2523,21 +2841,21 @@
   function dmRenderWipeArea() {
     var area = document.getElementById('dmWipeArea');
     if (!dmWipeConfirming) {
-      area.innerHTML = '<button type="button" class="pf-icon-btn pf-row-btn-danger" style="width:100%; padding:8px;" onclick="dmStartWipe()">🗑️ 全データを削除</button>';
+      area.innerHTML = '<button type="button" class="pf-icon-btn pf-row-btn-danger" style="width:100%; padding:8px;" onclick="dmStartWipe()">' + t('backup.wipeBtn') + '</button>';
       return;
     }
     area.innerHTML =
       '<div class="pf-row" style="flex-wrap: wrap;">' +
-      '<span class="pf-row-confirm-text">すべてのプロフィール・所持アイテム・お気に入り・精霊ツリーの進捗など、このブラウザに保存されている全データを削除します。この操作は取り消せません。先にエクスポートしておくことをおすすめします。本当に削除しますか？</span>' +
-      '<button type="button" class="pf-icon-btn pf-row-btn-danger" onclick="dmConfirmWipe()">完全に削除する</button>' +
-      '<button type="button" class="pf-icon-btn" onclick="dmCancelWipe()">取消</button>' +
+      '<span class="pf-row-confirm-text">' + t('backup.wipeConfirmText') + '</span>' +
+      '<button type="button" class="pf-icon-btn pf-row-btn-danger" onclick="dmConfirmWipe()">' + t('backup.wipeExecuteBtn') + '</button>' +
+      '<button type="button" class="pf-icon-btn" onclick="dmCancelWipe()">' + t('profile.cancelBtn') + '</button>' +
       '</div>';
   }
   function dmStartWipe() { dmWipeConfirming = true; dmRenderWipeArea(); }
   function dmCancelWipe() { dmWipeConfirming = false; dmRenderWipeArea(); }
   function dmConfirmWipe() {
     localStorage.clear();
-    document.getElementById('dmStatus').textContent = '削除しました。ページを再読み込みします…';
+    document.getElementById('dmStatus').textContent = t('backup.wipeSuccess');
     setTimeout(function () { location.reload(); }, 800);
   }
 
@@ -2652,7 +2970,7 @@
 
   function pfIconSave() {
     if (pfIconMode === 'image' && !pfIconUploadedImg) {
-      document.getElementById('iconSaveStatus').textContent = '画像を選択してください';
+      document.getElementById('iconSaveStatus').textContent = t('iconCustom.selectImageFirst');
       return;
     }
     var dataUrl = pfIconGenerateDataUrl(512);
@@ -2664,11 +2982,11 @@
     try {
       localStorage.setItem(PF_ICON_STORAGE_KEY, JSON.stringify(state));
     } catch (e) {
-      document.getElementById('iconSaveStatus').textContent = '保存に失敗しました(容量オーバーの可能性があります)';
+      document.getElementById('iconSaveStatus').textContent = t('iconCustom.saveFailed');
       return;
     }
     pfIconApply(dataUrl);
-    document.getElementById('iconSaveStatus').textContent = '✅ 保存しました。これでホーム画面に追加すると反映されます';
+    document.getElementById('iconSaveStatus').textContent = t('iconCustom.saved');
   }
 
   function pfIconReset() {
@@ -2681,7 +2999,7 @@
     document.getElementById('iconEmojiInput').value = '🕯️';
     document.getElementById('iconBgColorInput').value = '#F5B54C';
     pfIconSetMode('emoji');
-    document.getElementById('iconSaveStatus').textContent = 'デフォルトのアイコンに戻しました';
+    document.getElementById('iconSaveStatus').textContent = t('iconCustom.resetDone');
   }
 
   function pfIconApplyFromStorage() {
@@ -2829,6 +3147,9 @@
   }
 
   function jpDate(date) {
+    if (LANG !== 'ja') {
+      return MONTHS_EN[date.getMonth()] + ' ' + date.getDate() + ', ' + date.getFullYear() + ' (' + WEEKDAYS_EN[date.getDay()] + ')';
+    }
     var days = ['日', '月', '火', '水', '木', '金', '土'];
     return date.getFullYear() + '年' + (date.getMonth() + 1) + '月' + date.getDate() + '日(' + days[date.getDay()] + ')';
   }
@@ -2845,8 +3166,8 @@
 
     var sliderPct = (feathers / 63) * 100;
     els.feathers.style.setProperty('--fill', sliderPct + '%');
-    els.feathersReadout.textContent = feathers + '枚 = ' + fmt(edenWeekly) + '本';
-    els.addFeathersBtn.textContent = '＋ ' + fmt(edenWeekly) + '本を所持本数に加算';
+    els.feathersReadout.textContent = t('weekly.readout', { n: feathers, amount: fmt(edenWeekly) });
+    els.addFeathersBtn.textContent = t('weekly.addBtn', { amount: fmt(edenWeekly) });
     els.addFeathersBtn.disabled = edenWeekly <= 0;
 
     var progressPct = target > 0 ? Math.min(100, (current / target) * 100) : 0;
@@ -2854,8 +3175,8 @@
 
     var remaining = target - current;
     var html = '';
-    var weeklyLine = '週あたり ' + fmt(totalWeekly) + '本' +
-      (drinkWeekly > 0 ? '　(羽 ' + fmt(edenWeekly) + '本 − リサイズドリンク ' + fmt(drinkWeekly) + '本)' : '');
+    var weeklyLine = t('result.weeklyLine', { weekly: fmt(totalWeekly) }) +
+      (drinkWeekly > 0 ? t('result.weeklyLineDetail', { feathers: fmt(edenWeekly), drink: fmt(drinkWeekly) }) : '');
 
     // 目標日(任意)からの逆算:期日までに必要な週ペースを計算して表示用HTMLを組み立てる。
     // 期日が未入力・過去日・目標達成済みの場合は何も表示しない。
@@ -2869,9 +3190,9 @@
           var requiredWeeklyPace = remaining / weeksUntilTarget;
           var isOnPace = totalWeekly >= requiredWeeklyPace;
           targetDateInfo = '<div class="target-date-box">' +
-            jpDate(targetDateObj) + 'までに必要なペース　<strong>週' + fmt(requiredWeeklyPace) + '本</strong><br>' +
+            t('result.paceNeededBy', { date: jpDate(targetDateObj), pace: fmt(requiredWeeklyPace) }) + '<br>' +
             '<span class="' + (isOnPace ? 'pace-ok' : 'pace-warn') + '">' +
-            (isOnPace ? '✓ 今のペースで間に合う見込みです' : '△ 今のペースだと週' + fmt(requiredWeeklyPace - totalWeekly) + '本足りません') +
+            (isOnPace ? t('result.paceOk') : t('result.paceWarn', { n: fmt(requiredWeeklyPace - totalWeekly) })) +
             '</span></div>';
         }
       }
@@ -2885,25 +3206,22 @@
       try {
         var shardResult = estimateGoalDateAllShards(current, target, totalWeekly);
         if (shardResult) {
-          shardEstimateInfo = '<div class="shard-estimate-box">🔮 今後の赤闇をすべて回収すると仮定した場合<br>' +
-            '達成予定日　<strong>' + jpDate(shardResult.date) + '</strong>頃</div>';
+          shardEstimateInfo = '<div class="shard-estimate-box">' + t('result.shardEstimate', { date: jpDate(shardResult.date) }) + '</div>';
         }
       } catch (err) { /* no-op */ }
     }
 
     if (target <= 0) {
-      html = '<p class="state-message">目標本数を入力すると、達成までの週数が表示されます。</p>';
+      html = '<p class="state-message">' + t('result.enterTarget') + '</p>';
     } else if (remaining <= 0) {
       html =
-        '<p class="state-message achieved">🎉 目標本数を達成しています！</p>' +
-        '<p class="breakdown">所持 ' + fmt(current) + '本 ／ 目標 ' + fmt(target) + '本</p>';
+        '<p class="state-message achieved">' + t('result.achieved') + '</p>' +
+        '<p class="breakdown">' + t('result.achievedBreakdown', { current: fmt(current), target: fmt(target) }) + '</p>';
     } else if (totalWeekly <= 0) {
-      var warnMsg = drinkWeekly > 0
-        ? '週の収支がプラスにならないため、目標に到達できません。<br>羽の枚数か、リサイズドリンクの購入設定を見直してください。'
-        : '週の獲得本数が0本のため計算できません。<br>羽の枚数を見直してください。';
+      var warnMsg = drinkWeekly > 0 ? t('result.warnDrink') : t('result.warnZero');
       html =
         '<p class="state-message warning">' + warnMsg + '</p>' +
-        '<p class="breakdown">残り ' + fmt(remaining) + '本<br>' + weeklyLine + '</p>' +
+        '<p class="breakdown">' + t('result.remainingBreakdown', { remaining: fmt(remaining), weeklyLine: weeklyLine }) + '</p>' +
         targetDateInfo +
         shardEstimateInfo;
     } else {
@@ -2911,16 +3229,15 @@
       var today = new Date();
       var estDate = new Date(today.getTime() + weeksNeeded * 7 * 86400000);
       html =
-        '<div class="hero-stat">あと ' + weeksNeeded + '<span class="unit-small">週間</span></div>' +
-        '<p class="stat-line">達成予定日　<strong>' + jpDate(estDate) + '</strong>頃</p>' +
-        '<p class="stat-line">残り　<strong>' + fmt(remaining) + '本</strong></p>' +
+        '<div class="hero-stat">' + t('result.heroPrefix') + weeksNeeded + '<span class="unit-small">' + t('result.heroSuffix') + '</span></div>' +
+        '<p class="stat-line">' + t('result.goalDateLine', { date: jpDate(estDate) }) + '</p>' +
+        '<p class="stat-line">' + t('result.remainingLine', { remaining: fmt(remaining) }) + '</p>' +
         targetDateInfo +
         shardEstimateInfo +
         '<p class="breakdown">' +
-          weeklyLine + '<br>' +
-          '進捗 ' + Math.round(progressPct) + '%' +
+          t('result.progressLine', { weeklyLine: weeklyLine, pct: Math.round(progressPct) }) +
         '</p>' +
-        '<p class="note">※7日ごとの獲得ペースをもとにした目安です。実際の日付とは前後する場合があります。</p>';
+        '<p class="note">' + t('result.footnote') + '</p>';
     }
 
     els.resultContent.innerHTML = html;
@@ -2991,6 +3308,15 @@
     return y + '-' + m + '-' + day;
   }
 
+  function renderWeekdayHeaders() {
+    ['datePickerWeekdays', 'shardCalWeekdays'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.innerHTML = WEEKDAYS_JA.map(function (_, i) { return '<span>' + weekdayLabel(i) + '</span>'; }).join('');
+    });
+  }
+  renderWeekdayHeaders();
+
   function updateDateTriggerText() {
     if (els.targetDate.value) {
       var p = els.targetDate.value.split('-');
@@ -2998,7 +3324,7 @@
       datePickerTriggerText.textContent = jpDate(d);
       datePickerTrigger.classList.add('has-value');
     } else {
-      datePickerTriggerText.textContent = '日付を選択(任意)';
+      datePickerTriggerText.textContent = t('goal.dateSelectPlaceholder');
       datePickerTrigger.classList.remove('has-value');
     }
   }
@@ -3011,7 +3337,8 @@
     var todayStr = formatDateValue(new Date());
     var selectedStr = els.targetDate.value;
 
-    datePickerMonthLabel.textContent = year + '年' + (month + 1) + '月';
+    renderWeekdayHeaders();
+    datePickerMonthLabel.textContent = monthYearLabel(year, month + 1);
 
     var html = '';
     for (var i = 0; i < firstWeekday; i++) {
@@ -3200,7 +3527,7 @@
     var hours = Math.floor((totalSec % 86400) / 3600);
     var mins = Math.floor((totalSec % 3600) / 60);
     var secs = totalSec % 60;
-    return (days > 0 ? days + '日 ' : '') + pad2(hours) + ':' + pad2(mins) + ':' + pad2(secs);
+    return (days > 0 ? days + t('dashboard.dayUnit') + ' ' : '') + pad2(hours) + ':' + pad2(mins) + ':' + pad2(secs);
   }
 
   // 着地・終了の各時刻を日本時間(JST)で表示するためのラベルを作る。
@@ -3219,7 +3546,7 @@
     var hour = obj.hour === '24' ? 0 : parseInt(obj.hour, 10);
     return {
       dateKey: obj.year + '-' + obj.month + '-' + obj.day,
-      dateLabel: obj.month + '/' + obj.day + '(' + JP_WEEKDAYS[weekdayMap[obj.weekday]] + ')',
+      dateLabel: obj.month + '/' + obj.day + '(' + weekdayLabel(weekdayMap[obj.weekday]) + ')',
       shortDate: obj.month + '/' + obj.day,
       timeLabel: pad2(hour) + ':' + pad2(parseInt(obj.minute, 10))
     };
@@ -3343,7 +3670,7 @@
   }
 
   function checkboxHtml(dayKey, reward, checked) {
-    return '<label class="predict-check"><input type="checkbox" class="day-check" data-day-key="' + dayKey + '" data-reward="' + reward + '"' + (checked ? ' checked' : '') + '><span>獲得済み</span></label>';
+    return '<label class="predict-check"><input type="checkbox" class="day-check" data-day-key="' + dayKey + '" data-reward="' + reward + '"' + (checked ? ' checked' : '') + '><span>' + t('forecast.collected') + '</span></label>';
   }
 
   function renderForecast() {
@@ -3362,7 +3689,7 @@
     if (pruned) saveCheckedDays(checkedDays);
 
     if (forecast.length === 0) {
-      html = '<p class="predict-empty">今後7日間、赤闇の予測はありません。</p>';
+      html = '<p class="predict-empty">' + t('forecast.empty') + '</p>';
       countdownTarget = null;
       countdownMode = null;
     } else {
@@ -3372,7 +3699,7 @@
 
       html += '<div class="predict-next' + (nextChecked ? ' is-checked' : '') + '">';
       html += '<div class="predict-next-top">';
-      html += '<span class="predict-next-badge">次の赤闇まで</span>';
+      html += '<span class="predict-next-badge">' + t('forecast.nextRedShard') + '</span>';
       html += checkboxHtml(nextDay.dayKey, nextDay.maxReward || 0, nextChecked);
       html += '</div>';
 
@@ -3382,22 +3709,22 @@
       countdownMode = firstEntry.active ? 'end' : 'land';
       countdownTarget = firstEntry.active ? firstEntry.endDate : firstEntry.landingDate;
       html += '<div class="predict-countdown-row">';
-      html += '<span class="predict-countdown-label">' + (countdownMode === 'end' ? '終了まで残り' : '着地まで残り') + '</span>';
+      html += '<span class="predict-countdown-label">' + (countdownMode === 'end' ? t('forecast.timeUntilEnd') : t('forecast.timeUntilLanding')) + '</span>';
       html += '<span class="predict-countdown" id="predictCountdown">' + formatCountdown(countdownTarget.getTime() - new Date().getTime()) + '</span>';
       html += '</div>';
 
-      html += '<div class="predict-next-date-row"><span class="predict-next-date">' + nextDay.dateLabel + '</span>' + (nextDay.maxReward ? '<span class="max-badge">最大' + nextDay.maxReward + '本</span>' : '') + '</div>';
-      html += '<div class="predict-next-place">' + nextDay.realm + '・' + nextDay.location + '</div>';
-      html += '<div class="predict-next-times-header"><span>着地</span><span>終了</span></div>';
+      html += '<div class="predict-next-date-row"><span class="predict-next-date">' + nextDay.dateLabel + '</span>' + (nextDay.maxReward ? '<span class="max-badge">' + t('forecast.maxReward', { n: nextDay.maxReward }) + '</span>' : '') + '</div>';
+      html += '<div class="predict-next-place">' + realmLabel(nextDay.realm) + t('forecast.realmLocationSep') + nextDay.location + '</div>';
+      html += '<div class="predict-next-times-header"><span>' + t('forecast.headerLanding') + '</span><span>' + t('forecast.headerEnd') + '</span></div>';
       nextDay.entries.forEach(function (e) {
         html += '<div class="predict-next-time-row' + (e.active ? ' is-active' : '') + '">' +
           '<span class="land"><span class="date-mini">' + e.landShortDate + '</span><span>' + e.landLabel + '</span></span>' +
           '<span class="arrow">→</span>' +
           '<span class="end"><span class="date-mini">' + e.endShortDate + '</span><span>' + e.endLabel + '</span></span>' +
-          (e.active ? '<span class="active-badge">進行中</span>' : '') +
+          (e.active ? '<span class="active-badge">' + t('forecast.active') + '</span>' : '') +
           '</div>';
       });
-      html += '<p class="predict-next-note">日本時間(JST)基準・いずれか1回で報酬確定</p>';
+      html += '<p class="predict-next-note">' + t('forecast.nextNote') + '</p>';
       html += '</div>';
 
       if (restDays.length > 0) {
@@ -3405,21 +3732,21 @@
           var dChecked = !!checkedDays[day.dayKey];
           html += '<div class="predict-day' + (dChecked ? ' is-checked' : '') + '">';
           html += '<div class="predict-day-head">';
-          html += '<span>' + day.dateLabel + (day.maxReward ? '<span class="max-badge">最大' + day.maxReward + '本</span>' : '') + '<span class="realm-tag">' + day.realm + '・' + day.location + '</span></span>';
+          html += '<span>' + day.dateLabel + (day.maxReward ? '<span class="max-badge">' + t('forecast.maxReward', { n: day.maxReward }) + '</span>' : '') + '<span class="realm-tag">' + realmLabel(day.realm) + t('forecast.realmLocationSep') + day.location + '</span></span>';
           html += checkboxHtml(day.dayKey, day.maxReward || 0, dChecked);
           html += '</div>';
-          html += '<div class="predict-occ">候補 ';
+          html += '<div class="predict-occ">' + t('forecast.candidatesPrefix');
           html += day.entries.map(function (e) {
             return '<span class="land-mini">' + e.landShortDate + ' ' + e.landLabel + '</span><span class="arrow-mini">→</span><span class="end-mini">' + e.endShortDate + ' ' + e.endLabel + '</span>';
-          }).join('・');
-          html += '<span style="opacity:.7;"> JST・いずれか1回</span></div>';
+          }).join(t('forecast.listSep'));
+          html += '<span style="opacity:.7;">' + t('forecast.jstAnyOne') + '</span></div>';
           html += '</div>';
         });
       }
     }
     document.getElementById('predictList').innerHTML = html;
     document.getElementById('predictDays').textContent = days;
-    document.getElementById('predictRange').textContent = '今後7日間・日本時間(JST)基準';
+    document.getElementById('predictRange').textContent = t('forecast.range');
   }
 
   // 1秒ごとにカウントダウン表示だけを更新する(一覧全体は作り直さない)。
@@ -3473,7 +3800,7 @@
     renderForecast();
     setInterval(updateCountdownDisplay, 1000);
   } catch (err) {
-    document.getElementById('predictList').innerHTML = '<p class="predict-empty">予測の計算中にエラーが発生しました。</p>';
+    document.getElementById('predictList').innerHTML = '<p class="predict-empty">' + t('forecast.error') + '</p>';
   }
 
   // 赤闇予測の定数がすべて揃った状態で、達成予定日の表示(赤闇をすべて回収した場合の試算)を
@@ -3539,12 +3866,12 @@
     var entries = buildShardDayEntries(y, m, d, sched);
     var occText = entries.map(function (e) {
       return e.landShortDate + ' ' + e.landLabel + '→' + e.endShortDate + ' ' + e.endLabel;
-    }).join('・');
+    }).join(t('forecast.listSep'));
     shardCalDayDetail.style.display = 'block';
     shardCalDayDetail.innerHTML =
       '<strong>' + jpDate(new Date(y, m - 1, d)) + '</strong><br>' +
-      sched.realm + '・' + location + (maxReward ? '　最大' + maxReward + '本' : '') + '<br>' +
-      '<span style="opacity:.85; font-size:11.5px;">候補(着地→終了・JST) ' + occText + '</span>';
+      realmLabel(sched.realm) + t('forecast.realmLocationSep') + location + (maxReward ? t('shardCal.maxRewardShort', { n: maxReward }) : '') + '<br>' +
+      '<span style="opacity:.85; font-size:11.5px;">' + t('shardCal.candidatesLabel') + occText + '</span>';
   }
 
   function renderShardCalGrid() {
@@ -3554,7 +3881,8 @@
     var daysInMonth = new Date(year, month + 1, 0).getDate();
     var todayStr = formatDateValue(new Date());
 
-    shardCalMonthLabel.textContent = year + '年' + (month + 1) + '月';
+    renderWeekdayHeaders();
+    shardCalMonthLabel.textContent = monthYearLabel(year, month + 1);
 
     var html = '';
     for (var i = 0; i < firstWeekday; i++) {
@@ -3571,7 +3899,7 @@
         if (cellStr === shardCalSelectedKey) cls += ' is-selected';
         html += '<button type="button" class="' + cls + '" data-date="' + cellStr + '">' +
           '<span>' + d + '</span>' +
-          (maxReward ? '<span class="shard-cal-reward">' + maxReward + '本</span>' : '') +
+          (maxReward ? '<span class="shard-cal-reward">' + maxReward + (LANG === 'ja' ? '本' : ' ' + t('goal.unit')) + '</span>' : '') +
           '</button>';
       } else {
         html += '<span class="' + cls + '">' + d + '</span>';
@@ -3647,7 +3975,7 @@
     var p = (dayKey || '').split('-');
     var d = new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10));
     if (isNaN(d.getTime())) return dayKey;
-    return (d.getMonth() + 1) + '/' + d.getDate() + '(' + JP_WEEKDAYS[d.getDay()] + ')';
+    return (d.getMonth() + 1) + '/' + d.getDate() + '(' + weekdayLabel(d.getDay()) + ')';
   }
 
   function historyTimeLabel(ms) {
@@ -3675,11 +4003,26 @@
     renderHistory();
   }
 
+  // entryのsource/dayKeyから、現在の表示言語で正しい語順のラベルを組み立てる。
+  // entry.label自体は保存フォーマット変更を避けるため引き続き日本語で保存され続けるが
+  // (既存ユーザーのlocalStorageとの後方互換のため)、表示にはこの関数を使い、
+  // 羽の枚数はentry.labelから正規表現で抜き出す(数字なので言語に依存しない)。
+  function historyEntryLabel(entry) {
+    if (entry.source === 'shard' && entry.dayKey) {
+      return t('history.shardEntry', { day: shardDayLabel(entry.dayKey) });
+    }
+    if (entry.source === 'feather') {
+      var m = /([\d.]+)/.exec(entry.label || '');
+      return t('history.featherEntry', { n: m ? m[1] : '' });
+    }
+    return entry.label;
+  }
+
   function renderHistory() {
     var list = loadHistory();
     var html;
     if (list.length === 0) {
-      html = '<p class="history-empty">まだ履歴はありません。羽ボタンや赤闇のチェックで記録されます。</p>';
+      html = '<p class="history-empty">' + t('history.empty') + '</p>';
     } else {
       html = list.map(function (entry) {
         var isPlus = entry.amount >= 0;
@@ -3687,10 +4030,10 @@
         return '<div class="history-row">' +
           '<div class="history-main">' +
             '<span class="history-time">' + historyTimeLabel(entry.time) + '</span>' +
-            '<span class="history-label">' + entry.label + '</span>' +
+            '<span class="history-label">' + historyEntryLabel(entry) + '</span>' +
           '</div>' +
-          '<span class="history-amount' + (isPlus ? ' is-plus' : ' is-minus') + '">' + sign + fmt(Math.abs(entry.amount)) + '本</span>' +
-          '<button type="button" class="history-undo-btn" data-history-id="' + entry.id + '">取り消す</button>' +
+          '<span class="history-amount' + (isPlus ? ' is-plus' : ' is-minus') + '">' + sign + fmt(Math.abs(entry.amount)) + (LANG === 'ja' ? '' : ' ') + t('goal.unit') + '</span>' +
+          '<button type="button" class="history-undo-btn" data-history-id="' + entry.id + '">' + t('history.undoBtn') + '</button>' +
         '</div>';
       }).join('');
     }
@@ -3734,7 +4077,7 @@
   });
 
   els.historyClearBtn.addEventListener('click', function () {
-    if (!window.confirm('獲得履歴をすべて消去します。よろしいですか？(所持本数自体は変わりません)')) return;
+    if (!window.confirm(t('history.confirmClear'))) return;
     saveHistory([]);
     renderHistory();
   });
