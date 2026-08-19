@@ -2,6 +2,20 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
+<script>
+  // 表示テーマ（ライト/ダーク）の初期適用。taipak5000.github.io系ツール共通の
+  // 'sky_app_theme' キーを読み、CSS([data-theme="dark"]の上書きブロック)が
+  // 描画される前に<html>へ反映しておくことで、切替時のちらつき(FOUC)を防ぐ。
+  (function () {
+    try {
+      var v = localStorage.getItem('sky_app_theme');
+      var isDark = v ? v === 'dark' : !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    } catch (e) {
+      document.documentElement.setAttribute('data-theme', 'light');
+    }
+  })();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#1B1B3A">
 <meta name="color-scheme" content="dark">
@@ -28,6 +42,19 @@
     --text-dim: #9C93BE;
     --card-bg: rgba(255,255,255,0.055);
     --card-border: rgba(255,255,255,0.14);
+  }
+
+  /* ⚙️ 表示設定 - ダークモード。このサイトは元々インディゴ/バイオレット基調の
+     夜空テーマ(ライト表示を持たない)のため、ライト→ダーク反転ではなく、
+     背景3色をより深い黒寄りにし枠線をわずかに強めた「より暗いダーク」版として
+     定義する。アクセント(gold/crimson系)や文字色は既存のコントラストで
+     ダーク背景でも十分読めるため色相・明度とも据え置き。 */
+  [data-theme="dark"] {
+    --indigo: #000000;
+    --violet: #17132C;
+    --violet-deep: #100D22;
+    --card-bg: rgba(255,255,255,0.045);
+    --card-border: rgba(255,255,255,0.16);
   }
 
   * { box-sizing: border-box; }
@@ -281,6 +308,7 @@
   .date-picker-cell.is-empty { cursor: default; }
   .date-picker-cell:not(.is-empty):not(.is-past):hover { background: rgba(245,181,76,0.16); }
   .date-picker-cell.is-today { box-shadow: inset 0 0 0 1px var(--gold); }
+  [data-theme="dark"] .date-picker-cell.is-today { box-shadow: inset 0 0 0 1px var(--gold-light); }
   .date-picker-cell.is-selected {
     background: linear-gradient(160deg, var(--gold-light), var(--gold));
     color: var(--indigo);
@@ -1003,6 +1031,11 @@
   }
   .shard-cal-cell.is-red:hover { background: rgba(196,87,75,0.48); }
   .shard-cal-cell.is-red.is-selected { box-shadow: inset 0 0 0 2px var(--gold-light); }
+  /* ダーク表示では背景がより黒に近くなる分、シャード発生日の塗りが沈んで見えるため
+     不透明度を上げてhas-shard/today/selectedの区別が引き続きはっきり分かるようにする */
+  [data-theme="dark"] .shard-cal-cell.is-today { box-shadow: inset 0 0 0 1px var(--gold-light); }
+  [data-theme="dark"] .shard-cal-cell.is-red { background: rgba(196,87,75,0.4); }
+  [data-theme="dark"] .shard-cal-cell.is-red:hover { background: rgba(196,87,75,0.58); }
   .shard-cal-reward { font-size: 8.5px; margin-top: 1px; opacity: .9; }
   .shard-cal-legend {
     display: flex;
@@ -1573,6 +1606,44 @@
     </div>
   </div>
 
+  <!-- ▸ ⚙️ 表示設定モーダル(ダークモード・キーボードショートカット) -->
+  <div class="pf-modal-overlay" id="settingsModalOverlay">
+    <div class="pf-modal-card">
+      <h3 data-i18n="settings.modalTitle">⚙️ 表示設定</h3>
+
+      <p class="pf-currency-title" style="cursor:default;" data-i18n="settings.displaySectionLabel">🌙 表示</p>
+      <div class="toggle-field" style="margin-bottom:14px;">
+        <span class="pf-currency-label" data-i18n="settings.darkModeLabel">ダークモード</span>
+        <button type="button" class="pf-icon-btn" id="settingsThemeToggleBtn" onclick="toggleTheme()">🌙</button>
+      </div>
+
+      <p class="pf-currency-title" style="cursor:default; margin-top:14px; padding-top:14px; border-top:1px solid var(--card-border);" data-i18n="settings.shortcutsSectionLabel">⌨️ キーボードショートカット</p>
+      <div class="toggle-field" style="margin-bottom:12px;">
+        <span class="pf-currency-label" data-i18n="settings.shortcutsEnableLabel">ショートカットを有効にする</span>
+        <label class="switch">
+          <input type="checkbox" id="settingsShortcutsToggle" onchange="settingsToggleShortcuts(this.checked)">
+          <span class="switch-track"><span class="switch-thumb"></span></span>
+        </label>
+      </div>
+      <div class="pf-hint" style="margin-top:0;">
+        <div class="pf-row" style="border-bottom:none; padding:3px 4px;">
+          <span class="pf-row-name" style="flex:none; width:34px; color:var(--gold-light); font-weight:700; cursor:default;">?</span>
+          <span data-i18n="settings.shortcutOpenSettings">この設定を開く</span>
+        </div>
+        <div class="pf-row" style="border-bottom:none; padding:3px 4px;">
+          <span class="pf-row-name" style="flex:none; width:34px; color:var(--gold-light); font-weight:700; cursor:default;">D</span>
+          <span data-i18n="settings.shortcutToggleTheme">ダークモード切替</span>
+        </div>
+        <div class="pf-row" style="border-bottom:none; padding:3px 4px;">
+          <span class="pf-row-name" style="flex:none; width:34px; color:var(--gold-light); font-weight:700; cursor:default;">Esc</span>
+          <span data-i18n="settings.shortcutCloseModal">開いているウィンドウを閉じる</span>
+        </div>
+      </div>
+
+      <button type="button" class="pf-close-btn" data-i18n="profile.closeBtn" onclick="settingsCloseModal()">閉じる</button>
+    </div>
+  </div>
+
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
   <div class="app-layout">
@@ -1614,6 +1685,9 @@
       <div style="margin-top:18px; padding-top:14px; border-top:1px solid var(--card-border);">
         <div class="sidebar-section-label" data-i18n="sidebar.homeScreenIconLabel">📱 ホーム画面アイコン</div>
         <button type="button" class="sidebar-nav-link" style="width:100%; box-sizing:border-box; border:1px solid var(--card-border); background:rgba(255,255,255,0.06); cursor:pointer; justify-content:center;" data-i18n="sidebar.customizeIconBtn" onclick="pfIconOpenModal()">🎨 アイコンを<br>カスタマイズ</button>
+      </div>
+      <div style="margin-top:18px; padding-top:14px; border-top:1px solid var(--card-border);">
+        <button type="button" class="sidebar-nav-link" style="width:100%; box-sizing:border-box; border:1px solid var(--card-border); background:rgba(255,255,255,0.06); cursor:pointer; justify-content:center;" data-i18n="settings.entryBtn" onclick="settingsOpenModal()">⚙️ 表示設定</button>
       </div>
     </aside>
 
@@ -2019,6 +2093,19 @@
       legend: { ja: '赤闇が来る日(タップで詳細)', en: 'Days with a Red Shard (tap for details)' },
       maxRewardShort: { ja: '　最大{n}本', en: ' Max {n} candles' },
       candidatesLabel: { ja: '候補(着地→終了・JST) ', en: 'Candidates (landing → end, JST): ' }
+    },
+    settings: {
+      entryBtn: { ja: '⚙️ 表示設定', en: '⚙️ Display Settings' },
+      modalTitle: { ja: '⚙️ 表示設定', en: '⚙️ Display Settings' },
+      displaySectionLabel: { ja: '🌙 表示', en: '🌙 Display' },
+      darkModeLabel: { ja: 'ダークモード', en: 'Dark Mode' },
+      themeToggleDark: { ja: '🌙 ダーク', en: '🌙 Dark' },
+      themeToggleLight: { ja: '☀️ ライト', en: '☀️ Light' },
+      shortcutsSectionLabel: { ja: '⌨️ キーボードショートカット', en: '⌨️ Keyboard Shortcuts' },
+      shortcutsEnableLabel: { ja: 'ショートカットを有効にする', en: 'Enable keyboard shortcuts' },
+      shortcutOpenSettings: { ja: 'この設定を開く', en: 'Open this settings panel' },
+      shortcutToggleTheme: { ja: 'ダークモード切替', en: 'Toggle dark mode' },
+      shortcutCloseModal: { ja: '開いているウィンドウを閉じる', en: 'Close the open window' }
     }
   };
 
@@ -2058,6 +2145,7 @@
     document.title = t('page.title');
     var langBtn = document.getElementById('langToggleBtn');
     if (langBtn) langBtn.textContent = t('sidebar.langToggleBtn');
+    settingsSyncThemeBtnUI();
   }
 
   // 言語トグル。表示を切り替え、動的に生成される各種UI(結果カード・履歴・
@@ -2087,6 +2175,111 @@
   window.toggleLang = toggleLang;
 
   applyI18n();
+
+  // ═══ ⚙️ 表示設定(ダークモード・キーボードショートカット): taipak5000.github.io系
+  // ツール共通のUIチェイン。'sky_app_theme'/'sky_shortcuts_enabled' は端末(ブラウザ)
+  // ごとの表示設定であり、sky_app_lang と同じくnsKey()を使わないプレーンな
+  // グローバルキーとして扱う(プロフィール(保存枠)を切り替えても変わらない)。
+  var THEME_STORAGE_KEY = 'sky_app_theme';
+
+  function isDarkTheme() {
+    return document.documentElement.getAttribute('data-theme') === 'dark';
+  }
+
+  function applyTheme(isDark) {
+    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    try { localStorage.setItem(THEME_STORAGE_KEY, isDark ? 'dark' : 'light'); } catch (e) { /* noop */ }
+    settingsSyncThemeBtnUI();
+  }
+
+  // クイック切替(設定モーダル内のボタン、および 'd'/'D' ショートカットの両方から呼ばれる)
+  function toggleTheme() {
+    applyTheme(!isDarkTheme());
+  }
+  window.toggleTheme = toggleTheme;
+
+  function settingsSyncThemeBtnUI() {
+    var btn = document.getElementById('settingsThemeToggleBtn');
+    if (btn) btn.textContent = isDarkTheme() ? t('settings.themeToggleDark') : t('settings.themeToggleLight');
+  }
+
+  var SHORTCUTS_STORAGE_KEY = 'sky_shortcuts_enabled';
+
+  // 未設定(null)の場合はデフォルトON扱い。
+  function skyShortcutsEnabled() {
+    var v;
+    try { v = localStorage.getItem(SHORTCUTS_STORAGE_KEY); } catch (e) { v = null; }
+    return v === null ? true : v === '1';
+  }
+
+  function settingsToggleShortcuts(checked) {
+    try { localStorage.setItem(SHORTCUTS_STORAGE_KEY, checked ? '1' : '0'); } catch (e) { /* noop */ }
+  }
+  window.settingsToggleShortcuts = settingsToggleShortcuts;
+
+  function settingsSyncShortcutsUI() {
+    var chk = document.getElementById('settingsShortcutsToggle');
+    if (chk) chk.checked = skyShortcutsEnabled();
+  }
+
+  function settingsOpenModal() {
+    closeSidebar();
+    settingsSyncThemeBtnUI();
+    settingsSyncShortcutsUI();
+    var overlay = document.getElementById('settingsModalOverlay');
+    if (overlay) overlay.classList.add('is-visible');
+  }
+  function settingsCloseModal() {
+    var overlay = document.getElementById('settingsModalOverlay');
+    if (overlay) overlay.classList.remove('is-visible');
+  }
+  window.settingsOpenModal = settingsOpenModal;
+  window.settingsCloseModal = settingsCloseModal;
+
+  settingsSyncThemeBtnUI();
+
+  // Escapeで「今開いている一番手前のモーダル/ポップアップ」を閉じる。
+  // 既存の4つのpf-modal-overlay系モーダル・赤闇カレンダー・目標日ピッカーは
+  // それぞれ独自の開閉クラスを持つため、開いているものを順に確認して閉じる
+  // (通常は同時に1つしか開かないため優先順位そのものは概ね影響しない)。
+  function closeTopmostOpenModal() {
+    var settingsOverlay = document.getElementById('settingsModalOverlay');
+    if (settingsOverlay && settingsOverlay.classList.contains('is-visible')) { settingsCloseModal(); return true; }
+    var iconOverlay = document.getElementById('iconCustomModal');
+    if (iconOverlay && iconOverlay.classList.contains('is-visible')) { pfIconCloseModal(); return true; }
+    var dmOverlay = document.getElementById('dmModalOverlay');
+    if (dmOverlay && dmOverlay.classList.contains('is-visible')) { dmCloseModal(); return true; }
+    var dashOverlay = document.getElementById('dashModalOverlay');
+    if (dashOverlay && dashOverlay.classList.contains('is-visible')) { pfDashClose(); return true; }
+    var pfOverlay = document.getElementById('pfModalOverlay');
+    if (pfOverlay && pfOverlay.classList.contains('is-visible')) { pfCloseModal(); return true; }
+    if (typeof shardCalOverlay !== 'undefined' && shardCalOverlay && shardCalOverlay.classList.contains('is-visible')) { closeShardCal(); return true; }
+    if (typeof datePickerPopup !== 'undefined' && datePickerPopup && datePickerPopup.classList.contains('is-open')) { closeDatePicker(); return true; }
+    return false;
+  }
+
+  // 3つのキーボードショートカット: ?=この設定を開く / d,D=ダークモード切替 / Esc=開いている
+  // モーダルを閉じる。Escapeのみ sky_shortcuts_enabled のOFFに関わらず常時有効
+  // (モーダルを閉じる基本UXであり、クリックアウトサイドで閉じる挙動と同じ扱いのため)。
+  document.addEventListener('keydown', function (e) {
+    if (e.repeat) return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    var targetEl = e.target;
+    var isTyping = targetEl && (targetEl.tagName === 'INPUT' || targetEl.tagName === 'TEXTAREA' || targetEl.tagName === 'SELECT' || targetEl.isContentEditable);
+
+    if (e.key === 'Escape') {
+      // 入力中でもEscapeでダイアログを閉じられることを期待するユーザーが多いため、
+      // isTypingでは弾かない。sky_shortcuts_enabledのゲートも掛けない。
+      closeTopmostOpenModal();
+      return;
+    }
+
+    if (isTyping) return; // '?'・'d'は全てのテキスト入力欄で通常通り入力できる必要がある
+    if (!skyShortcutsEnabled()) return;
+
+    if (e.key === '?') { e.preventDefault(); settingsOpenModal(); return; }
+    if (e.key === 'd' || e.key === 'D') { e.preventDefault(); toggleTheme(); return; }
+  });
 
   // ═══ プロフィール（保存枠）管理: taipak5000.github.io 配下の各ツール共通 ═══
   var PROFILES_KEY = 'skyProfiles_v1';
@@ -2584,7 +2777,7 @@
       if (pfEditingId === p.id) {
         html += '<div class="pf-row" style="flex-wrap: wrap;">' +
           '<input type="text" class="pf-row-input" id="pfEditInput" value="' + pfEscapeHtml(p.name) + '" maxlength="20" ' +
-          'onkeydown="if(event.key===\'Enter\') pfConfirmRenameInline(\'' + p.id + '\'); if(event.key===\'Escape\') pfCancelRowState();">' +
+          'onkeydown="event.stopPropagation(); if(event.key===\'Enter\') pfConfirmRenameInline(\'' + p.id + '\'); if(event.key===\'Escape\') pfCancelRowState();">' +
           '<button type="button" class="pf-icon-btn pf-row-btn-ok" onclick="pfConfirmRenameInline(\'' + p.id + '\')">' + t('profile.renameSaveBtn') + '</button>' +
           '<button type="button" class="pf-icon-btn" onclick="pfCancelRowState()">' + t('profile.cancelBtn') + '</button>' +
           '</div>';
