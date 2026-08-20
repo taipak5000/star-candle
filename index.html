@@ -1681,6 +1681,12 @@
         </div>
       </div>
 
+      <p class="pf-currency-title" style="cursor:default; margin-top:14px; padding-top:14px; border-top:1px solid var(--card-border);" data-i18n="settings.customizeSectionLabel">🎨 表示のカスタマイズ</p>
+      <div class="toggle-field" style="margin-bottom:14px;">
+        <span class="pf-currency-label" data-i18n="settings.customizeLabel">アイコンの絵文字・色</span>
+        <button type="button" class="pf-icon-btn" data-i18n="settings.customizeBtn" onclick="settingsCloseModal(); pfIconOpenModal();">🎨 カスタマイズ</button>
+      </div>
+
       <button type="button" class="pf-close-btn" data-i18n="profile.closeBtn" onclick="settingsCloseModal()">閉じる</button>
     </div>
   </div>
@@ -1886,9 +1892,9 @@
       <span class="site-dock-icon">🗂️</span>
       <span class="site-dock-label" data-i18n="dock.profile">プロフィール</span>
     </button>
-    <button type="button" onclick="pfIconOpenModal()">
-      <span class="site-dock-icon">🎨</span>
-      <span class="site-dock-label" data-i18n="dock.customize">カスタマイズ</span>
+    <button type="button" onclick="pfDashOpen()">
+      <span class="site-dock-icon">🗓️</span>
+      <span class="site-dock-label" data-i18n="dock.dashboard">ダッシュボード</span>
     </button>
     <button type="button" onclick="openSidebar()">
       <span class="site-dock-icon">☰</span>
@@ -2168,12 +2174,15 @@
       shortcutsEnableLabel: { ja: 'ショートカットを有効にする', en: 'Enable keyboard shortcuts' },
       shortcutOpenSettings: { ja: 'この設定を開く', en: 'Open this settings panel' },
       shortcutToggleTheme: { ja: 'ダークモード切替', en: 'Toggle dark mode' },
-      shortcutCloseModal: { ja: '開いているウィンドウを閉じる', en: 'Close the open window' }
+      shortcutCloseModal: { ja: '開いているウィンドウを閉じる', en: 'Close the open window' },
+      customizeSectionLabel: { ja: '🎨 表示のカスタマイズ', en: '🎨 Icon Customization' },
+      customizeLabel: { ja: 'アイコンの絵文字・色', en: 'Icon emoji & colors' },
+      customizeBtn: { ja: '🎨 カスタマイズ', en: '🎨 Customize' }
     },
     dock: {
       ariaLabel: { ja: 'クイックメニュー', en: 'Quick Menu' },
       profile: { ja: 'プロフィール', en: 'Profiles' },
-      customize: { ja: 'カスタマイズ', en: 'Customize' },
+      dashboard: { ja: 'ダッシュボード', en: 'Dashboard' },
       otherTools: { ja: '他のツール', en: 'More Tools' },
       settings: { ja: '表示設定', en: 'Settings' }
     }
