@@ -71,6 +71,8 @@
     position: relative;
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
+    /* 画面下部固定のsite-dock(クイックメニュー)にコンテンツ末尾が隠れないための余白 */
+    padding-bottom: calc(76px + env(safe-area-inset-bottom));
   }
 
   .star-field {
@@ -1485,6 +1487,45 @@
     .sidebar-toggle-btn,
     .sidebar-close-btn { display: none; }
   }
+
+  /* ═══ 🧭 site-dock（クイックメニュー）: pengram.jp系サイトに倣った画面下部固定の
+     ショートカット行。既存のハンバーガーサイドバーは置き換えず並存させる。
+     背景・枠線・文字色は.card/.sidebarと同じ既存トークン(--card-bg/--card-border/
+     --text-dim)を流用し、ライト/ダーク両テーマに自動追従する。 */
+  .site-dock {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 90;
+    padding: 6px 10px calc(8px + env(safe-area-inset-bottom));
+    background: var(--card-bg);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border-top: 1px solid var(--card-border);
+    justify-content: space-around;
+    align-items: stretch;
+    gap: 4px;
+  }
+  .site-dock button {
+    flex: 1 1 0;
+    max-width: 110px;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 6px 0;
+    min-height: 52px;
+    border-radius: 12px;
+    font-family: inherit;
+  }
+  .site-dock button:active { background: rgba(255,255,255,0.08); }
+  .site-dock .site-dock-icon { font-size: 20px; line-height: 1; }
+  .site-dock .site-dock-label { font-size: 10px; font-weight: 700; color: var(--text-dim); }
 </style>
 </head>
 <body>
@@ -1836,6 +1877,28 @@
     <span data-i18n="footer.creditLabel">作成・ご意見:</span> <a href="https://x.com/Skyzztai" target="_blank" rel="noopener noreferrer">@Skyzztai</a>　<span data-i18n="footer.referenceLabel">参考データ:</span> <a href="https://sky-children-of-the-light.fandom.com/ja/wiki/%E7%A0%B4%E7%89%87%E3%81%AE%E5%99%B4%E5%87%BA" target="_blank" rel="noopener noreferrer" data-i18n="footer.referenceLink">破片の噴出 (Sky Wiki 日本語)</a><br>
     <a href="https://taipak5000.github.io/tai-info/" target="_blank" rel="noopener noreferrer" data-i18n="footer.infoLink">⚙️ 設定・更新情報・クレジット・プライバシーポリシー</a>
   </footer>
+
+  <!-- 🧭 site-dock（クイックメニュー）: 既存のハンバーガーサイドバーと並存するショートカット行。
+       .wrap（z-index:1でスタッキングコンテキストを作る）の内側に置くことで、
+       モーダル／サイドバーのz-indexと同じ比較文脈に入れ、正しく覆われるようにする -->
+  <nav class="site-dock" aria-label="クイックメニュー" data-i18n-aria-label="dock.ariaLabel">
+    <button type="button" onclick="pfOpenModal()">
+      <span class="site-dock-icon">🗂️</span>
+      <span class="site-dock-label" data-i18n="dock.profile">プロフィール</span>
+    </button>
+    <button type="button" onclick="pfIconOpenModal()">
+      <span class="site-dock-icon">🎨</span>
+      <span class="site-dock-label" data-i18n="dock.customize">カスタマイズ</span>
+    </button>
+    <button type="button" onclick="openSidebar()">
+      <span class="site-dock-icon">☰</span>
+      <span class="site-dock-label" data-i18n="dock.otherTools">他のツール</span>
+    </button>
+    <button type="button" onclick="settingsOpenModal()">
+      <span class="site-dock-icon">⚙️</span>
+      <span class="site-dock-label" data-i18n="dock.settings">表示設定</span>
+    </button>
+  </nav>
 </div>
 
 <script>
@@ -2106,6 +2169,13 @@
       shortcutOpenSettings: { ja: 'この設定を開く', en: 'Open this settings panel' },
       shortcutToggleTheme: { ja: 'ダークモード切替', en: 'Toggle dark mode' },
       shortcutCloseModal: { ja: '開いているウィンドウを閉じる', en: 'Close the open window' }
+    },
+    dock: {
+      ariaLabel: { ja: 'クイックメニュー', en: 'Quick Menu' },
+      profile: { ja: 'プロフィール', en: 'Profiles' },
+      customize: { ja: 'カスタマイズ', en: 'Customize' },
+      otherTools: { ja: '他のツール', en: 'More Tools' },
+      settings: { ja: '表示設定', en: 'Settings' }
     }
   };
 
@@ -3270,6 +3340,7 @@
     sidebarEl.classList.remove('sidebar-open');
     sidebarOverlayEl.classList.remove('is-visible');
   }
+  window.openSidebar = openSidebar; // site-dockの「☰ 他のツール」ボタンから呼び出すために公開
 
   sidebarToggleBtn.addEventListener('click', function () {
     if (sidebarEl.classList.contains('sidebar-open')) {
