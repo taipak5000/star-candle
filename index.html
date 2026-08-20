@@ -1525,7 +1525,7 @@
   }
   .site-dock button:active { background: rgba(255,255,255,0.08); }
   .site-dock .site-dock-icon { font-size: 20px; line-height: 1; }
-  .site-dock .site-dock-label { font-size: 10px; font-weight: 700; color: var(--text-dim); }
+  .site-dock .site-dock-label { font-size: 10px; font-weight: 700; color: var(--text-dim); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 </style>
 </head>
 <body>
@@ -1685,6 +1685,12 @@
       <div class="toggle-field" style="margin-bottom:14px;">
         <span class="pf-currency-label" data-i18n="settings.customizeLabel">アイコンの絵文字・色</span>
         <button type="button" class="pf-icon-btn" data-i18n="settings.customizeBtn" onclick="settingsCloseModal(); pfIconOpenModal();">🎨 カスタマイズ</button>
+      </div>
+
+      <p class="pf-currency-title" style="cursor:default; margin-top:14px; padding-top:14px; border-top:1px solid var(--card-border);" data-i18n="settings.languageSectionLabel">🌐 言語</p>
+      <div style="display:flex; gap:8px; margin-bottom:14px;">
+        <button type="button" class="pf-icon-btn" id="settingsLangJaBtn" style="flex:1; padding:8px;" onclick="setLang('ja')">日本語</button>
+        <button type="button" class="pf-icon-btn" id="settingsLangEnBtn" style="flex:1; padding:8px;" onclick="setLang('en')">English</button>
       </div>
 
       <button type="button" class="pf-close-btn" data-i18n="profile.closeBtn" onclick="settingsCloseModal()">閉じる</button>
@@ -1890,7 +1896,7 @@
   <nav class="site-dock" aria-label="クイックメニュー" data-i18n-aria-label="dock.ariaLabel">
     <button type="button" onclick="pfOpenModal()">
       <span class="site-dock-icon">🗂️</span>
-      <span class="site-dock-label" data-i18n="dock.profile">プロフィール</span>
+      <span class="site-dock-label" id="siteDockProfileLabel">プロフィール</span>
     </button>
     <button type="button" onclick="pfDashOpen()">
       <span class="site-dock-icon">🗓️</span>
@@ -2177,7 +2183,8 @@
       shortcutCloseModal: { ja: '開いているウィンドウを閉じる', en: 'Close the open window' },
       customizeSectionLabel: { ja: '🎨 表示のカスタマイズ', en: '🎨 Icon Customization' },
       customizeLabel: { ja: 'アイコンの絵文字・色', en: 'Icon emoji & colors' },
-      customizeBtn: { ja: '🎨 カスタマイズ', en: '🎨 Customize' }
+      customizeBtn: { ja: '🎨 カスタマイズ', en: '🎨 Customize' },
+      languageSectionLabel: { ja: '🌐 言語', en: '🌐 Language' }
     },
     dock: {
       ariaLabel: { ja: 'クイックメニュー', en: 'Quick Menu' },
@@ -2227,10 +2234,13 @@
     settingsSyncThemeBtnUI();
   }
 
-  // 言語トグル。表示を切り替え、動的に生成される各種UI(結果カード・履歴・
-  // 赤闇予測・ダッシュボード等)を最新の言語で再描画する。
-  function toggleLang() {
-    LANG = LANG === 'ja' ? 'en' : 'ja';
+  // 指定した言語に切り替える。表示を切り替え、動的に生成される各種UI(結果カード・
+  // 履歴・赤闇予測・ダッシュボード等)を最新の言語で再描画する。既に選択中の言語が
+  // 指定された場合は何もしない(無駄な再描画をしない安全なno-op)。
+  function setLang(lang) {
+    if (lang !== 'ja' && lang !== 'en') return;
+    if (LANG === lang) { settingsSyncLangButtonsUI(); return; }
+    LANG = lang;
     try { localStorage.setItem(LANG_STORAGE_KEY, LANG); } catch (e) { /* noop */ }
     applyI18n();
     if (typeof update === 'function') update();
@@ -2250,8 +2260,30 @@
       var dashBodyEl = document.getElementById('dashBody');
       if (dashBodyEl) dashBodyEl.innerHTML = pfDashBuildHtml(pfDashCache);
     }
+    settingsSyncLangButtonsUI();
+  }
+  window.setLang = setLang;
+
+  // 従来のトグルボタン(サイドバー内)用。ja/enの2値をsetLang()経由で反転させる。
+  function toggleLang() {
+    setLang(LANG === 'ja' ? 'en' : 'ja');
   }
   window.toggleLang = toggleLang;
+
+  // 設定モーダル内の言語セレクター(日本語/English)ボタンの選択状態を、現在の
+  // LANGに同期させる。アイコンモード切替ボタン(pfIconSetMode)と同じ既存の
+  // 「選択状態」表現(gold背景+indigo文字)を再利用する。
+  function settingsSyncLangButtonsUI() {
+    var jaBtn = document.getElementById('settingsLangJaBtn');
+    var enBtn = document.getElementById('settingsLangEnBtn');
+    if (!jaBtn || !enBtn) return;
+    jaBtn.style.background = LANG === 'ja' ? 'var(--gold)' : 'rgba(255,255,255,0.08)';
+    jaBtn.style.color = LANG === 'ja' ? 'var(--indigo)' : 'var(--lavender)';
+    jaBtn.style.fontWeight = LANG === 'ja' ? '700' : 'normal';
+    enBtn.style.background = LANG === 'en' ? 'var(--gold)' : 'rgba(255,255,255,0.08)';
+    enBtn.style.color = LANG === 'en' ? 'var(--indigo)' : 'var(--lavender)';
+    enBtn.style.fontWeight = LANG === 'en' ? '700' : 'normal';
+  }
 
   applyI18n();
 
@@ -2305,6 +2337,7 @@
     closeSidebar();
     settingsSyncThemeBtnUI();
     settingsSyncShortcutsUI();
+    settingsSyncLangButtonsUI();
     var overlay = document.getElementById('settingsModalOverlay');
     if (overlay) overlay.classList.add('is-visible');
   }
@@ -2316,6 +2349,7 @@
   window.settingsCloseModal = settingsCloseModal;
 
   settingsSyncThemeBtnUI();
+  settingsSyncLangButtonsUI();
 
   // Escapeで「今開いている一番手前のモーダル/ポップアップ」を閉じる。
   // 既存の4つのpf-modal-overlay系モーダル・赤闇カレンダー・目標日ピッカーは
@@ -2536,6 +2570,10 @@
     if (!bar) return;
     bar.innerHTML = '<span class="pf-bar-text" onclick="pfOpenModal()">🗂️ <b>' + pfEscapeHtml(active.name) + '</b>&nbsp;' + t('profile.barActiveSuffix') + '</span>' +
       '<button type="button" class="pf-dash-btn" onclick="pfDashOpen()" title="' + t('profile.dashboardBtnTitle') + '">🗓️</button>';
+    // 🧭 画面下部ドックの「プロフィール」ボタンにも、現在アクティブなプロフィール名を表示する。
+    // 長い名前は省略記号で切り詰める(CSS側の.site-dock-labelで対応)。
+    var dockLabel = document.getElementById('siteDockProfileLabel');
+    if (dockLabel) dockLabel.textContent = active.name;
   }
 
   /* ================================================================
