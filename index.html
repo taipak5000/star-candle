@@ -1484,8 +1484,12 @@
   @media (min-width: 850px) {
     .wrap { max-width: 680px; }
     .sidebar { display: block; }
-    .sidebar-toggle-btn,
-    .sidebar-close-btn { display: none; }
+    .sidebar-toggle-btn { display: none; }
+    /* ドックの「他のツール」ボタン(openSidebar())は、デスクトップ幅でも常時表示の
+       インラインパネルとは別に、固定位置オーバーレイのドロワーとして .sidebar を
+       開けるため、閉じるボタンは「オーバーレイとして開いている間」だけはこの幅
+       でも隠さない。常時表示パネル(.sidebar-open が付いていない状態)の時だけ隠す。 */
+    .sidebar:not(.sidebar-open) .sidebar-close-btn { display: none; }
   }
 
   /* ═══ 🧭 site-dock（クイックメニュー）: pengram.jp系サイトに倣った画面下部固定の
@@ -2341,10 +2345,12 @@
     settingsSyncLangButtonsUI();
     var overlay = document.getElementById('settingsModalOverlay');
     if (overlay) overlay.classList.add('is-visible');
+    pfModalTrapOpen(overlay);
   }
   function settingsCloseModal() {
     var overlay = document.getElementById('settingsModalOverlay');
     if (overlay) overlay.classList.remove('is-visible');
+    pfModalTrapClose(overlay);
   }
   window.settingsOpenModal = settingsOpenModal;
   window.settingsCloseModal = settingsCloseModal;
@@ -2356,6 +2362,72 @@
   // 既存の4つのpf-modal-overlay系モーダル・赤闇カレンダー・目標日ピッカーは
   // それぞれ独自の開閉クラスを持つため、開いているものを順に確認して閉じる
   // (通常は同時に1つしか開かないため優先順位そのものは概ね影響しない)。
+  // ═══ モーダルのフォーカス管理(プロフィール/設定/ダッシュボード/バックアップ/
+  // アイコンカスタマイズの5つのpf-modal-overlay共通) ═══
+  // 開いた瞬間にモーダル内へフォーカスを移し、Tab/Shift+Tabをモーダル内に閉じ込め、
+  // 閉じたら開く直前にフォーカスがあった要素(トリガー)へ戻す。各モーダルのopen/close
+  // 関数からpfModalTrapOpen(overlay)/pfModalTrapClose(overlay)を呼び出して使う。
+  // プロフィールモーダルからバックアップモーダルを開くなど、pf-modal-overlay同士が
+  // 二重に開く場合もあるため、単一のグローバル状態ではなくoverlayごとにスタックで
+  // 管理し、内側のモーダルを閉じたら外側のモーダルのトラップが壊れず残るようにする。
+  var pfModalTrapStack = [];
+
+  function pfModalFocusableEls(overlay) {
+    var nodes = overlay.querySelectorAll(
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    );
+    var result = [];
+    for (var i = 0; i < nodes.length; i++) {
+      // style="display:none"等で現在非表示の要素(モード切替で隠れているパネルや
+      // ファイル選択inputなど)はTabの巡回対象から除外する。
+      if (nodes[i].offsetParent !== null) result.push(nodes[i]);
+    }
+    return result;
+  }
+
+  function pfModalTrapOpen(overlay) {
+    if (!overlay) return;
+    var trigger = document.activeElement;
+    var card = overlay.querySelector('.pf-modal-card');
+    if (card && !card.hasAttribute('tabindex')) card.setAttribute('tabindex', '-1');
+    var focusables = pfModalFocusableEls(overlay);
+    var toFocus = focusables[0] || card;
+    if (toFocus) toFocus.focus();
+
+    var handler = function (e) {
+      if (e.key !== 'Tab') return;
+      var items = pfModalFocusableEls(overlay);
+      if (items.length === 0) { e.preventDefault(); return; }
+      var first = items[0], last = items[items.length - 1];
+      if (e.shiftKey) {
+        if (document.activeElement === first || !overlay.contains(document.activeElement)) {
+          e.preventDefault(); last.focus();
+        }
+      } else {
+        if (document.activeElement === last || !overlay.contains(document.activeElement)) {
+          e.preventDefault(); first.focus();
+        }
+      }
+    };
+    overlay.addEventListener('keydown', handler);
+    pfModalTrapStack.push({ overlay: overlay, handler: handler, trigger: trigger });
+  }
+
+  function pfModalTrapClose(overlay) {
+    if (!overlay) return;
+    var idx = -1;
+    for (var i = pfModalTrapStack.length - 1; i >= 0; i--) {
+      if (pfModalTrapStack[i].overlay === overlay) { idx = i; break; }
+    }
+    if (idx === -1) return;
+    var entry = pfModalTrapStack[idx];
+    pfModalTrapStack.splice(idx, 1);
+    overlay.removeEventListener('keydown', entry.handler);
+    if (entry.trigger && typeof entry.trigger.focus === 'function' && document.contains(entry.trigger)) {
+      entry.trigger.focus();
+    }
+  }
+
   function closeTopmostOpenModal() {
     var settingsOverlay = document.getElementById('settingsModalOverlay');
     if (settingsOverlay && settingsOverlay.classList.contains('is-visible')) { settingsCloseModal(); return true; }
@@ -2367,6 +2439,8 @@
     if (dashOverlay && dashOverlay.classList.contains('is-visible')) { pfDashClose(); return true; }
     var pfOverlay = document.getElementById('pfModalOverlay');
     if (pfOverlay && pfOverlay.classList.contains('is-visible')) { pfCloseModal(); return true; }
+    var sidebarEl2 = document.getElementById('sidebar');
+    if (sidebarEl2 && sidebarEl2.classList.contains('sidebar-open')) { closeSidebar(); return true; }
     if (typeof shardCalOverlay !== 'undefined' && shardCalOverlay && shardCalOverlay.classList.contains('is-visible')) { closeShardCal(); return true; }
     if (typeof datePickerPopup !== 'undefined' && datePickerPopup && datePickerPopup.classList.contains('is-open')) { closeDatePicker(); return true; }
     return false;
@@ -2942,6 +3016,7 @@
   function pfDashOpen() {
     var overlay = document.getElementById('dashModalOverlay');
     if (overlay) overlay.classList.add('is-visible');
+    pfModalTrapOpen(overlay);
     var body = document.getElementById('dashBody');
     if (pfDashCache) { body.innerHTML = pfDashBuildHtml(pfDashCache); pfDashStartTimer(); return; }
     body.innerHTML = '<p class="pf-hint">' + t('dashboard.loading') + '</p>';
@@ -2958,6 +3033,7 @@
   function pfDashClose() {
     var overlay = document.getElementById('dashModalOverlay');
     if (overlay) overlay.classList.remove('is-visible');
+    pfModalTrapClose(overlay);
     pfDashStopTimer();
   }
 
@@ -3034,9 +3110,17 @@
       var target = null;
       for (var i = 0; i < list.length; i++) { if (list[i].id === id) { target = list[i]; break; } }
       if (target) {
-        target.name = next.trim().slice(0, 20);
-        pfSaveProfiles(list);
-        pfRenderBar();
+        var trimmed = next.trim().slice(0, 20);
+        // 入力欄には翻訳済みの表示名(pfDisplayName())を初期値として入れているため、
+        // 編集せずそのまま保存すると、既定プロフィールの「未リネーム」マーカーが
+        // 現在の表示言語の文字列で上書きされてしまう(=以後その言語に固定され、
+        // 表示言語を切り替えても再翻訳されなくなる)。表示中の名前から実際に
+        // 変更されていない場合は書き込み自体を省略し、マーカーをそのまま保つ。
+        if (trimmed !== pfDisplayName(target)) {
+          target.name = trimmed;
+          pfSaveProfiles(list);
+          pfRenderBar();
+        }
       }
     }
     pfRenderModal();
@@ -3137,12 +3221,14 @@
     pfRenderCurrency();
     var overlay = document.getElementById('pfModalOverlay');
     if (overlay) overlay.classList.add('is-visible');
+    pfModalTrapOpen(overlay);
   }
   function pfCloseModal() {
     pfEditingId = null;
     pfDeletingId = null;
     var overlay = document.getElementById('pfModalOverlay');
     if (overlay) overlay.classList.remove('is-visible');
+    pfModalTrapClose(overlay);
   }
 
   // ═══ データのエクスポート/インポート/全削除 ═══
@@ -3156,10 +3242,12 @@
     dmRenderWipeArea();
     var overlay = document.getElementById('dmModalOverlay');
     if (overlay) overlay.classList.add('is-visible');
+    pfModalTrapOpen(overlay);
   }
   function dmCloseModal() {
     var overlay = document.getElementById('dmModalOverlay');
     if (overlay) overlay.classList.remove('is-visible');
+    pfModalTrapClose(overlay);
   }
 
   function dmExport() {
@@ -3268,11 +3356,15 @@
   var pfIconUploadedImg = null;
 
   function pfIconOpenModal() {
-    document.getElementById('iconCustomModal').classList.add('is-visible');
+    var overlay = document.getElementById('iconCustomModal');
+    overlay.classList.add('is-visible');
     closeSidebar();
+    pfModalTrapOpen(overlay);
   }
   function pfIconCloseModal() {
-    document.getElementById('iconCustomModal').classList.remove('is-visible');
+    var overlay = document.getElementById('iconCustomModal');
+    overlay.classList.remove('is-visible');
+    pfModalTrapClose(overlay);
   }
 
   function pfIconSetMode(mode) {
