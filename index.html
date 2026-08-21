@@ -1751,7 +1751,7 @@
     <div class="field">
       <label for="target" data-i18n="goal.targetLabel">目標本数</label>
       <div class="input-suffix">
-        <input type="number" id="target" inputmode="decimal" min="0" step="any" data-i18n-placeholder="goal.targetPlaceholder" placeholder="例: 60">
+        <input type="number" id="target" inputmode="decimal" min="0" max="99999" step="any" data-i18n-placeholder="goal.targetPlaceholder" placeholder="例: 60">
         <span class="unit" data-i18n="goal.unit">本</span>
       </div>
     </div>
@@ -2131,6 +2131,7 @@
       heroPrefix: { ja: 'あと ', en: '' },
       heroSuffix: { ja: '週間', en: ' more weeks' },
       goalDateLine: { ja: '達成予定日　<strong>{date}</strong>頃', en: 'Estimated goal date: <strong>{date}</strong> (approx.)' },
+      goalDateTooFar: { ja: '達成予定日　<strong>計算できないほど遠い未来です</strong>', en: 'Estimated goal date: <strong>too far in the future to estimate</strong>' },
       remainingLine: { ja: '残り　<strong>{remaining}本</strong>', en: 'Remaining: <strong>{remaining} candles</strong>' },
       progressLine: { ja: '{weeklyLine}<br>進捗 {pct}%', en: '{weeklyLine}<br>Progress {pct}%' },
       footnote: { ja: '※7日ごとの獲得ペースをもとにした目安です。実際の日付とは前後する場合があります。', en: '*This is an estimate based on your gain rate over each 7-day period. The actual date may differ.' }
@@ -2398,6 +2399,18 @@
   var PROFILES_KEY = 'skyProfiles_v1';
   var ACTIVE_PROFILE_KEY = 'skyActiveProfile_v1';
   var DEFAULT_PROFILE_ID = 'default';
+  // 既定プロフィール名の再翻訳バグ移行が完了済みかのフラグ（1回限り）。これが無いと、
+  // ユーザーが後から既定プロフィールを意図的に「Main」等の言語切替語と同じ文字列へ
+  // リネームした場合に、以後の読み込みのたびに誤って「未リネーム」扱いへ巻き戻ってしまう。
+  var PROFILES_DEFAULT_NAME_MIGRATED_KEY = 'skyProfiles_v1_defaultNameMigrated';
+  // 既定プロフィールの「未リネーム」マーカー。PROFILES_KEY(skyProfiles_v1)は
+  // taipak5000.github.io配下の全ツール共通のストレージキーであり、wings/tai-nomacan/
+  // emote/spirit-catalog等の他ツールは既にこの日本語リテラル自体を「まだリネームして
+  // いない既定プロフィール」の合図として使う設計で同じバグを修正済み(pfDisplayName()参照)。
+  // ここで独自にnull等の別の合図を使うと、他ツール側のtypeof p.name === 'string'という
+  // フィルタに弾かれて既定プロフィールがまるごと消失する(≒最悪の場合そのツール側で
+  // プロフィール一覧が空と誤認され、書き戻しで他の保存済みプロフィールごと失われる)ため、
+  // 必ず他ツールと同じ「日本語リテラルそのものをマーカーにする」方式に合わせる。
 
   // id はこのファイル内で常に「英数字・アンダースコア・ハイフンのみ」で生成しているため、
   // それ以外の形式は不正な値（データ引継ぎ/バックアップの改ざん等）とみなして除外する。
@@ -2415,23 +2428,51 @@
     try {
       var list = JSON.parse(localStorage.getItem(PROFILES_KEY));
       if (!Array.isArray(list)) return null;
+      // 既定プロフィール(id===DEFAULT_PROFILE_ID)は、作成時の表示言語での翻訳済み文字列
+      // （'メイン'/'Main'）をそのまま保存していた(表示設定の言語を切り替えても再翻訳
+      // されないバグ)。1回限りの移行として、まだユーザーがリネームしておらず名前が
+      // 英語版の既定名('Main')と完全一致する場合のみ、日本語版の既定名('メイン'。他
+      // ツール共通の「未リネーム」マーカー。pfDisplayName()参照)へ寄せる。既に'メイン'
+      // の場合はそのままでマーカーと一致しているため書き換え不要。移行フラグを立てた後は
+      // 二度と行わないため、後からユーザーが既定プロフィールを意図的に「Main」などへ
+      // リネームしても、その名前がこのチェックで巻き戻されることはない。
+      var needsMigration = false;
+      try { needsMigration = !localStorage.getItem(PROFILES_DEFAULT_NAME_MIGRATED_KEY); } catch (e) { /* noop */ }
+      var migrated = false;
       list = list.filter(function (p) { return p && pfIsSafeId(p.id) && typeof p.name === 'string'; }).map(function (p) {
+        if (needsMigration && p.id === DEFAULT_PROFILE_ID && p.name === I18N.profile.defaultName.en) {
+          migrated = true;
+          p.name = I18N.profile.defaultName.ja;
+        }
         if (p.color !== undefined && !pfIsSafeColor(p.color)) {
           var rest = {}; for (var k in p) { if (k !== 'color') rest[k] = p[k]; } return rest;
         }
         return p;
       });
-      if (list.length > 0) return list;
+      if (needsMigration) {
+        try { localStorage.setItem(PROFILES_DEFAULT_NAME_MIGRATED_KEY, '1'); } catch (e) { /* noop */ }
+      }
+      if (list.length > 0) {
+        if (migrated) pfSaveProfiles(list);
+        return list;
+      }
     } catch (e) { /* noop */ }
     return null;
   }
   function pfSaveProfiles(list) {
     try { localStorage.setItem(PROFILES_KEY, JSON.stringify(list)); } catch (e) { /* noop */ }
   }
+  // 既定プロフィールの表示名。name が既定プロフィールの「未リネーム」マーカー('メイン'。
+  // 他ツール共通)のままなら現在の表示言語で翻訳した既定名を返し、ユーザーが実際に
+  // リネームした名前(既定プロフィールを含む)はそのまま返す。
+  function pfDisplayName(p) {
+    if (!p) return '';
+    return (p.id === DEFAULT_PROFILE_ID && p.name === I18N.profile.defaultName.ja) ? t('profile.defaultName') : p.name;
+  }
   function pfEnsureInit() {
     var list = pfLoadProfiles();
     if (!list) {
-      list = [{ id: DEFAULT_PROFILE_ID, name: t('profile.defaultName') }];
+      list = [{ id: DEFAULT_PROFILE_ID, name: I18N.profile.defaultName.ja }];
       pfSaveProfiles(list);
     }
     try {
@@ -2443,7 +2484,7 @@
     try { return localStorage.getItem(ACTIVE_PROFILE_KEY) || DEFAULT_PROFILE_ID; } catch (e) { return DEFAULT_PROFILE_ID; }
   }
   function pfGetActiveProfile() {
-    var list = pfLoadProfiles() || [{ id: DEFAULT_PROFILE_ID, name: t('profile.defaultName') }];
+    var list = pfLoadProfiles() || [{ id: DEFAULT_PROFILE_ID, name: I18N.profile.defaultName.ja }];
     var id = pfGetActiveId();
     var found = null;
     for (var i = 0; i < list.length; i++) { if (list[i].id === id) { found = list[i]; break; } }
@@ -2568,12 +2609,12 @@
     pfApplyThemeColor(active.color);
     var bar = document.getElementById('pfBar');
     if (!bar) return;
-    bar.innerHTML = '<span class="pf-bar-text" onclick="pfOpenModal()">🗂️ <b>' + pfEscapeHtml(active.name) + '</b>&nbsp;' + t('profile.barActiveSuffix') + '</span>' +
+    bar.innerHTML = '<span class="pf-bar-text" onclick="pfOpenModal()">🗂️ <b>' + pfEscapeHtml(pfDisplayName(active)) + '</b>&nbsp;' + t('profile.barActiveSuffix') + '</span>' +
       '<button type="button" class="pf-dash-btn" onclick="pfDashOpen()" title="' + t('profile.dashboardBtnTitle') + '">🗓️</button>';
     // 🧭 画面下部ドックの「プロフィール」ボタンにも、現在アクティブなプロフィール名を表示する。
     // 長い名前は省略記号で切り詰める(CSS側の.site-dock-labelで対応)。
     var dockLabel = document.getElementById('siteDockProfileLabel');
-    if (dockLabel) dockLabel.textContent = active.name;
+    if (dockLabel) dockLabel.textContent = pfDisplayName(active);
   }
 
   /* ================================================================
@@ -2609,12 +2650,53 @@
   var SHARD_REALMS = ['prairie', 'forest', 'valley', 'wasteland', 'vault'];
   // レルムの日本語表記 -> realmキー の逆引き。REALMS配列やgetDaySchedule()が返す
   // レルム名(日本語文字列)をUI言語に応じて表示するために使う。着地場所の固有名詞
-  // (LOCATIONS/SHARD_LOCATIONS)はこの翻訳対象外(データカタログ的な内容のため対象外)。
+  // (LOCATIONS/SHARD_LOCATIONS)はshardLocationName()で翻訳する(下記)。
   var REALM_JA_TO_KEY = {};
   Object.keys(SHARD_REALM_JA).forEach(function (k) { REALM_JA_TO_KEY[SHARD_REALM_JA[k]] = k; });
   function realmLabel(jaName) {
     var key = REALM_JA_TO_KEY[jaName];
     return key ? t('realm.' + key) : jaName;
+  }
+  // 着地場所の固有名詞（LOCATIONS/SHARD_LOCATIONSに出てくる日本語表記）→ 公式英語名。
+  // 2つのデータカタログは出典元(9-bit.jpの着地場所一覧 / PlutoyDev/sky-shardsのshardsInfo.maps)
+  // が別のため同じ場所でも表記ゆれがある(例: 「鳥の塔」と「鳥の巣」はどちらもBird Nest)。
+  // 英語名はPlutoyDev/sky-shards（src/i18n/en.json の skyMaps）に準拠。
+  // en表示のときだけ適用し、ja表示は既存の文字列をそのまま使う（realmLabel()と同じ方針）。
+  var SHARD_LOCATION_EN = {
+    '蝶々の住処': 'Butterfly Fields',
+    '草原の村': 'Village Islands',
+    '神殿エリア': 'Village Islands',
+    '草原の洞窟': 'Cave',
+    '洞窟': 'Cave',
+    '鳥の塔': 'Bird Nest',
+    '鳥の巣': 'Bird Nest',
+    '楽園の島々': 'Sanctuary Island',
+    '雨林の小川': 'Brook',
+    '小川': 'Brook',
+    '雨林の墓場': 'Boneyard',
+    '神殿前': 'Boneyard',
+    '聖なる池': 'Forest Garden',
+    '神殿奥': 'Forest Garden',
+    'ツリーハウス': 'Treehouse',
+    '高台広場': 'Elevated Clearing',
+    '晴れ間': 'Elevated Clearing',
+    'アイスリンク': 'Ice Rink',
+    'スケートリンク': 'Ice Rink',
+    '夢見の町': 'Village of Dreams',
+    '隠者の峠': 'Hermit Valley',
+    '倒壊した祠': 'Broken Temple',
+    '最初のエリア': 'Broken Temple',
+    '戦場': 'Battlefield',
+    '墓所': 'Graveyard',
+    '蟹の沼地': 'Crab Field',
+    '座礁船': 'Crab Field',
+    '忘れられた箱舟': 'Forgotten Ark',
+    '忘れられた方舟': 'Forgotten Ark',
+    '星月夜の砂漠': 'Starlight Desert',
+    '海月の入り江': 'Jellyfish Cove'
+  };
+  function shardLocationName(jaName) {
+    return LANG === 'en' ? (SHARD_LOCATION_EN[jaName] || jaName) : jaName;
   }
   // 各出現グループごとの、レルム内の具体的な出現エリア名（9-bit.jpの闇の破片場所一覧と
   // PlutoyDev/sky-shardsのshardsInfo.mapsを突き合わせて確認したもの）
@@ -2783,7 +2865,7 @@
       var shardIcon = shard.isRed ? '🔴' : '⚫';
       var shardColorLabel = shard.isRed ? t('dashboard.redShard') : t('dashboard.blackShard');
       var shardRealmLabel = t('realm.' + shard.realm);
-      var shardLocationLabel = shard.location;
+      var shardLocationLabel = shardLocationName(shard.location);
       var shardNow = new Date();
       var shardTimes = shard.occurrences.map(function (occ) {
         var past = occ.getTime() <= shardNow.getTime();
@@ -2893,7 +2975,7 @@
     list.forEach(function (p) {
       if (pfEditingId === p.id) {
         html += '<div class="pf-row" style="flex-wrap: wrap;">' +
-          '<input type="text" class="pf-row-input" id="pfEditInput" value="' + pfEscapeHtml(p.name) + '" maxlength="20" ' +
+          '<input type="text" class="pf-row-input" id="pfEditInput" value="' + pfEscapeHtml(pfDisplayName(p)) + '" maxlength="20" ' +
           'onkeydown="event.stopPropagation(); if(event.key===\'Enter\') pfConfirmRenameInline(\'' + p.id + '\'); if(event.key===\'Escape\') pfCancelRowState();">' +
           '<button type="button" class="pf-icon-btn pf-row-btn-ok" onclick="pfConfirmRenameInline(\'' + p.id + '\')">' + t('profile.renameSaveBtn') + '</button>' +
           '<button type="button" class="pf-icon-btn" onclick="pfCancelRowState()">' + t('profile.cancelBtn') + '</button>' +
@@ -2902,7 +2984,7 @@
       }
       if (pfDeletingId === p.id) {
         html += '<div class="pf-row" style="flex-wrap: wrap;">' +
-          '<span class="pf-row-confirm-text">' + t('profile.deleteConfirmText', { name: pfEscapeHtml(p.name) }) + '</span>' +
+          '<span class="pf-row-confirm-text">' + t('profile.deleteConfirmText', { name: pfEscapeHtml(pfDisplayName(p)) }) + '</span>' +
           '<button type="button" class="pf-icon-btn pf-row-btn-danger" onclick="pfConfirmDeleteInline(\'' + p.id + '\')">' + t('profile.deleteBtn') + '</button>' +
           '<button type="button" class="pf-icon-btn" onclick="pfCancelRowState()">' + t('profile.cancelBtn') + '</button>' +
           '</div>';
@@ -2911,7 +2993,7 @@
       var colorVal = pfIsSafeColor(p.color) ? p.color : '#F5B54C';
       html += '<div class="pf-row' + (p.id === activeId ? ' active' : '') + '">' +
         '<input type="color" class="pf-color-input" value="' + colorVal + '" title="' + t('profile.accountColorTitle') + '" onchange="pfSetProfileColor(\'' + p.id + '\', this.value)">' +
-        '<span class="pf-row-name" onclick="pfSwitchProfile(\'' + p.id + '\')">' + (p.id === activeId ? '✅ ' : '') + pfEscapeHtml(p.name) + '</span>' +
+        '<span class="pf-row-name" onclick="pfSwitchProfile(\'' + p.id + '\')">' + (p.id === activeId ? '✅ ' : '') + pfEscapeHtml(pfDisplayName(p)) + '</span>' +
         (p.color ? '<button type="button" class="pf-icon-btn pf-color-clear-btn" title="' + t('profile.resetColorTitle') + '" onclick="pfClearProfileColor(\'' + p.id + '\')">↺</button>' : '') +
         '<button type="button" class="pf-icon-btn" onclick="pfStartRename(\'' + p.id + '\')">✏️</button>' +
         (list.length > 1 ? '<button type="button" class="pf-icon-btn" onclick="pfStartDelete(\'' + p.id + '\')">🗑️</button>' : '') +
@@ -3539,9 +3621,14 @@
       var weeksNeeded = Math.ceil(remaining / totalWeekly);
       var today = new Date();
       var estDate = new Date(today.getTime() + weeksNeeded * 7 * 86400000);
+      // 目標本数が桁外れに大きいと、上のDate計算がミリ秒の有効範囲(約±2.7万年)を
+      // 超えてInvalid Dateになり得る(getTime()がNaNを返す)。その場合はNaN混じりの
+      // 文字列をそのまま表示せず、代わりに専用の文言を出す。
+      var estDateValid = !isNaN(estDate.getTime());
+      var goalDateLineHtml = estDateValid ? t('result.goalDateLine', { date: jpDate(estDate) }) : t('result.goalDateTooFar');
       html =
         '<div class="hero-stat">' + t('result.heroPrefix') + weeksNeeded + '<span class="unit-small">' + t('result.heroSuffix') + '</span></div>' +
-        '<p class="stat-line">' + t('result.goalDateLine', { date: jpDate(estDate) }) + '</p>' +
+        '<p class="stat-line">' + goalDateLineHtml + '</p>' +
         '<p class="stat-line">' + t('result.remainingLine', { remaining: fmt(remaining) }) + '</p>' +
         targetDateInfo +
         shardEstimateInfo +
@@ -4025,7 +4112,7 @@
       html += '</div>';
 
       html += '<div class="predict-next-date-row"><span class="predict-next-date">' + nextDay.dateLabel + '</span>' + (nextDay.maxReward ? '<span class="max-badge">' + t('forecast.maxReward', { n: nextDay.maxReward }) + '</span>' : '') + '</div>';
-      html += '<div class="predict-next-place">' + realmLabel(nextDay.realm) + t('forecast.realmLocationSep') + nextDay.location + '</div>';
+      html += '<div class="predict-next-place">' + realmLabel(nextDay.realm) + t('forecast.realmLocationSep') + shardLocationName(nextDay.location) + '</div>';
       html += '<div class="predict-next-times-header"><span>' + t('forecast.headerLanding') + '</span><span>' + t('forecast.headerEnd') + '</span></div>';
       nextDay.entries.forEach(function (e) {
         html += '<div class="predict-next-time-row' + (e.active ? ' is-active' : '') + '">' +
@@ -4043,7 +4130,7 @@
           var dChecked = !!checkedDays[day.dayKey];
           html += '<div class="predict-day' + (dChecked ? ' is-checked' : '') + '">';
           html += '<div class="predict-day-head">';
-          html += '<span>' + day.dateLabel + (day.maxReward ? '<span class="max-badge">' + t('forecast.maxReward', { n: day.maxReward }) + '</span>' : '') + '<span class="realm-tag">' + realmLabel(day.realm) + t('forecast.realmLocationSep') + day.location + '</span></span>';
+          html += '<span>' + day.dateLabel + (day.maxReward ? '<span class="max-badge">' + t('forecast.maxReward', { n: day.maxReward }) + '</span>' : '') + '<span class="realm-tag">' + realmLabel(day.realm) + t('forecast.realmLocationSep') + shardLocationName(day.location) + '</span></span>';
           html += checkboxHtml(day.dayKey, day.maxReward || 0, dChecked);
           html += '</div>';
           html += '<div class="predict-occ">' + t('forecast.candidatesPrefix');
@@ -4181,7 +4268,7 @@
     shardCalDayDetail.style.display = 'block';
     shardCalDayDetail.innerHTML =
       '<strong>' + jpDate(new Date(y, m - 1, d)) + '</strong><br>' +
-      realmLabel(sched.realm) + t('forecast.realmLocationSep') + location + (maxReward ? t('shardCal.maxRewardShort', { n: maxReward }) : '') + '<br>' +
+      realmLabel(sched.realm) + t('forecast.realmLocationSep') + shardLocationName(location) + (maxReward ? t('shardCal.maxRewardShort', { n: maxReward }) : '') + '<br>' +
       '<span style="opacity:.85; font-size:11.5px;">' + t('shardCal.candidatesLabel') + occText + '</span>';
   }
 
