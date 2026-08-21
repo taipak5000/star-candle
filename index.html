@@ -1074,7 +1074,7 @@
   footer a { color: var(--lavender); }
   footer a:hover { color: var(--gold-light); }
 
-  a:focus-visible, button:focus-visible, input:focus-visible {
+  a:focus-visible, button:focus-visible, input:focus-visible, .pf-bar-text:focus-visible {
     outline: 2px solid var(--gold-light);
     outline-offset: 2px;
   }
@@ -2683,7 +2683,7 @@
     pfApplyThemeColor(active.color);
     var bar = document.getElementById('pfBar');
     if (!bar) return;
-    bar.innerHTML = '<span class="pf-bar-text" onclick="pfOpenModal()">🗂️ <b>' + pfEscapeHtml(pfDisplayName(active)) + '</b>&nbsp;' + t('profile.barActiveSuffix') + '</span>' +
+    bar.innerHTML = '<span class="pf-bar-text" tabindex="0" role="button" onclick="pfOpenModal()" onkeydown="if(event.target===event.currentTarget&&(event.key===\'Enter\'||event.key===\' \')){event.preventDefault();pfOpenModal();}">🗂️ <b>' + pfEscapeHtml(pfDisplayName(active)) + '</b>&nbsp;' + t('profile.barActiveSuffix') + '</span>' +
       '<button type="button" class="pf-dash-btn" onclick="pfDashOpen()" title="' + t('profile.dashboardBtnTitle') + '">🗓️</button>';
     // 🧭 画面下部ドックの「プロフィール」ボタンにも、現在アクティブなプロフィール名を表示する。
     // 長い名前は省略記号で切り詰める(CSS側の.site-dock-labelで対応)。
@@ -3556,10 +3556,12 @@
   function openSidebar() {
     sidebarEl.classList.add('sidebar-open');
     sidebarOverlayEl.classList.add('is-visible');
+    pfModalTrapOpen(sidebarEl);
   }
   function closeSidebar() {
     sidebarEl.classList.remove('sidebar-open');
     sidebarOverlayEl.classList.remove('is-visible');
+    pfModalTrapClose(sidebarEl);
   }
   window.openSidebar = openSidebar; // site-dockの「☰ 他のツール」ボタンから呼び出すために公開
 
