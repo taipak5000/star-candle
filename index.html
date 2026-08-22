@@ -1424,6 +1424,11 @@
     flex-shrink: 0;
   }
 
+  /* ═══ ミニ推移グラフ(獲得履歴からの所持本数の推移スパークライン) ═══ */
+  .trend-chart-wrap { margin: 2px 0 16px; }
+  .trend-chart-svg { width: 100%; height: 72px; display: block; overflow: visible; }
+  .trend-chart-empty { font-size: 12.5px; color: var(--text-dim); padding: 2px 0 4px; }
+
   .history-list {
     max-height: 260px;
     overflow-y: auto;
@@ -1943,6 +1948,7 @@
 
   <section class="card">
     <h2 data-i18n="history.heading">📜 獲得履歴</h2>
+    <div class="trend-chart-wrap" id="trendChartWrap"></div>
     <div class="history-list" id="historyList"></div>
     <div class="history-footer">
       <p class="note" data-i18n="history.note">羽ボタン・赤闇のチェックによる増減を記録します(最大50件)。「取り消す」でその操作だけを元に戻せます。</p>
@@ -2230,7 +2236,10 @@
       undoBtn: { ja: '取り消す', en: 'Undo' },
       featherEntry: { ja: '羽 {n}枚', en: '{n} Feathers' },
       shardEntry: { ja: '赤闇 {day}', en: 'Red Shard {day}' },
-      confirmClear: { ja: '獲得履歴をすべて消去します。よろしいですか？(所持本数自体は変わりません)', en: "This will clear all history. Are you sure? (Your current amount won't change.)" }
+      confirmClear: { ja: '獲得履歴をすべて消去します。よろしいですか？(所持本数自体は変わりません)', en: "This will clear all history. Are you sure? (Your current amount won't change.)" },
+      trendEmpty: { ja: 'まだ十分な履歴がないため、グラフは表示できません。', en: 'Not enough history yet to show a chart.' },
+      trendTargetLabel: { ja: '🎯 目標', en: '🎯 Target' },
+      trendAriaLabel: { ja: '所持本数の推移グラフ', en: 'Chart of your candle amount over time' }
     },
     forecast: {
       nextRedShard: { ja: '次の赤闇まで', en: 'Next Red Shard' },
@@ -3855,6 +3864,12 @@
     }
 
     els.resultContent.innerHTML = html;
+
+    // 目標本数・現在本数の変更(=グラフの目標ラインや基準点)にも追従させるため、
+    // 結果再計算のたびに推移グラフも再描画する。renderTrendChartはこの関数より
+    // 後方(獲得履歴ログのセクション)で定義されているが、関数宣言のためホイスト
+    // され、ここから呼んでも問題ない。
+    if (typeof renderTrendChart === 'function') renderTrendChart();
   }
 
   // 所持本数をプロフィール共通の所持星のキャンドル数(wishOwnCurrency.starCandle)へ書き戻す。
@@ -4686,6 +4701,11 @@
     if (list.length > HISTORY_MAX_ENTRIES) list = list.slice(0, HISTORY_MAX_ENTRIES);
     saveHistory(list);
     renderHistory();
+    // バグ対策: このaddHistoryEntry()自体がrenderTrendChart()を呼んでいないと、
+    // 各クイックアクション(羽ボタン・赤闇のチェック)は直前に呼んでいるupdate()内の
+    // renderTrendChart()が「まだこの履歴が追加される前」の状態を描画してしまい、
+    // グラフだけ古いまま残ってしまう。ここで確実に最新の履歴を反映して再描画する。
+    renderTrendChart();
   }
 
   // entryのsource/dayKeyから、現在の表示言語で正しい語順のラベルを組み立てる。
@@ -4723,6 +4743,63 @@
       }).join('');
     }
     els.historyList.innerHTML = html;
+  }
+
+  // ═══ 📈 ミニ推移グラフ(獲得履歴からの所持本数の推移スパークライン) ═══
+  // 履歴には各操作の「差分」しか記録されていないため、現在の所持本数(現在値)から
+  // 新しい順に差分を差し引いて遡ることで、各時点の所持本数を逆算して求める。
+  function computeTrendPoints() {
+    var list = loadHistory(); // 新しい順
+    var currentVal = Math.max(0, parseFloat(els.current.value) || 0);
+    var points = [];
+    var running = currentVal;
+    for (var i = 0; i < list.length; i++) {
+      points.push({ time: list[i].time, value: Math.max(0, running) });
+      running -= (list[i].amount || 0);
+    }
+    if (list.length > 0) {
+      // 最古の履歴より少し前の時点＝その履歴が加算される直前の所持本数を起点として追加する
+      points.push({ time: list[list.length - 1].time - 1, value: Math.max(0, running) });
+    }
+    points.push({ time: Date.now(), value: currentVal }); // 「現在」の点を必ず末尾に含める
+    points.sort(function (a, b) { return a.time - b.time; });
+    return points;
+  }
+  function renderTrendChart() {
+    var wrap = document.getElementById('trendChartWrap');
+    if (!wrap) return;
+    var points = computeTrendPoints();
+    if (points.length < 2) {
+      wrap.innerHTML = '<p class="trend-chart-empty">' + t('history.trendEmpty') + '</p>';
+      return;
+    }
+    var target = Math.max(0, parseFloat(els.target.value) || 0);
+    var W = 300, H = 84, padX = 4, padY = 10;
+    var minT = points[0].time;
+    var maxT = points[points.length - 1].time;
+    var spanT = Math.max(1, maxT - minT);
+    var maxV = 0;
+    for (var i = 0; i < points.length; i++) { if (points[i].value > maxV) maxV = points[i].value; }
+    if (target > 0 && target > maxV) maxV = target;
+    maxV = (maxV || 1) * 1.08;
+    function xOf(tm) { return padX + ((tm - minT) / spanT) * (W - padX * 2); }
+    function yOf(v) { return H - padY - (v / maxV) * (H - padY * 2); }
+    var pathD = points.map(function (p, i) { return (i === 0 ? 'M' : 'L') + xOf(p.time).toFixed(1) + ',' + yOf(p.value).toFixed(1); }).join(' ');
+    var last = points[points.length - 1];
+    var areaD = pathD + ' L' + xOf(last.time).toFixed(1) + ',' + (H - padY).toFixed(1) + ' L' + xOf(points[0].time).toFixed(1) + ',' + (H - padY).toFixed(1) + ' Z';
+    var targetLineSvg = '';
+    if (target > 0 && target <= maxV) {
+      var ty = yOf(target).toFixed(1);
+      targetLineSvg = '<line x1="' + padX + '" y1="' + ty + '" x2="' + (W - padX) + '" y2="' + ty + '" stroke="var(--crimson-light)" stroke-width="1" stroke-dasharray="4 3" opacity="0.85" />' +
+        '<text x="' + (W - padX) + '" y="' + Math.max(8, parseFloat(ty) - 3) + '" text-anchor="end" font-size="8" fill="var(--crimson-light)">' + t('history.trendTargetLabel') + '</text>';
+    }
+    wrap.innerHTML =
+      '<svg class="trend-chart-svg" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" role="img" aria-label="' + t('history.trendAriaLabel') + '">' +
+        '<path d="' + areaD + '" fill="var(--gold-light)" opacity="0.18" stroke="none"/>' +
+        '<path d="' + pathD + '" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>' +
+        targetLineSvg +
+        '<circle cx="' + xOf(last.time).toFixed(1) + '" cy="' + yOf(last.value).toFixed(1) + '" r="3" fill="var(--gold-light)" />' +
+      '</svg>';
   }
 
   els.historyList.addEventListener('click', function (ev) {
@@ -4765,9 +4842,11 @@
     if (!window.confirm(t('history.confirmClear'))) return;
     saveHistory([]);
     renderHistory();
+    renderTrendChart();
   });
 
   renderHistory();
+  renderTrendChart();
 
   /* ================================================================
      🔔 通知(次の赤闇の着地 / 達成予定日)
