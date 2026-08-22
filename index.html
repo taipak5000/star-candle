@@ -556,6 +556,25 @@
     white-space: nowrap;
   }
 
+  .predict-filter {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-dim);
+    cursor: pointer;
+    user-select: none;
+    margin: 0 0 8px;
+  }
+  .predict-filter input[type="checkbox"] {
+    width: 15px;
+    height: 15px;
+    margin: 0;
+    accent-color: var(--gold);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
   .predict-list {
     max-height: 210px;
     overflow-y: auto;
@@ -565,8 +584,13 @@
   .predict-list::-webkit-scrollbar { width: 5px; }
   .predict-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
 
-  .predict-day { margin-bottom: 10px; }
+  .predict-day { margin-bottom: 10px; padding-left: 8px; }
   .predict-day:last-child { margin-bottom: 0; }
+  .predict-day.is-high-value {
+    box-shadow: inset 2px 0 0 var(--gold);
+    background: rgba(245,181,76,0.06);
+    border-radius: 6px;
+  }
 
   .predict-day-head {
     font-size: 12.5px;
@@ -623,6 +647,7 @@
     padding: 14px 16px 12px;
     margin-bottom: 14px;
   }
+  .predict-next.is-high-value { border-color: var(--gold); }
   .predict-next-top {
     display: flex;
     align-items: center;
@@ -916,6 +941,12 @@
   .target-date-box strong { color: var(--cream); font-weight: 700; }
   .pace-ok { color: var(--gold-light); }
   .pace-warn { color: var(--crimson-light); }
+  .pace-note {
+    margin-top: 4px;
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
 
   .shard-estimate-box {
     margin: 10px 0;
@@ -1812,6 +1843,10 @@
         <span class="predict-title" data-i18n="weekly.predictTitle">🔮 赤闇の自動予測(β)</span>
         <span class="predict-range" id="predictRange"></span>
       </div>
+      <label class="predict-filter">
+        <input type="checkbox" id="predictFilterHigh" onchange="toggleForecastFilter(this.checked)">
+        <span data-i18n="forecast.filterHighOnly">💎 最高報酬(3.5本)の日だけ表示</span>
+      </label>
       <div class="predict-list" id="predictList"></div>
       <div class="predict-summary">
         <span class="predict-count"><span data-i18n="weekly.predictCountPrefix">今後7日間で赤闇が来る日数：</span><strong id="predictDays">0</strong><span id="predictDaysSuffix" data-i18n="weekly.predictCountSuffix">日</span></span>
@@ -1874,6 +1909,36 @@
     </div>
 
     <div id="resultContent"></div>
+  </section>
+
+  <section class="card">
+    <h2 data-i18n="notify.heading">🔔 通知</h2>
+    <div class="field">
+      <div class="toggle-field">
+        <div class="toggle-text">
+          <span class="toggle-title" data-i18n="notify.shardTitle">次の赤闇の着地前に通知</span>
+          <span class="toggle-sub" data-i18n="notify.shardSub">着地の10分前にブラウザ通知でお知らせします</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="notifyShardToggle" onchange="notifyToggleShard(this.checked)">
+          <span class="switch-track"><span class="switch-thumb"></span></span>
+        </label>
+      </div>
+    </div>
+    <div class="field">
+      <div class="toggle-field">
+        <div class="toggle-text">
+          <span class="toggle-title" data-i18n="notify.goalTitle">達成予定日が近づいたら通知</span>
+          <span class="toggle-sub" data-i18n="notify.goalSub">目標日(設定時)、または赤闇をすべて回収した場合の達成予定日の前日にお知らせします</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="notifyGoalToggle" onchange="notifyToggleGoal(this.checked)">
+          <span class="switch-track"><span class="switch-thumb"></span></span>
+        </label>
+      </div>
+    </div>
+    <p class="note" id="notifyStatus"></p>
+    <p class="note" data-i18n="notify.note">通知はこのタブ(ウィンドウ)を開いたままにしている間だけ届きます。閉じている・他のタブに切り替えている間の分は届きません。ブラウザで通知がブロックされている場合は、ブラウザ側のサイト設定から通知を許可してください。</p>
   </section>
 
   <section class="card">
@@ -2129,8 +2194,10 @@
       weeklyLine: { ja: '週あたり {weekly}本', en: 'Per week: {weekly} candles' },
       weeklyLineDetail: { ja: '　(羽 {feathers}本 − リサイズドリンク {drink}本)', en: ' (feathers {feathers} candles − resize drink {drink} candles)' },
       paceNeededBy: { ja: '{date}までに必要なペース　<strong>週{pace}本</strong>', en: 'Pace needed by {date}: <strong>{pace} candles/week</strong>' },
+      paceCoveredByShards: { ja: '{date}までに必要なペース　<strong>今後の赤闇の回収だけで到達見込み</strong>', en: 'Pace needed by {date}: <strong>upcoming Red Shards alone should get you there</strong>' },
       paceOk: { ja: '✓ 今のペースで間に合う見込みです', en: '✓ On pace to make it in time' },
       paceWarn: { ja: '△ 今のペースだと週{n}本足りません', en: "△ You're short by {n} candles/week at your current pace" },
+      paceShardNote: { ja: '※未チェックの今後の赤闇をすべて回収する前提で計算しています(下の「達成予定日」の試算と同じ前提)。', en: "*Assumes you collect every upcoming Red Shard that isn't already checked off (same assumption as the estimated goal date below)." },
       shardEstimate: { ja: '🔮 今後の赤闇をすべて回収すると仮定した場合<br>達成予定日　<strong>{date}</strong>頃', en: '🔮 Assuming you collect every future Red Shard<br>Estimated goal date: <strong>{date}</strong>' },
       heroPrefix: { ja: 'あと ', en: '' },
       heroSuffix: { ja: '週間', en: ' more weeks' },
@@ -2139,6 +2206,21 @@
       remainingLine: { ja: '残り　<strong>{remaining}本</strong>', en: 'Remaining: <strong>{remaining} candles</strong>' },
       progressLine: { ja: '{weeklyLine}<br>進捗 {pct}%', en: '{weeklyLine}<br>Progress {pct}%' },
       footnote: { ja: '※7日ごとの獲得ペースをもとにした目安です。実際の日付とは前後する場合があります。', en: '*This is an estimate based on your gain rate over each 7-day period. The actual date may differ.' }
+    },
+    notify: {
+      heading: { ja: '🔔 通知', en: '🔔 Notifications' },
+      shardTitle: { ja: '次の赤闇の着地前に通知', en: 'Notify before the next Red Shard lands' },
+      shardSub: { ja: '着地の10分前にブラウザ通知でお知らせします', en: "We'll send a browser notification 10 minutes before it lands" },
+      goalTitle: { ja: '達成予定日が近づいたら通知', en: 'Notify as the goal date approaches' },
+      goalSub: { ja: '目標日(設定時)、または赤闇をすべて回収した場合の達成予定日の前日にお知らせします', en: "We'll notify you the day before your target date (if set), or before the estimated goal date assuming you collect every Red Shard" },
+      note: { ja: '通知はこのタブ(ウィンドウ)を開いたままにしている間だけ届きます。閉じている・他のタブに切り替えている間の分は届きません。ブラウザで通知がブロックされている場合は、ブラウザ側のサイト設定から通知を許可してください。', en: "Notifications only arrive while this tab stays open — none will arrive while it's closed or backgrounded. If your browser is blocking notifications, allow them from your browser's site settings." },
+      unsupported: { ja: 'お使いのブラウザは通知に対応していません。', en: "Your browser doesn't support notifications." },
+      blocked: { ja: '🚫 ブラウザの通知がブロックされています。ブラウザ側のサイト設定から許可してください。', en: '🚫 Notifications are blocked by your browser. Allow them from your site settings.' },
+      granted: { ja: '🔔 通知は許可されています。', en: '🔔 Notifications are allowed.' },
+      shardFireTitle: { ja: '🔮 まもなく赤闇が着地します', en: '🔮 A Red Shard is about to land' },
+      shardFireBody: { ja: 'あと約{minutes}分で着地予定です。', en: 'Landing in about {minutes} minute(s).' },
+      goalFireTitle: { ja: '🕯️ 達成予定日が近づいています', en: '🕯️ Your goal date is approaching' },
+      goalFireBody: { ja: '達成予定日：{date}', en: 'Estimated goal date: {date}' }
     },
     history: {
       heading: { ja: '📜 獲得履歴', en: '📜 History' },
@@ -2166,7 +2248,9 @@
       empty: { ja: '今後7日間、赤闇の予測はありません。', en: 'No Red Shard forecast for the next 7 days.' },
       error: { ja: '予測の計算中にエラーが発生しました。', en: 'An error occurred while calculating the forecast.' },
       realmLocationSep: { ja: '・', en: ' · ' },
-      listSep: { ja: '・', en: ', ' }
+      listSep: { ja: '・', en: ', ' },
+      filterHighOnly: { ja: '💎 最高報酬(3.5本)の日だけ表示', en: '💎 Show only max-reward days (3.5 candles)' },
+      filterEmpty: { ja: '💎 最高報酬の日は今後7日間にありません。', en: 'No max-reward days in the next 7 days.' }
     },
     shardCal: {
       title: { ja: '🔮 赤闇カレンダー', en: '🔮 Red Shard Calendar' },
@@ -2257,6 +2341,7 @@
     if (typeof updateDateTriggerText === 'function') updateDateTriggerText();
     if (typeof renderDatePickerGrid === 'function' && datePickerPopup && datePickerPopup.classList.contains('is-open')) renderDatePickerGrid();
     if (typeof renderShardCalGrid === 'function' && shardCalOverlay && shardCalOverlay.classList.contains('is-visible')) renderShardCalGrid();
+    if (typeof notifyRenderStatus === 'function') notifyRenderStatus();
     pfRenderBar();
     var pfOverlay = document.getElementById('pfModalOverlay');
     if (pfOverlay && pfOverlay.classList.contains('is-visible')) { pfRenderModal(); pfRenderCurrency(); }
@@ -3690,6 +3775,12 @@
 
     // 目標日(任意)からの逆算:期日までに必要な週ペースを計算して表示用HTMLを組み立てる。
     // 期日が未入力・過去日・目標達成済みの場合は何も表示しない。
+    // この必要ペースは、期日までに届く予定の赤闇報酬(sumExpectedShardRewards)を先に
+    // 差し引いてから算出する。こうすることで、下のshardEstimateInfo(今後の赤闇をすべて
+    // 回収した場合の達成予定日)と前提が揃い、「羽だけのペースだと足りないが、その間に
+    // 来る赤闇を回収すれば期日に間に合う」ケースで両者の表示が矛盾しなくなる
+    // (まだ赤闇予測の定数が準備できていない初回描画時はexpectedShardByTargetが0のまま
+    // フォールバックし、次のupdate()呼び出しで正しく反映される。shardEstimateInfoと同じ扱い)。
     var targetDateInfo = '';
     if (els.targetDate.value && remaining > 0) {
       var targetDateObj = new Date(els.targetDate.value + 'T23:59:59');
@@ -3697,13 +3788,21 @@
         var msUntilTarget = targetDateObj.getTime() - new Date().getTime();
         if (msUntilTarget > 0) {
           var weeksUntilTarget = msUntilTarget / (7 * 86400000);
-          var requiredWeeklyPace = remaining / weeksUntilTarget;
-          var isOnPace = totalWeekly >= requiredWeeklyPace;
+          var expectedShardByTarget = 0;
+          try { expectedShardByTarget = sumExpectedShardRewards(new Date(), targetDateObj); } catch (e) { /* no-op */ }
+          var remainingAfterShards = Math.max(0, remaining - expectedShardByTarget);
+          var requiredWeeklyPace = remainingAfterShards / weeksUntilTarget;
+          var isOnPace = remainingAfterShards <= 0 || totalWeekly >= requiredWeeklyPace;
+          var paceNeededLine = remainingAfterShards <= 0
+            ? t('result.paceCoveredByShards', { date: jpDate(targetDateObj) })
+            : t('result.paceNeededBy', { date: jpDate(targetDateObj), pace: fmt(requiredWeeklyPace) });
           targetDateInfo = '<div class="target-date-box">' +
-            t('result.paceNeededBy', { date: jpDate(targetDateObj), pace: fmt(requiredWeeklyPace) }) + '<br>' +
+            paceNeededLine + '<br>' +
             '<span class="' + (isOnPace ? 'pace-ok' : 'pace-warn') + '">' +
             (isOnPace ? t('result.paceOk') : t('result.paceWarn', { n: fmt(requiredWeeklyPace - totalWeekly) })) +
-            '</span></div>';
+            '</span>' +
+            '<div class="pace-note">' + t('result.paceShardNote') + '</div>' +
+            '</div>';
         }
       }
     }
@@ -4184,9 +4283,62 @@
     return null;
   }
 
+  // 目標日(任意)ボックスの「必要な週ペース」計算で使う補助関数。指定した期間内に届く予定の
+  // 赤闇報酬の合計(未チェックの分のみ)を試算する。estimateGoalDateAllShards()と同じ判定
+  // ロジック(暦日単位でgetDaySchedule/checkedDaysを見る)を使うことで、「目標日までに
+  // 必要なペース」(target-date pace)と「今後の赤闇をすべて回収した場合の達成予定日」
+  // (shardEstimateInfo)の前提を必ず一致させ、両者の表示が矛盾しないようにする。
+  function sumExpectedShardRewards(fromDate, untilDate) {
+    var total = 0;
+    var msSpan = untilDate.getTime() - fromDate.getTime();
+    if (msSpan <= 0) return 0;
+    var checkedDays = loadCheckedDays();
+    var seenDays = {};
+    var daysSpan = Math.min(3650, Math.ceil(msSpan / 86400000) + 1);
+    for (var i = 0; i <= daysSpan; i++) {
+      var probe = new Date(fromDate.getTime() + i * 86400000);
+      if (probe.getTime() > untilDate.getTime()) break;
+      var pt = getPTDateParts(probe);
+      var dayKey = pt.year + '-' + pt.month + '-' + pt.day;
+      if (seenDays[dayKey]) continue;
+      seenDays[dayKey] = true;
+      var sched = getDaySchedule(pt.day, pt.weekday);
+      if (sched.color === 'red' && !sched.skipped && !checkedDays[dayKey]) {
+        total += (REWARD_MAX[sched.realm] || {})[sched.time] || 0;
+      }
+    }
+    return total;
+  }
+
   function checkboxHtml(dayKey, reward, checked) {
     return '<label class="predict-check"><input type="checkbox" class="day-check" data-day-key="' + dayKey + '" data-reward="' + reward + '"' + (checked ? ' checked' : '') + '><span>' + t('forecast.collected') + '</span></label>';
   }
+
+  // 「最高報酬」の基準値。REWARD_MAX表に出てくる最大値(現状3.5本)を動的に求めることで、
+  // 表の値が将来変わってもハイライト/フィルタの判定が追従する。
+  function getRewardHighThreshold() {
+    var max = 0;
+    Object.keys(REWARD_MAX).forEach(function (realm) {
+      Object.keys(REWARD_MAX[realm]).forEach(function (time) {
+        if (REWARD_MAX[realm][time] > max) max = REWARD_MAX[realm][time];
+      });
+    });
+    return max;
+  }
+
+  // 💎 報酬フィルタ(「最高報酬の日だけ表示」チェック)のON/OFFをこの端末に保存する。
+  var PREDICT_FILTER_KEY = nsKey('skyStarCandleForecastFilterHigh_v1');
+  function loadForecastFilterPref() {
+    try { return localStorage.getItem(PREDICT_FILTER_KEY) === '1'; } catch (e) { return false; }
+  }
+  function saveForecastFilterPref(on) {
+    try { localStorage.setItem(PREDICT_FILTER_KEY, on ? '1' : '0'); } catch (e) { /* no-op */ }
+  }
+  function toggleForecastFilter(checked) {
+    saveForecastFilterPref(checked);
+    try { renderForecast(); } catch (e) { /* no-op */ }
+  }
+  window.toggleForecastFilter = toggleForecastFilter;
 
   function renderForecast() {
     var forecast = buildRedForecast(7);
@@ -4203,6 +4355,15 @@
     });
     if (pruned) saveCheckedDays(checkedDays);
 
+    var filterHighEl = document.getElementById('predictFilterHigh');
+    var filterHigh = !!(filterHighEl && filterHighEl.checked);
+    var highThreshold = getRewardHighThreshold();
+    function isHighValue(day) { return highThreshold > 0 && (day.maxReward || 0) >= highThreshold; }
+    function badgeHtml(day) {
+      if (!day.maxReward) return '';
+      return '<span class="max-badge">' + (isHighValue(day) ? '💎 ' : '') + t('forecast.maxReward', { n: day.maxReward }) + '</span>';
+    }
+
     if (forecast.length === 0) {
       html = '<p class="predict-empty">' + t('forecast.empty') + '</p>';
       countdownTarget = null;
@@ -4212,7 +4373,7 @@
       var restDays = forecast.slice(1);
       var nextChecked = !!checkedDays[nextDay.dayKey];
 
-      html += '<div class="predict-next' + (nextChecked ? ' is-checked' : '') + '">';
+      html += '<div class="predict-next' + (nextChecked ? ' is-checked' : '') + (isHighValue(nextDay) ? ' is-high-value' : '') + '">';
       html += '<div class="predict-next-top">';
       html += '<span class="predict-next-badge">' + t('forecast.nextRedShard') + '</span>';
       html += checkboxHtml(nextDay.dayKey, nextDay.maxReward || 0, nextChecked);
@@ -4228,7 +4389,7 @@
       html += '<span class="predict-countdown" id="predictCountdown">' + formatCountdown(countdownTarget.getTime() - new Date().getTime()) + '</span>';
       html += '</div>';
 
-      html += '<div class="predict-next-date-row"><span class="predict-next-date">' + nextDay.dateLabel + '</span>' + (nextDay.maxReward ? '<span class="max-badge">' + t('forecast.maxReward', { n: nextDay.maxReward }) + '</span>' : '') + '</div>';
+      html += '<div class="predict-next-date-row"><span class="predict-next-date">' + nextDay.dateLabel + '</span>' + badgeHtml(nextDay) + '</div>';
       html += '<div class="predict-next-place">' + realmLabel(nextDay.realm) + t('forecast.realmLocationSep') + shardLocationName(nextDay.location) + '</div>';
       html += '<div class="predict-next-times-header"><span>' + t('forecast.headerLanding') + '</span><span>' + t('forecast.headerEnd') + '</span></div>';
       nextDay.entries.forEach(function (e) {
@@ -4243,20 +4404,27 @@
       html += '</div>';
 
       if (restDays.length > 0) {
-        restDays.forEach(function (day) {
-          var dChecked = !!checkedDays[day.dayKey];
-          html += '<div class="predict-day' + (dChecked ? ' is-checked' : '') + '">';
-          html += '<div class="predict-day-head">';
-          html += '<span>' + day.dateLabel + (day.maxReward ? '<span class="max-badge">' + t('forecast.maxReward', { n: day.maxReward }) + '</span>' : '') + '<span class="realm-tag">' + realmLabel(day.realm) + t('forecast.realmLocationSep') + shardLocationName(day.location) + '</span></span>';
-          html += checkboxHtml(day.dayKey, day.maxReward || 0, dChecked);
-          html += '</div>';
-          html += '<div class="predict-occ">' + t('forecast.candidatesPrefix');
-          html += day.entries.map(function (e) {
-            return '<span class="land-mini">' + e.landShortDate + ' ' + e.landLabel + '</span><span class="arrow-mini">→</span><span class="end-mini">' + e.endShortDate + ' ' + e.endLabel + '</span>';
-          }).join(t('forecast.listSep'));
-          html += '<span style="opacity:.7;">' + t('forecast.jstAnyOne') + '</span></div>';
-          html += '</div>';
-        });
+        // フィルタON時は「最高報酬の日だけ表示」する。すぐ上の「次の赤闇」カードは
+        // 対象外(直近の1件は常に表示し、フィルタで隠さない)。
+        var visibleRestDays = filterHigh ? restDays.filter(isHighValue) : restDays;
+        if (filterHigh && visibleRestDays.length === 0) {
+          html += '<p class="predict-empty">' + t('forecast.filterEmpty') + '</p>';
+        } else {
+          visibleRestDays.forEach(function (day) {
+            var dChecked = !!checkedDays[day.dayKey];
+            html += '<div class="predict-day' + (dChecked ? ' is-checked' : '') + (isHighValue(day) ? ' is-high-value' : '') + '">';
+            html += '<div class="predict-day-head">';
+            html += '<span>' + day.dateLabel + badgeHtml(day) + '<span class="realm-tag">' + realmLabel(day.realm) + t('forecast.realmLocationSep') + shardLocationName(day.location) + '</span></span>';
+            html += checkboxHtml(day.dayKey, day.maxReward || 0, dChecked);
+            html += '</div>';
+            html += '<div class="predict-occ">' + t('forecast.candidatesPrefix');
+            html += day.entries.map(function (e) {
+              return '<span class="land-mini">' + e.landShortDate + ' ' + e.landLabel + '</span><span class="arrow-mini">→</span><span class="end-mini">' + e.endShortDate + ' ' + e.endLabel + '</span>';
+            }).join(t('forecast.listSep'));
+            html += '<span style="opacity:.7;">' + t('forecast.jstAnyOne') + '</span></div>';
+            html += '</div>';
+          });
+        }
       }
     }
     document.getElementById('predictList').innerHTML = html;
@@ -4312,6 +4480,8 @@
   });
 
   try {
+    var predictFilterHighEl = document.getElementById('predictFilterHigh');
+    if (predictFilterHighEl) predictFilterHighEl.checked = loadForecastFilterPref();
     renderForecast();
     setInterval(updateCountdownDisplay, 1000);
   } catch (err) {
@@ -4598,6 +4768,183 @@
   });
 
   renderHistory();
+
+  /* ================================================================
+     🔔 通知(次の赤闇の着地 / 達成予定日)
+     オプトイン。チェックをONにした操作そのものを起点にNotification.requestPermission()
+     を呼ぶ(ページ読み込み時など、ユーザー操作を伴わない不意打ちの許可要求は行わない)。
+     このサイトはService Workerを持たない静的サイトのため、通知はこのタブを開いたまま
+     にしている間だけ届く(閉じている間・バックグラウンドタブの間の分は届かない)。
+     setTimeoutの遅延上限(約24.8日、32bit整数)を超える先の予定にも対応できるよう、
+     1回のsetTimeoutではなく定期チェック(setInterval)方式で「目標時刻までの残り時間が
+     リード時間内に入ったか」を毎分確認する方式にしている。
+     ================================================================ */
+  var NOTIFY_SHARD_ENABLED_KEY = nsKey('skyStarCandleNotifyShardOn_v1');
+  var NOTIFY_GOAL_ENABLED_KEY = nsKey('skyStarCandleNotifyGoalOn_v1');
+  var NOTIFY_SHARD_LAST_KEY = nsKey('skyStarCandleNotifyShardLast_v1');
+  var NOTIFY_GOAL_LAST_KEY = nsKey('skyStarCandleNotifyGoalLast_v1');
+  var NOTIFY_SHARD_LEAD_MS = 10 * 60 * 1000;      // 着地10分前
+  var NOTIFY_GOAL_LEAD_MS = 24 * 60 * 60 * 1000;  // 前日
+
+  var notifyShardToggleEl = document.getElementById('notifyShardToggle');
+  var notifyGoalToggleEl = document.getElementById('notifyGoalToggle');
+  var notifyStatusEl = document.getElementById('notifyStatus');
+
+  function notifySupported() { return typeof Notification !== 'undefined'; }
+
+  function notifyLoadFlag(key) {
+    try { return localStorage.getItem(key) === '1'; } catch (e) { return false; }
+  }
+  function notifySaveFlag(key, on) {
+    try { localStorage.setItem(key, on ? '1' : '0'); } catch (e) { /* no-op */ }
+  }
+  function notifyGetLast(key) {
+    try { return localStorage.getItem(key) || ''; } catch (e) { return ''; }
+  }
+  function notifySetLast(key, val) {
+    try { localStorage.setItem(key, val); } catch (e) { /* no-op */ }
+  }
+
+  function notifyRenderStatus() {
+    if (!notifyStatusEl) return;
+    if (!notifySupported()) {
+      notifyStatusEl.textContent = t('notify.unsupported');
+    } else if (Notification.permission === 'denied' && ((notifyShardToggleEl && notifyShardToggleEl.checked) || (notifyGoalToggleEl && notifyGoalToggleEl.checked))) {
+      notifyStatusEl.textContent = t('notify.blocked');
+    } else if (Notification.permission === 'granted' && ((notifyShardToggleEl && notifyShardToggleEl.checked) || (notifyGoalToggleEl && notifyGoalToggleEl.checked))) {
+      notifyStatusEl.textContent = t('notify.granted');
+    } else {
+      notifyStatusEl.textContent = '';
+    }
+  }
+  window.notifyRenderStatus = notifyRenderStatus;
+
+  function notifyFire(title, body) {
+    try { new Notification(title, { body: body, icon: 'icons/app-icon-192.png' }); } catch (e) { /* no-op */ }
+  }
+
+  // チェックON操作そのものを起点にのみ許可を要求する。既に許可/拒否済みならrequestPermission
+  // 自体は呼ばれない(ブラウザは2回目以降ダイアログを出さないため実質no-opだが、念のため
+  // 明示的に分岐して「不意打ちの要求」を避ける設計を分かりやすくしている)。
+  function notifySetEnabled(enabledKey, toggleEl, checked) {
+    if (!checked) {
+      notifySaveFlag(enabledKey, false);
+      notifyRenderStatus();
+      return;
+    }
+    if (!notifySupported()) {
+      toggleEl.checked = false;
+      notifyRenderStatus();
+      return;
+    }
+    if (Notification.permission === 'granted') {
+      notifySaveFlag(enabledKey, true);
+      notifyRenderStatus();
+      return;
+    }
+    if (Notification.permission === 'denied') {
+      toggleEl.checked = false;
+      notifyRenderStatus();
+      return;
+    }
+    Notification.requestPermission().then(function (perm) {
+      if (perm === 'granted') {
+        notifySaveFlag(enabledKey, true);
+      } else {
+        toggleEl.checked = false;
+      }
+      notifyRenderStatus();
+    });
+  }
+
+  function notifyToggleShard(checked) { notifySetEnabled(NOTIFY_SHARD_ENABLED_KEY, notifyShardToggleEl, checked); }
+  function notifyToggleGoal(checked) { notifySetEnabled(NOTIFY_GOAL_ENABLED_KEY, notifyGoalToggleEl, checked); }
+  window.notifyToggleShard = notifyToggleShard;
+  window.notifyToggleGoal = notifyToggleGoal;
+
+  // 保存済みのON/OFF状態を復元する。ただし通知許可が'granted'でない場合はチェックだけ
+  // 外して表示する(実際には通知が届かないため)。保存値自体は消さない
+  // (後で許可された場合に自動でONへ戻る)。
+  function notifyInitToggles() {
+    var granted = notifySupported() && Notification.permission === 'granted';
+    if (notifyShardToggleEl) notifyShardToggleEl.checked = granted && notifyLoadFlag(NOTIFY_SHARD_ENABLED_KEY);
+    if (notifyGoalToggleEl) notifyGoalToggleEl.checked = granted && notifyLoadFlag(NOTIFY_GOAL_ENABLED_KEY);
+    notifyRenderStatus();
+  }
+
+  // 今後7日間の予測から、まだ着地していない一番近い候補時刻を1つ返す。
+  function findNextShardLanding() {
+    try {
+      var forecast = buildRedForecast(7);
+      for (var i = 0; i < forecast.length; i++) {
+        var entries = forecast[i].entries;
+        for (var j = 0; j < entries.length; j++) {
+          if (!entries[j].active) return entries[j].landingDate;
+        }
+      }
+    } catch (e) { /* no-op */ }
+    return null;
+  }
+
+  // 「達成予定日」通知の対象日を1つ選ぶ。目標日(任意)が設定されていればそれを優先する
+  // (ユーザー自身が選んだ締切のため)。未設定の場合は「今後の赤闇をすべて回収した場合の
+  // 達成予定日」(target-date pace欄・shardEstimateInfoと同じ試算)を使う。
+  function findGoalNotifyDate() {
+    try {
+      var target = Math.max(0, parseFloat(els.target.value) || 0);
+      var current = Math.max(0, parseFloat(els.current.value) || 0);
+      if (!(target > 0) || current >= target) return null;
+      if (els.targetDate.value) {
+        var d = new Date(els.targetDate.value + 'T23:59:59');
+        if (!isNaN(d.getTime())) return d;
+      }
+      var feathers = Math.max(0, Math.min(63, parseInt(els.feathers.value, 10) || 0));
+      var totalWeekly = feathers * 0.25 - (els.buyDrink.checked ? RESIZE_DRINK_COST : 0);
+      var shardResult = estimateGoalDateAllShards(current, target, totalWeekly);
+      return shardResult ? shardResult.date : null;
+    } catch (e) { return null; }
+  }
+
+  function notifyDayKey(date) { return date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate(); }
+
+  // 毎分1回、通知対象の時刻がリード時間内に入っていないか確認する。同じ着地時刻/同じ
+  // 達成予定日には1回だけ通知するよう、直近に通知済みの識別子をlocalStorageへ保存して
+  // 判定する(タブの再読み込みをまたいでも同じ予定に対して重複通知しないようにするため)。
+  function notifyCheck() {
+    if (!notifySupported() || Notification.permission !== 'granted') return;
+    var now = new Date().getTime();
+
+    if (notifyLoadFlag(NOTIFY_SHARD_ENABLED_KEY)) {
+      var landing = findNextShardLanding();
+      if (landing) {
+        var ts = String(landing.getTime());
+        var msUntil = landing.getTime() - now;
+        if (msUntil > 0 && msUntil <= NOTIFY_SHARD_LEAD_MS && notifyGetLast(NOTIFY_SHARD_LAST_KEY) !== ts) {
+          notifySetLast(NOTIFY_SHARD_LAST_KEY, ts);
+          notifyFire(t('notify.shardFireTitle'), t('notify.shardFireBody', { minutes: Math.max(1, Math.round(msUntil / 60000)) }));
+        }
+      }
+    }
+
+    if (notifyLoadFlag(NOTIFY_GOAL_ENABLED_KEY)) {
+      var goalDate = findGoalNotifyDate();
+      if (goalDate) {
+        var gk = notifyDayKey(goalDate);
+        var msUntilGoal = goalDate.getTime() - now;
+        if (msUntilGoal > 0 && msUntilGoal <= NOTIFY_GOAL_LEAD_MS && notifyGetLast(NOTIFY_GOAL_LAST_KEY) !== gk) {
+          notifySetLast(NOTIFY_GOAL_LAST_KEY, gk);
+          notifyFire(t('notify.goalFireTitle'), t('notify.goalFireBody', { date: jpDate(goalDate) }));
+        }
+      }
+    }
+  }
+
+  notifyInitToggles();
+  notifyCheck();
+  setInterval(notifyCheck, 60 * 1000);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') notifyCheck();
+  });
 })();
 </script>
 </body>
