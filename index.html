@@ -3,13 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <script>
-  // 表示テーマ（ライト/ダーク）の初期適用。taipak5000.github.io系ツール共通の
-  // 'sky_app_theme' キーを読み、CSS([data-theme="dark"]の上書きブロック)が
-  // 描画される前に<html>へ反映しておくことで、切替時のちらつき(FOUC)を防ぐ。
+  // 表示テーマ（ライト/ダーク/システム）の初期適用。taipak5000.github.io系ツール共通の
+  // 'sky_app_theme' キー('light'|'dark'|'system'、未設定は'system'と同義)を読み、
+  // CSS([data-theme="dark"]の上書きブロック)が描画される前に<html>へ反映しておくことで、
+  // 切替時のちらつき(FOUC)を防ぐ。
+  // ※ 本体側の resolveEffectiveTheme() と同じ判定ロジックをここに複製している。この
+  //   スクリプトは他のどのスクリプトよりも先に単体で動く必要があるため共通化できない。
+  //   ロジックを変更する場合は両方をbyte-for-byteで一致させること。
   (function () {
     try {
       var v = localStorage.getItem('sky_app_theme');
-      var isDark = v ? v === 'dark' : !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      var isDark = (v === 'light' || v === 'dark') ? (v === 'dark') : !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
       document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
     } catch (e) {
       document.documentElement.setAttribute('data-theme', 'light');
@@ -2271,13 +2275,18 @@
       entryBtn: { ja: '⚙️ 表示設定', en: '⚙️ Display Settings' },
       modalTitle: { ja: '⚙️ 表示設定', en: '⚙️ Display Settings' },
       displaySectionLabel: { ja: '🌙 表示', en: '🌙 Display' },
-      darkModeLabel: { ja: 'ダークモード', en: 'Dark Mode' },
+      darkModeLabel: { ja: '表示テーマ', en: 'Theme' },
       themeToggleDark: { ja: '🌙 ダーク', en: '🌙 Dark' },
       themeToggleLight: { ja: '☀️ ライト', en: '☀️ Light' },
+      themeToggleSystem: { ja: '🖥️ システム', en: '🖥️ System' },
+      themeModeDark: { ja: 'ダーク', en: 'Dark' },
+      themeModeLight: { ja: 'ライト', en: 'Light' },
+      themeModeSystem: { ja: 'システム(OS設定に追従)', en: 'System (follow OS)' },
+      themeAriaLabel: { ja: '表示テーマ: 現在{current}。タップで{next}に切り替えます', en: 'Theme: currently {current}. Tap to switch to {next}.' },
       shortcutsSectionLabel: { ja: '⌨️ キーボードショートカット', en: '⌨️ Keyboard Shortcuts' },
       shortcutsEnableLabel: { ja: 'ショートカットを有効にする', en: 'Enable keyboard shortcuts' },
       shortcutOpenSettings: { ja: 'この設定を開く', en: 'Open this settings panel' },
-      shortcutToggleTheme: { ja: 'ダークモード切替', en: 'Toggle dark mode' },
+      shortcutToggleTheme: { ja: '表示テーマ切替(ライト/ダーク/システム)', en: 'Cycle theme (Light/Dark/System)' },
       shortcutCloseModal: { ja: '開いているウィンドウを閉じる', en: 'Close the open window' },
       customizeSectionLabel: { ja: '🎨 表示のカスタマイズ', en: '🎨 Icon Customization' },
       customizeLabel: { ja: 'アイコンの絵文字・色', en: 'Icon emoji & colors' },
@@ -2392,25 +2401,77 @@
   // グローバルキーとして扱う(プロフィール(保存枠)を切り替えても変わらない)。
   var THEME_STORAGE_KEY = 'sky_app_theme';
 
+  // 保存値('light'|'dark'|'system'|未設定/不正値)を正規化する。未設定・不正値は
+  // 'system'(=OS設定に追従、初めて訪れたユーザーのデフォルト)として扱う。
+  function normalizeThemeMode(v) {
+    return (v === 'light' || v === 'dark') ? v : 'system';
+  }
+
+  function getThemeMode() {
+    var v;
+    try { v = localStorage.getItem(THEME_STORAGE_KEY); } catch (e) { v = null; }
+    return normalizeThemeMode(v);
+  }
+
+  // モード('light'|'dark'|'system')から実際に描画すべき配色('dark'|'light')を解決する
+  // 共有ロジック。<head>先頭のFOUC防止スクリプトもこれと同じ判定を単体で複製している
+  // (あちらは他のどのスクリプトより先に動く必要があるため共通化できない。ロジックを
+  // 変更する場合は両方をbyte-for-byteで一致させること)。
+  function resolveEffectiveTheme(mode) {
+    if (mode === 'light' || mode === 'dark') return mode;
+    return !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+  }
+
   function isDarkTheme() {
     return document.documentElement.getAttribute('data-theme') === 'dark';
   }
 
-  function applyTheme(isDark) {
-    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-    try { localStorage.setItem(THEME_STORAGE_KEY, isDark ? 'dark' : 'light'); } catch (e) { /* noop */ }
+  function applyThemeToDOM(mode) {
+    document.documentElement.setAttribute('data-theme', resolveEffectiveTheme(mode));
+  }
+
+  function applyTheme(mode) {
+    applyThemeToDOM(mode);
+    try { localStorage.setItem(THEME_STORAGE_KEY, mode); } catch (e) { /* noop */ }
     settingsSyncThemeBtnUI();
   }
 
-  // クイック切替(設定モーダル内のボタン、および 'd'/'D' ショートカットの両方から呼ばれる)
+  // クイック切替(設定モーダル内のボタン、および 'd'/'D' ショートカットの両方から呼ばれる)。
+  // ライト → ダーク → システム(OS設定に追従) → ライト … の3状態を順に巡回する。
   function toggleTheme() {
-    applyTheme(!isDarkTheme());
+    var mode = getThemeMode();
+    var next = mode === 'light' ? 'dark' : (mode === 'dark' ? 'system' : 'light');
+    applyTheme(next);
   }
   window.toggleTheme = toggleTheme;
 
+  // OSの配色設定がライブ変更された場合(例: 日没時の自動切替)、保存モードが
+  // 'system'(未設定含む)であれば、開いているタブの表示をリロードなしでその場に
+  // 追従させる。
+  if (window.matchMedia) {
+    var themeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    var handleThemeMediaChange = function () {
+      if (getThemeMode() === 'system') {
+        applyThemeToDOM('system');
+        settingsSyncThemeBtnUI();
+      }
+    };
+    if (typeof themeMediaQuery.addEventListener === 'function') {
+      themeMediaQuery.addEventListener('change', handleThemeMediaChange);
+    } else if (typeof themeMediaQuery.addListener === 'function') {
+      themeMediaQuery.addListener(handleThemeMediaChange); // 旧Safari向けフォールバック
+    }
+  }
+
   function settingsSyncThemeBtnUI() {
     var btn = document.getElementById('settingsThemeToggleBtn');
-    if (btn) btn.textContent = isDarkTheme() ? t('settings.themeToggleDark') : t('settings.themeToggleLight');
+    if (!btn) return;
+    var mode = getThemeMode();
+    var labelKey = mode === 'dark' ? 'settings.themeToggleDark' : (mode === 'light' ? 'settings.themeToggleLight' : 'settings.themeToggleSystem');
+    var nextMode = mode === 'light' ? 'dark' : (mode === 'dark' ? 'system' : 'light');
+    var modeNameKey = function (m) { return m === 'dark' ? 'settings.themeModeDark' : (m === 'light' ? 'settings.themeModeLight' : 'settings.themeModeSystem'); };
+    btn.textContent = t(labelKey);
+    btn.setAttribute('aria-label', t('settings.themeAriaLabel', { current: t(modeNameKey(mode)), next: t(modeNameKey(nextMode)) }));
   }
 
   var SHORTCUTS_STORAGE_KEY = 'sky_shortcuts_enabled';
@@ -2676,6 +2737,12 @@
     root.setProperty(PF_TINT_VAR, 'rgba(' + c.r + ', ' + c.g + ', ' + c.b + ', 0.07)');
   }
   window.addEventListener('storage', function (e) {
+    // 他のタブ/サイトで表示テーマ(ライト/ダーク/システム)が変更された場合、このタブも
+    // リロードなしでその場に追従させる。
+    if (e.key === THEME_STORAGE_KEY) {
+      applyThemeToDOM(normalizeThemeMode(e.newValue));
+      settingsSyncThemeBtnUI();
+    }
     if (e.key === PROFILES_KEY) pfApplyThemeColor(pfGetActiveProfile().color);
     // 他のタブ/サイトで所持通貨（星のキャンドル等）が更新された場合、プロフィールモーダルを
     // 開いたままそのタブを見ていても、その場で表示が最新になるようにする
