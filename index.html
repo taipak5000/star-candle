@@ -3343,7 +3343,30 @@
   // 「ホーム画面に追加」時に使われるアイコン（apple-touch-icon / manifest.json）を、
   // ユーザーが選んだ絵文字＋背景色、またはアップロード画像に差し替える。
   // プロフィール（保存枠）に関わらずこの端末・ブラウザ共通の設定のため、nsKeyは使わない。
-  var PF_ICON_STORAGE_KEY = 'pfCustomHomeIcon_v1';
+  // 🔑 保存キーをサイトごとに名前空間化する（プロフィール単位のnsKey()とは別軸）。
+  // taipak5000.github.io系サイトは全サイトが同一オリジンでlocalStorageを共有するため、
+  // 固定文字列のままだと、あるサイトで設定したホーム画面アイコンが他サイトの設定まで
+  // 上書きしてしまう（wings/tai-info等で実際に衝突することを確認済み）。location.pathnameの
+  // 先頭セグメント（例: '/star-candle/' → 'star-candle'）は各サイトの実際の公開URLパスと
+  // 一致し、リポジトリ名の変更にも自動追従するため、これをサイト識別子として使う。
+  function pfSiteId() {
+    var seg = location.pathname.split('/').filter(function (s) { return s; })[0];
+    return seg || 'root';
+  }
+  var PF_ICON_STORAGE_KEY_LEGACY = 'pfCustomHomeIcon_v1';
+  var PF_ICON_STORAGE_KEY = 'pfCustomHomeIcon_v1__site_' + pfSiteId();
+  // 旧: 名前空間化前は全サイト共通の固定キー（PF_ICON_STORAGE_KEY_LEGACY）で保存されて
+  // いたため、既存ユーザーの設定がそちらに残っている場合がある。新（サイト名前空間化）
+  // キーにまだ何も保存されていない場合に限り、旧キーの値を一度だけ新キーへコピーして
+  // 引き継ぐ（既にカスタマイズ済みのユーザーの設定が新キー導入によって消えてしまわない
+  // ようにするため。旧キー自体は他の未対応サイトがまだ参照している可能性があるため
+  // 削除はしない＝実害なし。wings/tai-info等の同一移行と同じ考え方）。
+  try {
+    if (!localStorage.getItem(PF_ICON_STORAGE_KEY)) {
+      var legacyIcon = localStorage.getItem(PF_ICON_STORAGE_KEY_LEGACY);
+      if (legacyIcon) localStorage.setItem(PF_ICON_STORAGE_KEY, legacyIcon);
+    }
+  } catch (e) { /* プライベートブラウジング等でlocalStorageが使えない場合は何もしない */ }
   var pfIconOriginalAppleHref = (function () {
     var el = document.querySelector('link[rel="apple-touch-icon"]');
     return el ? el.href : 'icons/app-icon-192.png';
