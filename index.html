@@ -3335,13 +3335,22 @@
      写し。ランタイムを共有しているわけではないため、あちら側の定義が増減した場合は
      ここも手動で追従させる必要がある。称号名・ツール名(source)は上流でも英訳が
      用意されていない固有名詞のため、条件文(desc)のみ言語切替に追従させ、名前・
-     ツール名はja表記のまま両言語で共通表示する。
+     ツール名はja表記のまま両言語で共通表示する。ただしまだ非公開の姉妹サイト分
+     （spirit/score）のsourceのみ、実名の代わりに汎用ラベル「姉妹サイト」を
+     {ja, en}形式で持ち、言語切替に追従させる（pfSourceText()参照）。
      ================================================================ */
   // {ja, en}形式のオブジェクトから現在の表示言語の文字列を返す。t()はI18N内の
   // キーパスを辿る用途のため、PF_TITLE_CATALOGのようなその場のリテラルには使えない。
   function pfLangText(obj) {
     if (!obj) return '';
     return (LANG === 'en' && obj.en) ? obj.en : obj.ja;
+  }
+
+  // ツール名(source)は通常ja表記の生文字列だが、まだ非公開の姉妹サイト分（spirit/score）は
+  // 汎用ラベル「姉妹サイト」/「Sibling Site」を言語切替に追従させるため{ja, en}形式で持つ。
+  // 両方の形に対応する表示用ヘルパー。
+  function pfSourceText(source) {
+    return (typeof source === 'string') ? source : pfLangText(source);
   }
 
   var PF_TITLE_CATALOG = {
@@ -3378,7 +3387,9 @@
         lc_half: { icon: '🔦', name: '光を辿る探検家', desc: { ja: '光の子を62体（半数）発見', en: 'Found 62 Children of Light (half)' } },
         lc_all: { icon: '🌟', name: '光の子コンプリート', desc: { ja: '光の子124体すべてを発見', en: 'Found all 124 Children of Light' } }
       } },
-    spirit: { storageKey: 'spiritCatalogTitles_v1', namespaced: true, source: '精霊ツリー管理',
+    // spiritはまだ非公開の姉妹サイトのため、source（出典ラベル）のみ「姉妹サイト」に
+    // 汎用化して表示する（他ツールと違いja/en両対応のオブジェクト。抽出・判定ロジックは不変）。
+    spirit: { storageKey: 'spiritCatalogTitles_v1', namespaced: true, source: { ja: '姉妹サイト', en: 'Sibling Site' },
       extract: function (d) { return Object.keys(d || {}); },
       titles: {
         pct1: { icon: '🌱', name: '芽吹きの精霊使い', desc: { ja: '精霊ツリーのノードを1%以上解放した', en: 'Unlocked 1%+ of all spirit tree nodes' } },
@@ -3387,7 +3398,8 @@
         pct50: { icon: '🌳', name: '満開の森の守り人', desc: { ja: '精霊ツリーのノードを50%以上解放した', en: 'Unlocked 50%+ of all spirit tree nodes' } },
         pct100: { icon: '👑', name: '精霊の森の賢者', desc: { ja: '精霊ツリーの全ノードをコンプリートした', en: 'Unlocked 100% of all spirit tree nodes' } }
       } },
-    score: { storageKey: 'taiScoreTitles_v1', namespaced: false, source: '楽譜作成ツール',
+    // scoreも同じくまだ非公開の姉妹サイトのため、sourceを同様に汎用化。
+    score: { storageKey: 'taiScoreTitles_v1', namespaced: false, source: { ja: '姉妹サイト', en: 'Sibling Site' },
       extract: function (d) { return ((d && d.earned) || []).map(function (e) { return e.id; }); },
       titles: {
         firstSong: { icon: '🎼', name: 'はじめの一歩', desc: { ja: 'はじめての1曲をライブラリに加えた', en: 'Added your first song to the library' } },
@@ -3429,7 +3441,7 @@
   };
 
   // PF_TITLE_CATALOGの定義順（ツールごと）で、指定プロフィールが実際に獲得済みの称号だけを
-  // まとめて返す。namespaced:falseのツール（score＝楽譜作成ツール）はプロフィール単位で
+  // まとめて返す。namespaced:falseのツール（score）はプロフィール単位で
   // 保存先を分けていないため、nsKeyFor()を経由せず生キーのまま読む。
   // 戻り値: [{ source, titles: [{icon, name, desc}, ...] }, ...]（該当が無いツールは含めない）
   function pfCollectEarnedTitles(profileId) {
@@ -3465,7 +3477,7 @@
     var expanded = !!pfTitlesExpandedIds[p.id];
     var bodyId = 'pfTitlesBody_' + p.id;
     var bodyHtml = groups.length ? groups.map(function (g) {
-      return '<div class="pf-titles-group-label">' + pfEscapeHtml(g.source) + '</div>' +
+      return '<div class="pf-titles-group-label">' + pfEscapeHtml(pfSourceText(g.source)) + '</div>' +
         g.titles.map(function (ti) {
           return '<div class="pf-titles-line"><span>' + ti.icon + '</span><span class="pf-titles-name">' + pfEscapeHtml(ti.name) + '</span><span class="pf-titles-desc">— ' + pfEscapeHtml(ti.desc) + '</span></div>';
         }).join('');
