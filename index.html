@@ -1522,6 +1522,19 @@
   .history-clear-btn:hover { color: var(--crimson-light); }
 
   /* ── 🏆 称号(実績)パネル ── */
+  .titles-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 0 0 16px;
+  }
+  .titles-head h2 { margin: 0; }
+  .titles-count {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-dim);
+  }
   .titles-chips {
     display: flex;
     flex-wrap: wrap;
@@ -1540,6 +1553,13 @@
     padding: 6px 12px 6px 9px;
     white-space: nowrap;
     cursor: default;
+  }
+  /* 未獲得:獲得済みのゴールドに対し、淡色トークンで「まだ手が届いていない」を表す */
+  .title-chip.locked {
+    color: var(--text-dim);
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--card-border);
+    font-weight: 600;
   }
 
   /* ── 🍞 トースト通知(称号解禁など) ── */
@@ -1964,8 +1984,11 @@
     <div id="resultContent"></div>
   </section>
 
-  <section class="card" id="titlesCard" style="display:none;">
-    <h2 data-i18n="titles.heading">🏆 称号</h2>
+  <section class="card" id="titlesCard">
+    <div class="titles-head">
+      <h2 data-i18n="titles.heading">🏆 称号</h2>
+      <span class="titles-count" id="titlesCount">0 / 0</span>
+    </div>
     <div class="titles-chips" id="titlesChips"></div>
   </section>
 
@@ -2351,6 +2374,8 @@
     },
     titles: {
       heading: { ja: '🏆 称号', en: '🏆 Titles' },
+      countTemplate: { ja: '{earned} / {total} 個解除', en: '{earned} / {total} unlocked' },
+      lockedTooltip: { ja: '称号は条件を満たすと明らかになります', en: 'Unlocks when you meet its condition' },
       unlockedToast: { ja: '🏆 称号「{icon} {name}」を獲得しました！', en: '🏆 Title unlocked: {icon} {name}!' },
       streak3Name: { ja: '灯を絶やさぬ者', en: 'Flame Unwavering' },
       streak3Desc: { ja: '赤闇を3日連続で取りこぼさず回収', en: 'Collected shard rewards 3 days in a row without missing one' },
@@ -5124,11 +5149,17 @@
     store = store || loadTitleStore();
     var card = document.getElementById('titlesCard');
     var chips = document.getElementById('titlesChips');
+    var countEl = document.getElementById('titlesCount');
     if (!card || !chips) return;
-    var earned = TITLES.filter(function (ti) { return !!store[ti.id]; });
-    card.style.display = earned.length ? '' : 'none';
-    chips.innerHTML = earned.map(function (ti) {
-      return '<span class="title-chip" title="' + t(ti.descKey) + '">' + ti.icon + ' ' + t(ti.nameKey) + '</span>';
+    var earnedCount = TITLES.filter(function (ti) { return !!store[ti.id]; }).length;
+    if (countEl) countEl.textContent = t('titles.countTemplate', { earned: earnedCount, total: TITLES.length });
+    // 未獲得も含め全件を常に描画する。未獲得は名前・条件文を「？？？」で隠し、汎用の
+    // ツールチップのみ表示する(実際の名称・解除条件をhoverで先読みできないようにするため)。
+    chips.innerHTML = TITLES.map(function (ti) {
+      if (store[ti.id]) {
+        return '<span class="title-chip" title="' + t(ti.descKey) + '">' + ti.icon + ' ' + t(ti.nameKey) + '</span>';
+      }
+      return '<span class="title-chip locked" title="' + t('titles.lockedTooltip') + '">' + ti.icon + ' ？？？</span>';
     }).join('');
   }
 
