@@ -1521,6 +1521,50 @@
   }
   .history-clear-btn:hover { color: var(--crimson-light); }
 
+  /* ── 🏆 称号(実績)パネル ── */
+  .titles-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .title-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--gold-light);
+    background: rgba(245,181,76,0.14);
+    border: 1px solid var(--gold);
+    border-radius: 999px;
+    padding: 6px 12px 6px 9px;
+    white-space: nowrap;
+    cursor: default;
+  }
+
+  /* ── 🍞 トースト通知(称号解禁など) ── */
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: calc(88px + env(safe-area-inset-bottom));
+    transform: translateX(-50%) translateY(20px);
+    background: var(--violet-deep);
+    border: 1px solid var(--gold);
+    color: var(--cream);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 11px 20px;
+    border-radius: 20px;
+    box-shadow: 0 10px 24px rgba(0,0,0,0.35);
+    z-index: 1200;
+    opacity: 0;
+    max-width: calc(100% - 40px);
+    text-align: center;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
   @media (min-width: 850px) {
     .wrap { max-width: 680px; }
     .sidebar { display: block; }
@@ -1920,6 +1964,11 @@
     <div id="resultContent"></div>
   </section>
 
+  <section class="card" id="titlesCard" style="display:none;">
+    <h2 data-i18n="titles.heading">🏆 称号</h2>
+    <div class="titles-chips" id="titlesChips"></div>
+  </section>
+
   <section class="card">
     <h2 data-i18n="notify.heading">🔔 通知</h2>
     <div class="field">
@@ -2299,6 +2348,22 @@
       dashboard: { ja: 'ダッシュボード', en: 'Dashboard' },
       otherTools: { ja: '他のツール', en: 'More Tools' },
       settings: { ja: '表示設定', en: 'Settings' }
+    },
+    titles: {
+      heading: { ja: '🏆 称号', en: '🏆 Titles' },
+      unlockedToast: { ja: '🏆 称号「{icon} {name}」を獲得しました！', en: '🏆 Title unlocked: {icon} {name}!' },
+      streak3Name: { ja: '灯を絶やさぬ者', en: 'Flame Unwavering' },
+      streak3Desc: { ja: '赤闇を3日連続で取りこぼさず回収', en: 'Collected shard rewards 3 days in a row without missing one' },
+      streak7Name: { ja: '一週間の灯火番', en: 'Weeklong Flamekeeper' },
+      streak7Desc: { ja: '赤闇を7日連続で取りこぼさず回収', en: 'Collected shard rewards 7 days in a row without missing one' },
+      streak20Name: { ja: '常夜の灯守', en: 'Everlasting Flamekeeper' },
+      streak20Desc: { ja: '赤闇を20日連続で取りこぼさず回収', en: 'Collected shard rewards 20 days in a row without missing one' },
+      candle30Name: { ja: '星屑の蒐集者', en: 'Stardust Collector' },
+      candle30Desc: { ja: '所持本数が最高30本に到達', en: 'Held 30 candles at once for the first time' },
+      candle100Name: { ja: '百連の灯', en: 'Hundredfold Flame' },
+      candle100Desc: { ja: '所持本数が最高100本に到達', en: 'Held 100 candles at once for the first time' },
+      candle300Name: { ja: '星々の帳を統べる者', en: 'Sovereign of the Starry Veil' },
+      candle300Desc: { ja: '所持本数が最高300本に到達', en: 'Held 300 candles at once for the first time' }
     }
   };
 
@@ -2360,6 +2425,7 @@
     if (typeof renderDatePickerGrid === 'function' && datePickerPopup && datePickerPopup.classList.contains('is-open')) renderDatePickerGrid();
     if (typeof renderShardCalGrid === 'function' && shardCalOverlay && shardCalOverlay.classList.contains('is-visible')) renderShardCalGrid();
     if (typeof notifyRenderStatus === 'function') notifyRenderStatus();
+    if (typeof renderTitles === 'function') renderTitles();
     pfRenderBar();
     var pfOverlay = document.getElementById('pfModalOverlay');
     if (pfOverlay && pfOverlay.classList.contains('is-visible')) { pfRenderModal(); pfRenderCurrency(); }
@@ -3798,6 +3864,10 @@
       };
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } catch (err) { /* storage unavailable - ignore */ }
+    // 所持本数が変わるたびに呼ばれるこの場所で、称号(実績)のハイウォーターマーク更新・
+    // 解禁判定もまとめて行う(このファイルの下の方で定義。関数宣言なので巻き上げにより
+    // ここから呼んでも問題ない)。
+    if (typeof checkAndUnlockTitles === 'function') checkAndUnlockTitles();
   }
   function loadState() {
     try {
@@ -4545,6 +4615,7 @@
         updated = current + reward;
         delta = reward;
         checkedDays[key] = true;
+        if (typeof recordShardCheckin === 'function') recordShardCheckin(key);
       } else {
         updated = Math.max(0, current - reward);
         delta = updated - current; // 0未満に張り付いた場合も実際の増減分だけを記録する
@@ -4891,6 +4962,7 @@
           delete checkedDays[entry.dayKey]; // 加算だった→チェックを外した状態に戻す
         } else {
           checkedDays[entry.dayKey] = true; // 減算(チェック解除)だった→再度チェック済みに戻す
+          if (typeof recordShardCheckin === 'function') recordShardCheckin(entry.dayKey); // 称号用の恒久ログにも反映(取り消しでは消さない)
         }
         saveCheckedDays(checkedDays);
         renderForecast(); // 表示中ならチェックボックスの見た目も同期する
@@ -4914,6 +4986,177 @@
 
   renderHistory();
   renderTrendChart();
+
+  /* ================================================================
+     🏆 称号(実績)
+     2つのハイウォーターマークだけを基準に判定する:
+       ・所持本数(current)は他ツールとも共有する「今の残高」で、ウィッシュでの交換等により
+         いつでも減りうる → 最高到達値(TITLE_MAX_CANDLE_KEY)をMath.max()でのみ更新し、それを見る。
+       ・赤闇の「獲得済み」チェック(checkedDays)は予測欄の直近ウィンドウだけを保持し、
+         表示範囲から外れると自動的にプルーニングされてしまう一時データ(renderForecast内の
+         プルーニング処理を参照)なので、称号の連続日数判定にはそのまま使えない。そこで称号専用に、チェックした日を
+         (チェックを外しても)消さずに積み上げていく恒久ログ(TITLE_CHECKIN_LOG_KEY)を別途持ち、
+         そこから「赤闇が来る日を取りこぼさず連続で回収できた日数」の最長記録を都度計算し、
+         その最長記録自体もハイウォーターマーク(TITLE_STREAK_BEST_KEY)として保存する。
+     どちらも一度満たした称号はTITLES_STORE_KEYに恒久保存され、後から取り消されない。
+     ================================================================ */
+  var TITLE_MAX_CANDLE_KEY = nsKey('skyStarCandleCalc_maxCandle_v1');   // 数値(所持本数の最高到達値)
+  var TITLE_CHECKIN_LOG_KEY = nsKey('skyStarCandleCalc_checkinLog_v1'); // { "年-月-日": true, ... } (恒久・プルーニングしない)
+  var TITLE_STREAK_BEST_KEY = nsKey('skyStarCandleCalc_streakBest_v1'); // 数値(連続回収日数の最高記録)
+  var TITLES_STORE_KEY = nsKey('skyStarCandleCalc_titles_v1');          // { <id>: 獲得日時のISO文字列, ... }
+
+  function loadMaxCandle() {
+    try { return parseFloat(localStorage.getItem(TITLE_MAX_CANDLE_KEY)) || 0; } catch (e) { return 0; }
+  }
+  function bumpMaxCandle(current) {
+    if (current > loadMaxCandle()) {
+      try { localStorage.setItem(TITLE_MAX_CANDLE_KEY, String(current)); } catch (e) { /* no-op */ }
+    }
+  }
+
+  function loadCheckinLog() {
+    try {
+      var raw = localStorage.getItem(TITLE_CHECKIN_LOG_KEY);
+      var obj = raw ? JSON.parse(raw) : {};
+      return (obj && typeof obj === 'object') ? obj : {};
+    } catch (e) { return {}; }
+  }
+  function saveCheckinLog(obj) {
+    try { localStorage.setItem(TITLE_CHECKIN_LOG_KEY, JSON.stringify(obj)); } catch (e) { /* no-op */ }
+  }
+  // 「獲得済み」チェックがONになった日を恒久ログに記録する。チェックを外しても
+  // このログからは消さない(称号のハイウォーターマーク計算専用の一方向ログのため)。
+  function recordShardCheckin(dayKey) {
+    if (!dayKey) return;
+    var log = loadCheckinLog();
+    if (log[dayKey]) return;
+    log[dayKey] = true;
+    saveCheckinLog(log);
+  }
+
+  // dayKey("年-月-日")をUTC真夜中のタイムスタンプに変換する。年月日の暦上の並び順だけを
+  // 使いたいので、タイムゾーンの影響を受けないUTCで統一する。
+  function shardDayKeyToUTCTime(key) {
+    var p = (key || '').split('-');
+    return Date.UTC(parseInt(p[0], 10) || 0, (parseInt(p[1], 10) || 1) - 1, parseInt(p[2], 10) || 1);
+  }
+
+  // 恒久ログにある最も古いチェック日から今日まで、実際の赤闇スケジュール(getDaySchedule)を
+  // 1日ずつ辿り、「赤闇が来る日なのにログに無い」で途切れる連続日数の最大値を求める。
+  // 赤闇が来ない日(スケジュール対象外の日)はそもそも連続判定に数えず、単に読み飛ばす。
+  function computeLongestCheckinStreak() {
+    var log = loadCheckinLog();
+    var keys = Object.keys(log);
+    if (keys.length === 0) return 0;
+    var times = keys.map(shardDayKeyToUTCTime);
+    var cursor = Math.min.apply(null, times);
+    var todayPt = getPTDateParts(new Date());
+    var todayTime = Date.UTC(todayPt.year, todayPt.month - 1, todayPt.day);
+    var streak = 0, best = 0, guard = 0;
+    while (cursor <= todayTime && guard <= 3660) { // 安全のため約10年で打ち切る(他の暦ループと同じ方式)
+      guard++;
+      var d = new Date(cursor);
+      var sched = getDaySchedule(d.getUTCDate(), d.getUTCDay());
+      if (sched.color === 'red' && !sched.skipped) {
+        var key = d.getUTCFullYear() + '-' + (d.getUTCMonth() + 1) + '-' + d.getUTCDate();
+        if (log[key]) { streak++; if (streak > best) best = streak; } else { streak = 0; }
+      }
+      cursor += 86400000;
+    }
+    return best;
+  }
+  function loadStreakBest() {
+    try { return parseInt(localStorage.getItem(TITLE_STREAK_BEST_KEY), 10) || 0; } catch (e) { return 0; }
+  }
+  function bumpStreakBest() {
+    var computed = computeLongestCheckinStreak();
+    if (computed > loadStreakBest()) {
+      try { localStorage.setItem(TITLE_STREAK_BEST_KEY, String(computed)); } catch (e) { /* no-op */ }
+    }
+  }
+
+  var TITLES = [
+    { id: 'streak_3', icon: '🕯️', nameKey: 'titles.streak3Name', descKey: 'titles.streak3Desc', condition: function (s) { return s.streakBest >= 3; } },
+    { id: 'streak_7', icon: '🔥', nameKey: 'titles.streak7Name', descKey: 'titles.streak7Desc', condition: function (s) { return s.streakBest >= 7; } },
+    { id: 'streak_20', icon: '🌌', nameKey: 'titles.streak20Name', descKey: 'titles.streak20Desc', condition: function (s) { return s.streakBest >= 20; } },
+    { id: 'candle_30', icon: '⭐', nameKey: 'titles.candle30Name', descKey: 'titles.candle30Desc', condition: function (s) { return s.maxCandle >= 30; } },
+    { id: 'candle_100', icon: '🌟', nameKey: 'titles.candle100Name', descKey: 'titles.candle100Desc', condition: function (s) { return s.maxCandle >= 100; } },
+    { id: 'candle_300', icon: '👑', nameKey: 'titles.candle300Name', descKey: 'titles.candle300Desc', condition: function (s) { return s.maxCandle >= 300; } }
+  ];
+
+  function loadTitleStore() {
+    try {
+      var obj = JSON.parse(localStorage.getItem(TITLES_STORE_KEY));
+      return (obj && typeof obj === 'object') ? obj : {};
+    } catch (e) { return {}; }
+  }
+  function saveTitleStore(obj) {
+    try { localStorage.setItem(TITLES_STORE_KEY, JSON.stringify(obj)); } catch (e) { /* no-op */ }
+  }
+
+  // 所持本数の変化(saveState経由)・チェック操作のたびに呼ばれる。ハイウォーターマークを
+  // 更新し、新規に条件を満たした称号があれば記録してトースト表示する。owned[id]が既にある
+  // 称号はconditionを再評価しないため、後から数値が下がっても取り消されない。
+  function checkAndUnlockTitles() {
+    try {
+      var current = Math.max(0, parseFloat(els.current.value) || 0);
+      bumpMaxCandle(current);
+      bumpStreakBest();
+      var stats = { maxCandle: loadMaxCandle(), streakBest: loadStreakBest() };
+      var store = loadTitleStore();
+      var newlyEarned = [];
+      TITLES.forEach(function (ti) {
+        if (store[ti.id]) return;
+        if (ti.condition(stats)) {
+          store[ti.id] = new Date().toISOString();
+          newlyEarned.push(ti);
+        }
+      });
+      if (newlyEarned.length) saveTitleStore(store);
+      renderTitles(store);
+      newlyEarned.forEach(function (ti) {
+        showToast(t('titles.unlockedToast', { icon: ti.icon, name: t(ti.nameKey) }));
+      });
+    } catch (e) { /* no-op */ }
+  }
+
+  function renderTitles(store) {
+    store = store || loadTitleStore();
+    var card = document.getElementById('titlesCard');
+    var chips = document.getElementById('titlesChips');
+    if (!card || !chips) return;
+    var earned = TITLES.filter(function (ti) { return !!store[ti.id]; });
+    card.style.display = earned.length ? '' : 'none';
+    chips.innerHTML = earned.map(function (ti) {
+      return '<span class="title-chip" title="' + t(ti.descKey) + '">' + ti.icon + ' ' + t(ti.nameKey) + '</span>';
+    }).join('');
+  }
+
+  // 🍞 汎用トースト(称号解禁の通知に使用)。同時に複数の称号を解禁した場合(例:所持本数を
+  // 一気に大きく書き換えた等)、キューに積んで1件ずつ順番に表示する(同時表示だと同じ位置に
+  // 重なって読めなくなるため)。
+  var toastQueue = [];
+  var toastShowing = false;
+  function showToast(msg) {
+    toastQueue.push(msg);
+    if (!toastShowing) processToastQueue();
+  }
+  function processToastQueue() {
+    var msg = toastQueue.shift();
+    if (msg === undefined) { toastShowing = false; return; }
+    toastShowing = true;
+    var el = document.createElement('div');
+    el.className = 'toast';
+    el.textContent = msg;
+    document.body.appendChild(el);
+    setTimeout(function () { el.classList.add('show'); }, 10);
+    setTimeout(function () {
+      el.classList.remove('show');
+      setTimeout(function () { el.remove(); processToastQueue(); }, 300);
+    }, 2600);
+  }
+
+  checkAndUnlockTitles();
 
   /* ================================================================
      🔔 通知(次の赤闇の着地 / 達成予定日)
