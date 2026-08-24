@@ -4872,9 +4872,17 @@
   update();
 
   // ---- 赤闇カレンダー(月表示) ----
-  // buildRedForecast()と同じ判定ルール(getDaySchedule)を、直近7日間に限らず
-  // 任意の月に対して使えるようにしたもの。曜日は暦上の概念なので
-  // タイムゾーンに関係なく年月日から直接求められる(new Date(y, m-1, d).getDay())。
+  // シャードの周期(getDaySchedule)はPT(太平洋時間)の暦日単位で決まるが、着地・終了時刻は
+  // このサイトの表示上すべてJSTに変換しているため、+16〜17時間のズレでPTの1日分の候補が
+  // JSTでは前日夜/当日早朝〜午前のように2つのJST暦日にまたがることがある(buildRedForecast()の
+  // コメント参照)。カレンダーの各セルは「JSTの暦日」を表示しているため、そのセルの日付を
+  // そのままPTの日番号として使ってgetDaySchedule()に渡すと、実際に着地する日と表示上のセルが
+  // ズレる(例: PT基準では前日扱いの候補が、JSTでは今日の早朝〜午前に着地するのに、
+  // カレンダー上は今日のセルが「シャードなし」に見えてしまう)。
+  // これを避けるため、対象のJST暦日について「同じ日をPTの日とみなした場合」と
+  // 「前日をPTの日とみなした場合」の両方を判定し、実際にJST着地日が対象日と一致する
+  // 候補だけを集める(この2択で全パターンを網羅できる。候補時刻同士は6時間間隔・
+  // 一日3回までのため、ズレは最大でも翌日までしか跨がない)。
   var shardCalOverlay = document.getElementById('shardCalOverlay');
   var shardCalBtn = document.getElementById('shardCalBtn');
   var shardCalCloseBtn = document.getElementById('shardCalCloseBtn');
@@ -4887,29 +4895,31 @@
   shardCalViewDate.setDate(1);
   var shardCalSelectedKey = null; // 詳細表示中の日付("y-m-d")。未選択ならnull
 
-  function getRedDaySchedule(year, month, day) {
-    var weekday = new Date(year, month - 1, day).getDay();
-    var sched = getDaySchedule(day, weekday);
-    if (sched.color !== 'red' || sched.skipped) return null;
-    return sched;
-  }
-
-  // buildRedForecast()の候補時刻算出ロジックを、特定の年月日1件に対して使えるようにしたもの。
-  function buildShardDayEntries(year, month, day, sched) {
-    var refDate = new Date(year, month - 1, day, 12, 0, 0);
-    var offset = getPTOffsetMinutes(refDate);
-    var entries = [];
-    getOccurrenceMinutes(sched.time, 'red').forEach(function (mins) {
-      var h = Math.floor(mins / 60);
-      var m = mins % 60;
-      var gateDate = ptWallClockToDate(year, month, day, h, m, offset);
-      var endDate = new Date(gateDate.getTime() + END_LAG_SEC * 1000);
-      var landingDate = new Date(gateDate.getTime() + LANDING_LAG_SEC * 1000);
-      var land = jstLabel(landingDate);
-      var end = jstLabel(endDate);
-      entries.push({ landShortDate: land.shortDate, landLabel: land.timeLabel, endShortDate: end.shortDate, endLabel: end.timeLabel });
+  // 指定したJST暦日(year, month[1-12], day)に実際に着地する赤闇の候補一覧を返す。
+  // 該当が無ければ空配列。各要素は { sched, landShortDate, landLabel, endShortDate, endLabel }。
+  function getJstShardLandings(year, month, day) {
+    var results = [];
+    [-1, 0].forEach(function (ptDayOffset) {
+      var ptProbe = new Date(year, month - 1, day + ptDayOffset, 12, 0, 0);
+      var ptY = ptProbe.getFullYear(), ptM = ptProbe.getMonth() + 1, ptD = ptProbe.getDate();
+      var weekday = new Date(ptY, ptM - 1, ptD).getDay();
+      var sched = getDaySchedule(ptD, weekday);
+      if (sched.color !== 'red' || sched.skipped) return;
+      var targetKey = year + '-' + month + '-' + day;
+      var offset = getPTOffsetMinutes(ptProbe);
+      getOccurrenceMinutes(sched.time, 'red').forEach(function (mins) {
+        var h = Math.floor(mins / 60);
+        var m = mins % 60;
+        var gateDate = ptWallClockToDate(ptY, ptM, ptD, h, m, offset);
+        var endDate = new Date(gateDate.getTime() + END_LAG_SEC * 1000);
+        var landingDate = new Date(gateDate.getTime() + LANDING_LAG_SEC * 1000);
+        var land = jstLabel(landingDate);
+        if (land.dateKey !== targetKey) return; // このJST暦日には着地しない候補は除外
+        var end = jstLabel(endDate);
+        results.push({ sched: sched, landShortDate: land.shortDate, landLabel: land.timeLabel, endShortDate: end.shortDate, endLabel: end.timeLabel });
+      });
     });
-    return entries;
+    return results;
   }
 
   function renderShardCalDayDetail() {
@@ -4920,15 +4930,15 @@
     }
     var parts = shardCalSelectedKey.split('-');
     var y = parseInt(parts[0], 10), m = parseInt(parts[1], 10), d = parseInt(parts[2], 10);
-    var sched = getRedDaySchedule(y, m, d);
-    if (!sched) {
+    var landings = getJstShardLandings(y, m, d);
+    if (!landings.length) {
       shardCalDayDetail.style.display = 'none';
       return;
     }
+    var sched = landings[0].sched;
     var location = (LOCATIONS[sched.realm] || {})[sched.time] || '?';
     var maxReward = (REWARD_MAX[sched.realm] || {})[sched.time] || null;
-    var entries = buildShardDayEntries(y, m, d, sched);
-    var occText = entries.map(function (e) {
+    var occText = landings.map(function (e) {
       return e.landShortDate + ' ' + e.landLabel + '→' + e.endShortDate + ' ' + e.endLabel;
     }).join(t('forecast.listSep'));
     shardCalDayDetail.style.display = 'block';
@@ -4954,10 +4964,11 @@
     }
     for (var d = 1; d <= daysInMonth; d++) {
       var cellStr = formatDateValue(new Date(year, month, d));
-      var sched = getRedDaySchedule(year, month + 1, d);
+      var landings = getJstShardLandings(year, month + 1, d);
       var cls = 'shard-cal-cell';
       if (cellStr === todayStr) cls += ' is-today';
-      if (sched) {
+      if (landings.length) {
+        var sched = landings[0].sched;
         var maxReward = (REWARD_MAX[sched.realm] || {})[sched.time] || null;
         cls += ' is-red';
         if (cellStr === shardCalSelectedKey) cls += ' is-selected';
