@@ -420,6 +420,13 @@
     transform: none;
   }
 
+  .feather-unadded-note {
+    font-size: 11.5px;
+    color: var(--crimson-light);
+    margin: 6px 2px 0;
+    line-height: 1.5;
+  }
+
   .divider {
     border: none;
     border-top: 1px dashed rgba(255,255,255,0.14);
@@ -1043,6 +1050,7 @@
     gap: 4px;
   }
   .shard-cal-cell {
+    position: relative;
     aspect-ratio: 1 / 1;
     display: flex;
     flex-direction: column;
@@ -1068,6 +1076,19 @@
   }
   .shard-cal-cell.is-red:hover { background: rgba(196,87,75,0.48); }
   .shard-cal-cell.is-red.is-selected { box-shadow: inset 0 0 0 2px var(--gold-light); }
+  /* 「獲得済み」の日は7日間予測欄(.predict-*.is-checked)と同じく不透明度を落として
+     見た目でも「対応済み」と分かるようにする。チェックマーク自体は下の.shard-cal-checkで
+     セル右上に重ねて表示する。 */
+  .shard-cal-cell.is-red.is-collected { opacity: 0.55; }
+  .shard-cal-check {
+    position: absolute;
+    top: 1px;
+    right: 3px;
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--gold-light);
+    line-height: 1;
+  }
   /* ダーク表示では背景がより黒に近くなる分、シャード発生日の塗りが沈んで見えるため
      不透明度を上げてhas-shard/today/selectedの区別が引き続きはっきり分かるようにする */
   [data-theme="dark"] .shard-cal-cell.is-today { box-shadow: inset 0 0 0 1px var(--gold-light); }
@@ -1076,6 +1097,7 @@
   .shard-cal-reward { font-size: 8.5px; margin-top: 1px; opacity: .9; }
   .shard-cal-legend {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 6px;
     font-size: 11px;
@@ -1087,6 +1109,11 @@
     border-radius: 3px;
     background: rgba(196,87,75,0.55);
     display: inline-block;
+  }
+  .shard-cal-legend-check {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--gold-light);
   }
   .shard-cal-day-detail {
     margin-top: 12px;
@@ -1456,6 +1483,8 @@
   .trend-chart-wrap { margin: 2px 0 16px; }
   .trend-chart-svg { width: 100%; height: 72px; display: block; overflow: visible; }
   .trend-chart-empty { font-size: 12.5px; color: var(--text-dim); padding: 2px 0 4px; }
+  .trend-pace-note { font-size: 11px; color: var(--lavender); margin: 4px 2px 0; line-height: 1.5; }
+  .trend-pace-note.is-warn { color: var(--crimson-light); }
 
   .history-list {
     max-height: 260px;
@@ -1927,6 +1956,7 @@
       </div>
       <input type="range" id="feathers" min="0" max="63" step="1" value="63">
       <button type="button" class="add-current-btn" id="addFeathersBtn">＋ 15.75本を所持本数に加算</button>
+      <p class="feather-unadded-note" id="featherUnaddedNote" style="display:none;"></p>
     </div>
 
     <hr class="divider">
@@ -1968,7 +1998,10 @@
         <span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span>
       </div>
       <div class="shard-cal-grid" id="shardCalGrid"></div>
-      <div class="shard-cal-legend"><span class="shard-cal-legend-dot"></span><span data-i18n="shardCal.legend">赤闇が来る日(タップで詳細)</span></div>
+      <div class="shard-cal-legend">
+        <span class="shard-cal-legend-dot"></span><span data-i18n="shardCal.legend">赤闇が来る日(タップで詳細)</span>
+        <span class="shard-cal-legend-check" aria-hidden="true">✓</span><span data-i18n="forecast.collected">獲得済み</span>
+      </div>
       <div class="shard-cal-day-detail" id="shardCalDayDetail" style="display:none;"></div>
     </div>
   </div>
@@ -2284,7 +2317,8 @@
       predictCountPrefix: { ja: '今後7日間で赤闇が来る日数：', en: 'Red Shard days in the next 7 days: ' },
       predictCountSuffix: { ja: '日', en: '' },
       calendarBtn: { ja: '📅 カレンダーで1か月分見る', en: '📅 View a Full Month in the Calendar' },
-      note: { ja: 'コミュニティ観測による非公式の推測ルールです。実際とズレる場合があります。赤闇の報酬は着地場所ごとに最大値が決まっており(2〜3.5本)、闇の花をどれだけ燃やせたかによって最大値より少なくなることもあります。1日の報酬は1回までのため、候補時刻は「どれか1つで報酬確定」という意味です。', en: 'This is an unofficial rule inferred from community observation, and may not exactly match what happens in-game. Red Shard rewards have a maximum set by each landing spot (2–3.5 candles), and you may get less than that maximum depending on how much of the Dark Flower you managed to burn. Since you can only receive the reward once per day, the candidate times mean "any one of them confirms the reward."' }
+      note: { ja: 'コミュニティ観測による非公式の推測ルールです。実際とズレる場合があります。赤闇の報酬は着地場所ごとに最大値が決まっており(2〜3.5本)、闇の花をどれだけ燃やせたかによって最大値より少なくなることもあります。1日の報酬は1回までのため、候補時刻は「どれか1つで報酬確定」という意味です。', en: 'This is an unofficial rule inferred from community observation, and may not exactly match what happens in-game. Red Shard rewards have a maximum set by each landing spot (2–3.5 candles), and you may get less than that maximum depending on how much of the Dark Flower you managed to burn. Since you can only receive the reward once per day, the candidate times mean "any one of them confirms the reward."' },
+      unaddedNote: { ja: '⚠️ 前回の加算({lastDate})から{weeks}週間分、加算し忘れているかもしれません(目安 約{amount}本)', en: "⚠️ It's been {weeks} week(s) since your last add ({lastDate}) — about {amount} candles may not be added yet" }
     },
     consumption: {
       heading: { ja: '🥤 週の消費', en: '🥤 Weekly Consumption' },
@@ -2341,7 +2375,10 @@
       confirmClear: { ja: '獲得履歴をすべて消去します。よろしいですか？(所持本数自体は変わりません)', en: "This will clear all history. Are you sure? (Your current amount won't change.)" },
       trendEmpty: { ja: 'まだ十分な履歴がないため、グラフは表示できません。', en: 'Not enough history yet to show a chart.' },
       trendTargetLabel: { ja: '🎯 目標', en: '🎯 Target' },
-      trendAriaLabel: { ja: '所持本数の推移グラフ', en: 'Chart of your candle amount over time' }
+      trendAriaLabel: { ja: '所持本数の推移グラフ', en: 'Chart of your candle amount over time' },
+      paceLineLabel: { ja: '💫 現在ペース', en: '💫 Current pace' },
+      paceProjectionNote: { ja: '💫 直近の実績ペースがこのまま続く場合、目標到達は{date}頃の見込みです。', en: "💫 At your recent pace, you're on track to reach your target around {date}." },
+      paceProjectionNone: { ja: '💫 直近の実績では、今のペースのままだと目標到達の見込みが立ちません。', en: "💫 Based on your recent history, you're not currently on pace to reach your target." }
     },
     forecast: {
       nextRedShard: { ja: '次の赤闇まで', en: 'Next Red Shard' },
@@ -4069,6 +4106,7 @@
     feathers: document.getElementById('feathers'),
     feathersReadout: document.getElementById('feathersReadout'),
     addFeathersBtn: document.getElementById('addFeathersBtn'),
+    featherUnaddedNote: document.getElementById('featherUnaddedNote'),
     buyDrink: document.getElementById('buyDrink'),
     candleFill: document.getElementById('candleFill'),
     resultContent: document.getElementById('resultContent'),
@@ -4136,6 +4174,9 @@
     els.feathersReadout.textContent = t('weekly.readout', { n: feathers, amount: fmt(edenWeekly) });
     els.addFeathersBtn.textContent = t('weekly.addBtn', { amount: fmt(edenWeekly) });
     els.addFeathersBtn.disabled = edenWeekly <= 0;
+    // 「羽加算」ボタンをしばらく押していないかもしれない、という気付きを出す(このファイル
+    // 下方の獲得履歴ログのセクションで定義。関数宣言のためホイストされ、ここから呼んでも問題ない)。
+    if (typeof renderFeatherUnaddedNote === 'function') renderFeatherUnaddedNote();
 
     var progressPct = target > 0 ? Math.min(100, (current / target) * 100) : 0;
     els.candleFill.style.height = progressPct + '%';
@@ -4855,6 +4896,9 @@
       addHistoryEntry('shard', '赤闇 ' + shardDayLabel(key), delta, key);
       var container = cb.closest('.predict-next, .predict-day');
       if (container) container.classList.toggle('is-checked', cb.checked);
+      // 月表示カレンダーを開いたままここでチェックした場合も、獲得済みマークがすぐ
+      // 同期するようにする(setLang()の言語切替時の再描画と同じガード方式)。
+      if (typeof renderShardCalGrid === 'function' && shardCalOverlay && shardCalOverlay.classList.contains('is-visible')) renderShardCalGrid();
     } catch (err) { /* no-op */ }
   });
 
@@ -4906,6 +4950,14 @@
       var sched = getDaySchedule(ptD, weekday);
       if (sched.color !== 'red' || sched.skipped) return;
       var targetKey = year + '-' + month + '-' + day;
+      // 赤闇予測(buildRedForecast)の「獲得済み」チェックはPT暦日(getPTDateParts基準)を
+      // キーにしている。ここでのptY/ptM/ptDは「JST暦日そのもの/その前日」を候補として
+      // 試しているだけの値だが、この後の判定で実際にJST着地日が一致した候補だけが残るため、
+      // 生き残った候補のptY/ptM/ptDは、buildRedForecast()が同じ発生に対して計算する
+      // pt.year/pt.month/pt.dayと必ず一致する(PTとJSTの時差は16〜17時間で24時間未満のため、
+      // あるJST着地日に対応する真のPT暦日は「同じ日」か「前日」のいずれか一方だけに定まる)。
+      // そのため、この値をそのままcheckedDaysの照合キーとして使ってよい。
+      var ptDayKey = ptY + '-' + ptM + '-' + ptD;
       var offset = getPTOffsetMinutes(ptProbe);
       getOccurrenceMinutes(sched.time, 'red').forEach(function (mins) {
         var h = Math.floor(mins / 60);
@@ -4916,7 +4968,7 @@
         var land = jstLabel(landingDate);
         if (land.dateKey !== targetKey) return; // このJST暦日には着地しない候補は除外
         var end = jstLabel(endDate);
-        results.push({ sched: sched, landShortDate: land.shortDate, landLabel: land.timeLabel, endShortDate: end.shortDate, endLabel: end.timeLabel });
+        results.push({ sched: sched, ptDayKey: ptDayKey, landShortDate: land.shortDate, landLabel: land.timeLabel, endShortDate: end.shortDate, endLabel: end.timeLabel });
       });
     });
     return results;
@@ -4938,12 +4990,20 @@
     var sched = landings[0].sched;
     var location = (LOCATIONS[sched.realm] || {})[sched.time] || '?';
     var maxReward = (REWARD_MAX[sched.realm] || {})[sched.time] || null;
+    // 月末(31日)の翌日など、同じJST暦日にPT暦日が異なる2つの候補(前月末の繰り越し分と
+    // 当日分)が両方着地することがある(それぞれ別のPT暦日=別の「獲得済み」判定対象)。
+    // landings[0]のptDayKeyだけを見ると、実際には「前月末の分」しかチェックしていないのに
+    // このJST日全体が獲得済み扱いになってしまうため、登場するptDayKeyを全て満たしている
+    // 場合のみ獲得済みとする。
+    var checkedDaysForDetail = loadCheckedDays();
+    var isCollected = landings.every(function (e) { return !!checkedDaysForDetail[e.ptDayKey]; });
     var occText = landings.map(function (e) {
       return e.landShortDate + ' ' + e.landLabel + '→' + e.endShortDate + ' ' + e.endLabel;
     }).join(t('forecast.listSep'));
     shardCalDayDetail.style.display = 'block';
     shardCalDayDetail.innerHTML =
-      '<strong>' + jpDate(new Date(y, m - 1, d)) + '</strong><br>' +
+      '<strong>' + jpDate(new Date(y, m - 1, d)) + '</strong>' +
+      (isCollected ? ' <span style="color:var(--gold-light); font-weight:700;">✓ ' + t('forecast.collected') + '</span>' : '') + '<br>' +
       realmLabel(sched.realm) + t('forecast.realmLocationSep') + shardLocationName(location) + (maxReward ? t('shardCal.maxRewardShort', { n: maxReward }) : '') + '<br>' +
       '<span style="opacity:.85; font-size:11.5px;">' + t('shardCal.candidatesLabel') + occText + '</span>';
   }
@@ -4954,6 +5014,10 @@
     var firstWeekday = new Date(year, month, 1).getDay();
     var daysInMonth = new Date(year, month + 1, 0).getDate();
     var todayStr = formatDateValue(new Date());
+    // 「獲得済み」チェックの一覧を月表示にも重ねて表示するため、ここで1回だけ読み込む
+    // (7日間予測欄と違い、こちらは表示範囲外の月にも自由に移動できるためプルーニングはしない=
+    // 読み取り専用の照合にとどめる)。
+    var checkedDays = loadCheckedDays();
 
     renderWeekdayHeaders();
     shardCalMonthLabel.textContent = monthYearLabel(year, month + 1);
@@ -4970,11 +5034,21 @@
       if (landings.length) {
         var sched = landings[0].sched;
         var maxReward = (REWARD_MAX[sched.realm] || {})[sched.time] || null;
+        // checkedDays(7日間予測欄と同じ「獲得済み」トラッカー)はPT暦日キーのため、
+        // JST暦日ベースの表示日付(cellStr)ではなくptDayKeyで照合する(getJstShardLandings
+        // 内のコメント参照。ここを取り違えるとPT/JSTのズレが再発する)。
+        // なお月末→月初にまたがる日は、前月末の繰り越し分と当日分で異なる2つのPT暦日が
+        // 同じJST日に混在することがあるため、landings[0]だけでなく登場する全ptDayKeyが
+        // チェック済みの場合のみ「獲得済み」とする(片方だけ済みの状態を誤って
+        // 獲得済み扱いにしない)。
+        var isCollected = landings.every(function (e) { return !!checkedDays[e.ptDayKey]; });
         cls += ' is-red';
+        if (isCollected) cls += ' is-collected';
         if (cellStr === shardCalSelectedKey) cls += ' is-selected';
         html += '<button type="button" class="' + cls + '" data-date="' + cellStr + '">' +
           '<span>' + d + '</span>' +
           (maxReward ? '<span class="shard-cal-reward">' + maxReward + (LANG === 'ja' ? '本' : ' ' + t('goal.unit')) + '</span>' : '') +
+          (isCollected ? '<span class="shard-cal-check" aria-hidden="true">✓</span>' : '') +
           '</button>';
       } else {
         html += '<span class="' + cls + '">' + d + '</span>';
@@ -5062,6 +5136,40 @@
     return map.month + '/' + map.day + ' ' + map.hour + ':' + map.minute;
   }
 
+  // 🪶 「羽加算」ボタンをしばらく押していないかもしれない、という気付き表示。
+  // 獲得履歴(source:'feather')の最新の記録時刻からの経過日数を7日単位に切り捨てて
+  // 「未加算かもしれない週数」を出す。履歴に羽の加算記録が一度も無い(初回利用・
+  // 履歴を全消去した直後など)場合は、何を「前回」とすべきか分からず誤解を招くため、
+  // 判定できる情報が無いとみなして何も表示しない(フォールバックとして非表示にする)。
+  function renderFeatherUnaddedNote() {
+    var noteEl = els.featherUnaddedNote;
+    if (!noteEl) return;
+    var list = loadHistory(); // 新しい順
+    var lastFeatherTime = null;
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].source === 'feather') { lastFeatherTime = list[i].time; break; }
+    }
+    if (lastFeatherTime === null) {
+      noteEl.style.display = 'none';
+      noteEl.textContent = '';
+      return;
+    }
+    var elapsedMs = Date.now() - lastFeatherTime;
+    var weeks = Math.floor(elapsedMs / (7 * 86400000));
+    if (weeks < 1) {
+      noteEl.style.display = 'none';
+      noteEl.textContent = '';
+      return;
+    }
+    // 見込み本数は、現在のスライダー設定(枚数)がその期間ずっと変わらず続いていたと
+    // 仮定した目安。実際の枚数設定は変わりうるため、あくまで参考値。
+    var feathers = Math.max(0, Math.min(63, parseInt(els.feathers.value, 10) || 0));
+    var edenWeekly = feathers * 0.25;
+    var estAmount = weeks * edenWeekly;
+    noteEl.textContent = t('weekly.unaddedNote', { weeks: weeks, amount: fmt(estAmount), lastDate: historyTimeLabel(lastFeatherTime) });
+    noteEl.style.display = 'block';
+  }
+
   function addHistoryEntry(source, label, amount, dayKey) {
     if (!amount) return;
     var list = loadHistory();
@@ -5081,6 +5189,9 @@
     // renderTrendChart()が「まだこの履歴が追加される前」の状態を描画してしまい、
     // グラフだけ古いまま残ってしまう。ここで確実に最新の履歴を反映して再描画する。
     renderTrendChart();
+    // 同様に、羽を加算した直後は「未加算の週数」表示も即座に消したい(次回のupdate()
+    // 呼び出しを待たず、押した瞬間に反映する)。
+    renderFeatherUnaddedNote();
   }
 
   // entryのsource/dayKeyから、現在の表示言語で正しい語順のラベルを組み立てる。
@@ -5140,6 +5251,28 @@
     points.sort(function (a, b) { return a.time - b.time; });
     return points;
   }
+
+  // 「現在ペース」= 直近の獲得履歴から逆算した、実際の1日あたりの増減量。
+  // 羽の設定(totalWeekly)のような理論値ではなく、実際に記録された増減の合計を
+  // 経過日数で割った実績値である点が、目標日ボックスの必要ペース計算などとの違い。
+  // 直近14日以内に履歴があればその期間、無ければ履歴全体(最古の記録〜現在)を対象にする。
+  // 履歴が無い/期間がほぼ0(同時刻に複数記録されただけ等)の場合はnullを返す。
+  var TREND_PACE_WINDOW_MS = 14 * 86400000;
+  function computeRecentDailyPace() {
+    var list = loadHistory(); // 新しい順
+    if (list.length === 0) return null;
+    var now = Date.now();
+    var windowStart = now - TREND_PACE_WINDOW_MS;
+    var sample = list.filter(function (e) { return e.time >= windowStart; });
+    if (sample.length === 0) sample = list; // 直近14日に記録が無ければ全履歴を対象にする
+    var oldestTime = sample[sample.length - 1].time;
+    var elapsedMs = now - oldestTime;
+    if (!(elapsedMs > 0)) return null;
+    var netGain = 0;
+    for (var i = 0; i < sample.length; i++) netGain += (sample[i].amount || 0);
+    return netGain / (elapsedMs / 86400000);
+  }
+
   function renderTrendChart() {
     var wrap = document.getElementById('trendChartWrap');
     if (!wrap) return;
@@ -5152,7 +5285,34 @@
     var W = 300, H = 84, padX = 4, padY = 10;
     var minT = points[0].time;
     var maxT = points[points.length - 1].time;
-    var spanT = Math.max(1, maxT - minT);
+    var last = points[points.length - 1];
+
+    // 現在ペースの予測到達ライン用に、必要なら時間軸を先(未来)まで伸ばす。
+    // 「今のペースのまま目標に届くとしたら何日後か」をestimateGoalDateAllShards()と
+    // 同じ発想(日割りペースを積み上げて目標到達点を探す)で試算する。ペースが0以下
+    // (増えていない/減っている)場合や、桁外れに遠い未来になる場合は線を引かない
+    // (MAX_DAYS=3650は他の暦計算と同じ約10年の安全上限)。
+    var dailyPace = null, paceProjection = null;
+    if (target > 0 && last.value < target) {
+      dailyPace = computeRecentDailyPace();
+      if (dailyPace > 0) {
+        var daysNeeded = (target - last.value) / dailyPace;
+        if (isFinite(daysNeeded) && daysNeeded > 0 && daysNeeded <= 3650) {
+          paceProjection = { date: new Date(last.time + daysNeeded * 86400000) };
+        }
+      }
+    }
+
+    // 予測到達日をそのままグラフ右端まで含めると、実績期間が非常に短い/ペースが
+    // 非常に遅い場合にグラフの大半が空白になってしまう。そこで先読みの幅は
+    // 「これまでの実績期間と同じ長さ(最低7日)」を上限にする。それでも足りない
+    // (=かなり遠い未来)場合は、線がグラフ端で途中まで、という見え方になり、
+    // それ自体が「今のペースでは目標にすぐ届かない」ことを視覚的に伝える。
+    var histSpan = maxT - minT;
+    var lookaheadCap = Math.max(histSpan, 7 * 86400000);
+    var maxTExt = paceProjection ? Math.min(paceProjection.date.getTime(), maxT + lookaheadCap) : maxT;
+    var spanT = Math.max(1, maxTExt - minT);
+
     var maxV = 0;
     for (var i = 0; i < points.length; i++) { if (points[i].value > maxV) maxV = points[i].value; }
     if (target > 0 && target > maxV) maxV = target;
@@ -5160,7 +5320,6 @@
     function xOf(tm) { return padX + ((tm - minT) / spanT) * (W - padX * 2); }
     function yOf(v) { return H - padY - (v / maxV) * (H - padY * 2); }
     var pathD = points.map(function (p, i) { return (i === 0 ? 'M' : 'L') + xOf(p.time).toFixed(1) + ',' + yOf(p.value).toFixed(1); }).join(' ');
-    var last = points[points.length - 1];
     var areaD = pathD + ' L' + xOf(last.time).toFixed(1) + ',' + (H - padY).toFixed(1) + ' L' + xOf(points[0].time).toFixed(1) + ',' + (H - padY).toFixed(1) + ' Z';
     var targetLineSvg = '';
     if (target > 0 && target <= maxV) {
@@ -5168,13 +5327,36 @@
       targetLineSvg = '<line x1="' + padX + '" y1="' + ty + '" x2="' + (W - padX) + '" y2="' + ty + '" stroke="var(--crimson-light)" stroke-width="1" stroke-dasharray="4 3" opacity="0.85" />' +
         '<text x="' + (W - padX) + '" y="' + Math.max(8, parseFloat(ty) - 3) + '" text-anchor="end" font-size="8" fill="var(--crimson-light)">' + t('history.trendTargetLabel') + '</text>';
     }
+
+    // 現在ペースの予測到達ライン(破線・目標ラインとは別色)。実績の最終点(現在値)から、
+    // 現在ペースが続いた場合の軌道を目標到達点(またはグラフ端)まで直線で結ぶ。
+    var paceLineSvg = '';
+    var paceNoteHtml = '';
+    if (paceProjection) {
+      var reachTime = Math.min(paceProjection.date.getTime(), maxTExt);
+      var reachValue = Math.min(maxV, last.value + dailyPace * ((reachTime - last.time) / 86400000));
+      var x1 = xOf(last.time).toFixed(1), y1 = yOf(last.value).toFixed(1);
+      var x2 = xOf(reachTime).toFixed(1), y2 = yOf(reachValue).toFixed(1);
+      var reachedTarget = reachTime >= paceProjection.date.getTime() - 1000;
+      paceLineSvg = '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '" stroke="var(--lavender)" stroke-width="1.6" stroke-dasharray="2 2.5" opacity="0.9" />';
+      if (reachedTarget) {
+        paceLineSvg += '<circle cx="' + x2 + '" cy="' + y2 + '" r="2.6" fill="var(--lavender)" />';
+      }
+      paceLineSvg += '<text x="' + x2 + '" y="' + Math.max(8, parseFloat(y2) - 4) + '" text-anchor="end" font-size="8" fill="var(--lavender)">' + t('history.paceLineLabel') + '</text>';
+      paceNoteHtml = '<p class="trend-pace-note">' + t('history.paceProjectionNote', { date: jpDate(paceProjection.date) }) + '</p>';
+    } else if (target > 0 && last.value < target && dailyPace !== null && dailyPace <= 0) {
+      // 直近の実績が増えていない/減っている場合は、線は引かずに文言だけで注意喚起する
+      paceNoteHtml = '<p class="trend-pace-note is-warn">' + t('history.paceProjectionNone') + '</p>';
+    }
+
     wrap.innerHTML =
       '<svg class="trend-chart-svg" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" role="img" aria-label="' + t('history.trendAriaLabel') + '">' +
         '<path d="' + areaD + '" fill="var(--gold-light)" opacity="0.18" stroke="none"/>' +
         '<path d="' + pathD + '" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>' +
         targetLineSvg +
+        paceLineSvg +
         '<circle cx="' + xOf(last.time).toFixed(1) + '" cy="' + yOf(last.value).toFixed(1) + '" r="3" fill="var(--gold-light)" />' +
-      '</svg>';
+      '</svg>' + paceNoteHtml;
   }
 
   els.historyList.addEventListener('click', function (ev) {
@@ -5203,6 +5385,7 @@
         }
         saveCheckedDays(checkedDays);
         renderForecast(); // 表示中ならチェックボックスの見た目も同期する
+        if (typeof renderShardCalGrid === 'function' && shardCalOverlay && shardCalOverlay.classList.contains('is-visible')) renderShardCalGrid();
       }
 
       list.splice(idx, 1);
@@ -5219,10 +5402,14 @@
     saveHistory([]);
     renderHistory();
     renderTrendChart();
+    renderFeatherUnaddedNote(); // 履歴を全消去すると「前回の加算」も分からなくなるため非表示に戻す
   });
 
   renderHistory();
   renderTrendChart();
+  // ここまで来て初めてHISTORY_STORAGE_KEYが確定するため、ページ読み込み時点の表示を
+  // 正しい内容にするにはここでもう一度呼ぶ必要がある(renderTrendChart()と同じ理由)。
+  renderFeatherUnaddedNote();
 
   /* ================================================================
      🏆 称号(実績)
