@@ -2765,7 +2765,7 @@
   var PROFILES_DEFAULT_NAME_MIGRATED_KEY = 'skyProfiles_v1_defaultNameMigrated';
   // 既定プロフィールの「未リネーム」マーカー。PROFILES_KEY(skyProfiles_v1)は
   // taipak5000.github.io配下の全ツール共通のストレージキーであり、wings/tai-nomacan/
-  // emote/spirit-catalog等の他ツールは既にこの日本語リテラル自体を「まだリネームして
+  // emote等の他ツールは既にこの日本語リテラル自体を「まだリネームして
   // いない既定プロフィール」の合図として使う設計で同じバグを修正済み(pfDisplayName()参照)。
   // ここで独自にnull等の別の合図を使うと、他ツール側のtypeof p.name === 'string'という
   // フィルタに弾かれて既定プロフィールがまるごと消失する(≒最悪の場合そのツール側で
@@ -3721,7 +3721,7 @@
   // ═══ データのエクスポート/インポート/全削除 ═══
   // localStorage は taipak5000.github.io 配下の全ツールで共有されているため、
   // ここで書き出す/読み込む/消す内容はこのサイトだけでなく item・wings・
-  // companion・spirit-catalog 等すべてのデータが対象になる。
+  // companion 等すべてのデータが対象になる。
   function dmOpenModal() {
     document.getElementById('dmStatus').textContent = '';
     document.getElementById('dmImportConfirmArea').innerHTML = '';
