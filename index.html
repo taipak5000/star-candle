@@ -1123,6 +1123,7 @@
     line-height: 1.7;
   }
   .shard-cal-day-detail strong { color: var(--crimson-light); }
+  .shard-cal-check-row { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 10px; }
 
   footer {
     text-align: center;
@@ -1174,6 +1175,9 @@
   .pf-dash-btn { background: rgba(255,255,255,0.06); border: 1px solid var(--card-border); color: var(--lavender);
     border-radius: 6px; padding: 5px 10px; font-size: 14px; cursor: pointer; flex-shrink: 0; line-height: 1; }
   .pf-dash-btn:hover { background: rgba(255,255,255,0.12); }
+  .pf-dash-btn:disabled { opacity: 0.5; cursor: default; }
+  .dash-modal-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 14px; }
+  .dash-modal-header h3 { margin: 0; }
   .dash-section { margin-top: 16px; }
   .dash-section:first-child { margin-top: 0; }
   .dash-section-label { font-size: 12px; font-weight: 700; color: var(--text-dim); margin: 0 0 8px;
@@ -1720,7 +1724,10 @@
 
   <div class="pf-modal-overlay" id="dashModalOverlay">
     <div class="pf-modal-card">
-      <h3 data-i18n="dashboard.modalTitle">🗓️ 今日・今週・今月</h3>
+      <div class="dash-modal-header">
+        <h3 data-i18n="dashboard.modalTitle">🗓️ 今日・今週・今月</h3>
+        <button type="button" class="pf-dash-btn" id="dashRefreshBtn" onclick="pfDashManualRefresh()" data-i18n-title="dashboard.refreshBtnTitle" title="最新のデータを取得し直します">🔄</button>
+      </div>
       <div id="dashBody"><p class="pf-hint" data-i18n="dashboard.loading">読み込み中…</p></div>
       <button type="button" class="pf-close-btn" data-i18n="profile.closeBtn" onclick="pfDashClose()">閉じる</button>
     </div>
@@ -2182,6 +2189,7 @@
     },
     dashboard: {
       modalTitle: { ja: '🗓️ 今日・今週・今月', en: '🗓️ Today / This Week / This Month' },
+      refreshBtnTitle: { ja: '最新のデータを取得し直します', en: 'Fetch the latest data again' },
       loading: { ja: '読み込み中…', en: 'Loading…' },
       loadFailed: { ja: '読み込みに失敗しました', en: 'Failed to load' },
       sectionDaily: { ja: 'デイリー', en: 'Daily' },
@@ -2313,6 +2321,7 @@
       remainingBreakdown: { ja: '残り {remaining}本<br>{weeklyLine}', en: 'Remaining {remaining} candles<br>{weeklyLine}' },
       weeklyLine: { ja: '週あたり {weekly}本', en: 'Per week: {weekly} candles' },
       weeklyLineDetail: { ja: '　(羽 {feathers}本 − リサイズドリンク {drink}本)', en: ' (feathers {feathers} candles − resize drink {drink} candles)' },
+      actualPaceInline: { ja: '　(実績ペース　週{pace}本)', en: ' (recent actual pace: {pace}/week)' },
       paceNeededBy: { ja: '{date}までに必要なペース　<strong>週{pace}本</strong>', en: 'Pace needed by {date}: <strong>{pace} candles/week</strong>' },
       paceCoveredByShards: { ja: '{date}までに必要なペース　<strong>今後の赤闇の回収だけで到達見込み</strong>', en: 'Pace needed by {date}: <strong>upcoming Red Shards alone should get you there</strong>' },
       paceOk: { ja: '✓ 今のペースで間に合う見込みです', en: '✓ On pace to make it in time' },
@@ -3333,21 +3342,53 @@
   function pfDashStopTimer() {
     if (pfDashTimer) { clearInterval(pfDashTimer); pfDashTimer = null; }
   }
+  // データの再取得(手動更新ボタン・モーダルを開くたびのバックグラウンド更新の両方から
+  // 呼ばれる共通処理)。取得中に重ねて呼ばれた場合は同じ取得処理に相乗りし(二重fetch防止)、
+  // 成功・失敗のどちらでもpfDashLoadingをnullに戻して次回の再取得に備える。
+  // 表示中のキャッシュが既にある場合、失敗してもエラー文言で上書きせず古い内容を残す
+  // (タブを開いている間ずっと同じキャッシュに固定されないよう再取得はするが、
+  // 一時的な通信エラーで直前まで見えていた内容が消えてしまうのは避けたいため)。
+  function pfDashRefresh() {
+    if (pfDashLoading) return pfDashLoading;
+    var body = document.getElementById('dashBody');
+    pfDashLoading = pfDashLoadData().then(function (data) {
+      pfDashCache = data;
+      pfDashLoading = null;
+      // モーダルを開いたまま届いた場合だけ表示・カウントダウンタイマーを更新する。
+      // 取得中にモーダルを閉じられていた場合にここでタイマーを再始動すると、
+      // 閉じたはずのモーダル用に1秒おきの更新が裏で回り続けてしまう
+      // (setLang()がdashOverlayの表示中だけdashBodyを書き換えるのと同じ考え方)。
+      var overlay = document.getElementById('dashModalOverlay');
+      if (body && overlay && overlay.classList.contains('is-visible')) { body.innerHTML = pfDashBuildHtml(data); pfDashStartTimer(); }
+    }).catch(function (e) {
+      console.error('pfDashRefresh', e);
+      pfDashLoading = null;
+      if (body && !pfDashCache) body.innerHTML = '<div class="dash-empty">' + t('dashboard.loadFailed') + '</div>';
+    });
+    return pfDashLoading;
+  }
   function pfDashOpen() {
     var overlay = document.getElementById('dashModalOverlay');
     if (overlay) overlay.classList.add('is-visible');
     pfModalTrapOpen(overlay);
     var body = document.getElementById('dashBody');
-    if (pfDashCache) { body.innerHTML = pfDashBuildHtml(pfDashCache); pfDashStartTimer(); return; }
-    body.innerHTML = '<p class="pf-hint">' + t('dashboard.loading') + '</p>';
-    if (!pfDashLoading) pfDashLoading = pfDashLoadData();
-    pfDashLoading.then(function (data) {
-      pfDashCache = data;
-      body.innerHTML = pfDashBuildHtml(data);
+    if (pfDashCache) {
+      body.innerHTML = pfDashBuildHtml(pfDashCache);
       pfDashStartTimer();
-    }).catch(function (e) {
-      console.error('pfDashOpen', e);
-      body.innerHTML = '<div class="dash-empty">' + t('dashboard.loadFailed') + '</div>';
+      // タブを開いたまま古いキャッシュに固定されないよう、開くたびにバックグラウンドで
+      // 最新データを取り直す(表示中の内容はそのままに、届き次第差し替える)。
+      pfDashRefresh();
+      return;
+    }
+    body.innerHTML = '<p class="pf-hint">' + t('dashboard.loading') + '</p>';
+    pfDashRefresh();
+  }
+  // ヘッダーの🔄ボタン: モーダルを開いたまま明示的に最新データへ更新したいとき用。
+  function pfDashManualRefresh() {
+    var btn = document.getElementById('dashRefreshBtn');
+    if (btn) btn.disabled = true;
+    pfDashRefresh().then(function () {
+      if (btn) btn.disabled = false;
     });
   }
   function pfDashClose() {
@@ -4043,6 +4084,7 @@
   window.pfCloseModal = pfCloseModal;
   window.pfDashOpen = pfDashOpen;
   window.pfDashClose = pfDashClose;
+  window.pfDashManualRefresh = pfDashManualRefresh;
   window.pfSwitchProfile = pfSwitchProfile;
   window.pfAddProfile = pfAddProfile;
   window.pfStartRename = pfStartRename;
@@ -4181,8 +4223,21 @@
 
     var remaining = target - current;
     var html = '';
+    // 計画ペース(羽の設定に基づく理論値)の隣に、直近の獲得履歴から逆算した実績ペースも
+    // 並記する。computeRecentDailyPace()は獲得履歴ログのセクション(このファイル下方)で
+    // 定義されている関数宣言のため、ホイストされてここから呼んでも問題ない
+    // (このすぐ下のrenderTrendChart()呼び出しと同じ扱い)。履歴が無ければnullを返すので、
+    // その場合は理論値だけを表示する。
+    var actualPaceInline = '';
+    try {
+      if (typeof computeRecentDailyPace === 'function') {
+        var recentDailyPace = computeRecentDailyPace();
+        if (recentDailyPace !== null) actualPaceInline = t('result.actualPaceInline', { pace: fmt(recentDailyPace * 7) });
+      }
+    } catch (err) { /* no-op */ }
     var weeklyLine = t('result.weeklyLine', { weekly: fmt(totalWeekly) }) +
-      (drinkWeekly > 0 ? t('result.weeklyLineDetail', { feathers: fmt(edenWeekly), drink: fmt(drinkWeekly) }) : '');
+      (drinkWeekly > 0 ? t('result.weeklyLineDetail', { feathers: fmt(edenWeekly), drink: fmt(drinkWeekly) }) : '') +
+      actualPaceInline;
 
     // 目標日(任意)からの逆算:期日までに必要な週ペースを計算して表示用HTMLを組み立てる。
     // 期日が未入力・過去日・目標達成済みの場合は何も表示しない。
@@ -4528,6 +4583,21 @@
     };
   }
 
+  // checkedDaysの通常のプルーニング(renderForecast内、予測欄の表示範囲=直近7日間に含まれない
+  // キーを削除する処理)は、月表示カレンダーからさかのぼって記録した過去日のチェックまで
+  // 消してしまうと、ページを再読み込みするたびに「未回収」に戻って見えてしまい、記録の
+  // やり直し・重複加算を招く。そこで、PT暦日で見て「今日以前」のキーはプルーニング対象から
+  // 除外する(その日の分はもう二度と予測欄の表示範囲に戻ってこないため、そのまま残しても実害はない)。
+  function isPtDayKeyPastOrToday(key) {
+    var p = (key || '').split('-');
+    var y = parseInt(p[0], 10), m = parseInt(p[1], 10), d = parseInt(p[2], 10);
+    if (!y || !m || !d) return false;
+    var todayPt = getPTDateParts(new Date());
+    if (y !== todayPt.year) return y < todayPt.year;
+    if (m !== todayPt.month) return m < todayPt.month;
+    return d <= todayPt.day;
+  }
+
   function getPTOffsetMinutes(refDate) {
     var fmt = new Intl.DateTimeFormat('en-US', {
       timeZone: 'America/Los_Angeles', hour12: false,
@@ -4731,6 +4801,31 @@
     return '<label class="predict-check"><input type="checkbox" class="day-check" data-day-key="' + dayKey + '" data-reward="' + reward + '"' + (checked ? ' checked' : '') + '><span>' + t('forecast.collected') + '</span></label>';
   }
 
+  // 「獲得済み」チェックの実処理(所持本数の増減・checkedDays更新・恒久ログ・履歴記録)。
+  // 7日間予測欄のチェックボックスと、月表示カレンダーの日別チェックボックス(過去日を
+  // さかのぼって記録する用)の両方から呼ばれる共通処理。
+  function applyShardCheckToggle(key, reward, checked) {
+    var current = Math.max(0, parseFloat(els.current.value) || 0);
+    var checkedDays = loadCheckedDays();
+    var updated, delta;
+    if (checked) {
+      updated = current + reward;
+      delta = reward;
+      checkedDays[key] = true;
+      if (typeof recordShardCheckin === 'function') recordShardCheckin(key);
+    } else {
+      updated = Math.max(0, current - reward);
+      delta = updated - current; // 0未満に張り付いた場合も実際の増減分だけを記録する
+      delete checkedDays[key];
+    }
+    els.current.value = Math.round(updated * 100) / 100;
+    saveCheckedDays(checkedDays);
+    update();
+    saveState();
+    syncCurrentToSharedCurrency();
+    addHistoryEntry('shard', '赤闇 ' + shardDayLabel(key), delta, key);
+  }
+
   // 「最高報酬」の基準値。REWARD_MAX表に出てくる最大値(現状3.5本)を動的に求めることで、
   // 表の値が将来変わってもハイライト/フィルタの判定が追従する。
   function getRewardHighThreshold() {
@@ -4767,8 +4862,11 @@
     var validKeys = {};
     forecast.forEach(function (day) { validKeys[day.dayKey] = true; });
     var pruned = false;
+    // 予測欄の表示範囲(直近7日間)に無いキーは基本的に不要になったものとして削除するが、
+    // 月表示カレンダーからさかのぼって記録した過去日のチェック(isPtDayKeyPastOrToday)は
+    // ここで消さない(上のisPtDayKeyPastOrToday定義部のコメント参照)。
     Object.keys(checkedDays).forEach(function (key) {
-      if (!validKeys[key]) { delete checkedDays[key]; pruned = true; }
+      if (!validKeys[key] && !isPtDayKeyPastOrToday(key)) { delete checkedDays[key]; pruned = true; }
     });
     if (pruned) saveCheckedDays(checkedDays);
 
@@ -4873,25 +4971,7 @@
     try {
       var key = cb.getAttribute('data-day-key');
       var reward = parseFloat(cb.getAttribute('data-reward')) || 0;
-      var current = Math.max(0, parseFloat(els.current.value) || 0);
-      var checkedDays = loadCheckedDays();
-      var updated, delta;
-      if (cb.checked) {
-        updated = current + reward;
-        delta = reward;
-        checkedDays[key] = true;
-        if (typeof recordShardCheckin === 'function') recordShardCheckin(key);
-      } else {
-        updated = Math.max(0, current - reward);
-        delta = updated - current; // 0未満に張り付いた場合も実際の増減分だけを記録する
-        delete checkedDays[key];
-      }
-      els.current.value = Math.round(updated * 100) / 100;
-      saveCheckedDays(checkedDays);
-      update();
-      saveState();
-      syncCurrentToSharedCurrency();
-      addHistoryEntry('shard', '赤闇 ' + shardDayLabel(key), delta, key);
+      applyShardCheckToggle(key, reward, cb.checked);
       var container = cb.closest('.predict-next, .predict-day');
       if (container) container.classList.toggle('is-checked', cb.checked);
       // 月表示カレンダーを開いたままここでチェックした場合も、獲得済みマークがすぐ
@@ -4998,12 +5078,31 @@
     var occText = landings.map(function (e) {
       return e.landShortDate + ' ' + e.landLabel + '→' + e.endShortDate + ' ' + e.endLabel;
     }).join(t('forecast.listSep'));
+
+    // 過去の未記録分もさかのぼって「獲得済み」にできるよう、今日以前のセルにだけ
+    // チェックボックスを出す(今日より先の日は、これまで通り7日間予測欄でチェックする)。
+    // 月末→月初にまたがる日は前月末の繰り越し分と当日分でptDayKeyが2つ存在しうるため
+    // (getJstShardLandings内のコメント参照)、登場するptDayKeyごとに1つずつ出す。
+    var todayStr = formatDateValue(new Date());
+    var checkboxesHtml = '';
+    if (shardCalSelectedKey <= todayStr) {
+      var seenPtKeys = {};
+      landings.forEach(function (e) {
+        if (seenPtKeys[e.ptDayKey]) return;
+        seenPtKeys[e.ptDayKey] = true;
+        var groupReward = (REWARD_MAX[e.sched.realm] || {})[e.sched.time] || 0;
+        checkboxesHtml += checkboxHtml(e.ptDayKey, groupReward, !!checkedDaysForDetail[e.ptDayKey]);
+      });
+      checkboxesHtml = '<div class="shard-cal-check-row">' + checkboxesHtml + '</div>';
+    }
+
     shardCalDayDetail.style.display = 'block';
     shardCalDayDetail.innerHTML =
       '<strong>' + jpDate(new Date(y, m - 1, d)) + '</strong>' +
       (isCollected ? ' <span style="color:var(--gold-light); font-weight:700;">✓ ' + t('forecast.collected') + '</span>' : '') + '<br>' +
       realmLabel(sched.realm) + t('forecast.realmLocationSep') + shardLocationName(location) + (maxReward ? t('shardCal.maxRewardShort', { n: maxReward }) : '') + '<br>' +
-      '<span style="opacity:.85; font-size:11.5px;">' + t('shardCal.candidatesLabel') + occText + '</span>';
+      '<span style="opacity:.85; font-size:11.5px;">' + t('shardCal.candidatesLabel') + occText + '</span>' +
+      checkboxesHtml;
   }
 
   function renderShardCalGrid() {
@@ -5095,6 +5194,19 @@
     var key = cell.getAttribute('data-date');
     shardCalSelectedKey = (shardCalSelectedKey === key) ? null : key;
     renderShardCalGrid();
+  });
+  // 月表示カレンダーの日別チェックボックス(過去の未記録分をさかのぼって記録する用)。
+  // renderShardCalDayDetail()が詳細欄を再描画してもイベント委譲なら再登録は不要。
+  shardCalDayDetail.addEventListener('change', function (ev) {
+    var cb = ev.target.closest ? ev.target.closest('.day-check') : null;
+    if (!cb) return;
+    try {
+      var key = cb.getAttribute('data-day-key');
+      var reward = parseFloat(cb.getAttribute('data-reward')) || 0;
+      applyShardCheckToggle(key, reward, cb.checked);
+      renderShardCalGrid(); // グリッドの獲得済みマークとこの詳細欄自体を最新化する
+      if (typeof renderForecast === 'function') renderForecast(); // 予測欄が同じ日を表示していれば同期させる
+    } catch (err) { /* no-op */ }
   });
   document.addEventListener('keydown', function (ev) {
     if (ev.key === 'Escape') closeShardCal();
@@ -5254,8 +5366,12 @@
   // 羽の設定(totalWeekly)のような理論値ではなく、実際に記録された増減の合計を
   // 経過日数で割った実績値である点が、目標日ボックスの必要ペース計算などとの違い。
   // 直近14日以内に履歴があればその期間、無ければ履歴全体(最古の記録〜現在)を対象にする。
-  // 履歴が無い/期間がほぼ0(同時刻に複数記録されただけ等)の場合はnullを返す。
+  // 履歴が無い/期間が1日未満(直近チェックインの直後など)の場合はnullを返す。
+  // 経過期間が短すぎると、そこで得た増減量を無理に1日あたりに引き伸ばして計算してしまい
+  // (例:数分前に+2本のチェックインをしただけで「週13,958本」のような桁外れの値になる)、
+  // 実績ペースとして意味のない値になるため。
   var TREND_PACE_WINDOW_MS = 14 * 86400000;
+  var TREND_PACE_MIN_ELAPSED_MS = 86400000; // これ未満の経過期間では実績ペースを計算しない
   function computeRecentDailyPace() {
     var list = loadHistory(); // 新しい順
     if (list.length === 0) return null;
@@ -5265,7 +5381,7 @@
     if (sample.length === 0) sample = list; // 直近14日に記録が無ければ全履歴を対象にする
     var oldestTime = sample[sample.length - 1].time;
     var elapsedMs = now - oldestTime;
-    if (!(elapsedMs > 0)) return null;
+    if (!(elapsedMs >= TREND_PACE_MIN_ELAPSED_MS)) return null;
     var netGain = 0;
     for (var i = 0; i < sample.length; i++) netGain += (sample[i].amount || 0);
     return netGain / (elapsedMs / 86400000);
