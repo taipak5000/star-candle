@@ -1716,6 +1716,16 @@
   .site-dock button:active { background: rgba(255,255,255,0.08); }
   .site-dock .site-dock-icon { font-size: 20px; line-height: 1; }
   .site-dock .site-dock-label { font-size: 10px; font-weight: 700; color: var(--text-dim); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* 🔴 ダッシュボードボタンの「まもなく終了」インジケーター（季節/イベント終了が3日以内の
+     ときだけ表示する小さな赤丸）。既存の再取得済みダッシュボードデータ(pfDashCache)を
+     流用するだけで、新規fetchは行わない（pfDashUpdateUrgentBadge()参照）。 */
+  .site-dock .site-dock-icon-wrap { position: relative; display: inline-flex; }
+  .site-dock .dock-urgent-dot {
+    display: none; position: absolute; top: -2px; right: -6px;
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--crimson); border: 1.5px solid var(--violet-deep);
+  }
+  .site-dock .dock-urgent-dot.show { display: block; }
 </style>
 </head>
 <body>
@@ -2141,7 +2151,10 @@
       <span class="site-dock-label" id="siteDockProfileLabel">プロフィール</span>
     </button>
     <button type="button" onclick="pfDashOpen()">
-      <span class="site-dock-icon">🗓️</span>
+      <span class="site-dock-icon-wrap">
+        <span class="site-dock-icon">🗓️</span>
+        <span class="dock-urgent-dot" id="dockUrgentDot" aria-hidden="true" title="季節/イベントの終了が近づいています" data-i18n-title="dock.urgentTitle"></span>
+      </span>
       <span class="site-dock-label" data-i18n="dock.dashboard">ダッシュボード</span>
     </button>
     <button type="button" onclick="openSidebar()">
@@ -2475,7 +2488,8 @@
       profile: { ja: 'プロフィール', en: 'Profiles' },
       dashboard: { ja: 'ダッシュボード', en: 'Dashboard' },
       otherTools: { ja: '他のツール', en: 'More Tools' },
-      settings: { ja: '表示設定', en: 'Settings' }
+      settings: { ja: '表示設定', en: 'Settings' },
+      urgentTitle: { ja: '季節/イベントの終了が近づいています', en: 'A season or event is ending soon' }
     },
     titles: {
       heading: { ja: '🏆 称号', en: '🏆 Titles' },
@@ -3410,10 +3424,37 @@
       if (!pfDashCache) return;
       var body = document.getElementById('dashBody');
       if (body) body.innerHTML = pfDashBuildHtml(pfDashCache);
+      pfDashUpdateUrgentBadge();
     }, 1000);
   }
   function pfDashStopTimer() {
     if (pfDashTimer) { clearInterval(pfDashTimer); pfDashTimer = null; }
+  }
+  // 🔴 サイトドックの「ダッシュボード」ボタンに表示する、終了間近インジケーター（小さな赤丸）。
+  // 新規fetchは一切行わず、pfDashCache（ページを開いた後に実際にダッシュボードを取得した
+  // 際のデータ）を流用するだけ。pfDashCacheが無い（未読み込み・fetch失敗）場合は何も
+  // 表示しない＝安全側に倒す。再訪の精霊(revisitSchedules)はまだ非公開の姉妹サイト
+  // (tai-revisit)のデータに由来するため対象外とし、season/eventScheduleの終了日時だけを見る。
+  var DOCK_URGENT_DAYS = 3;
+  function pfDashUrgentEndDates() {
+    var data = pfDashCache;
+    if (!data) return [];
+    var dates = [];
+    if (data.season && data.season.name && data.season.endDate) dates.push(new Date(data.season.endDate));
+    pfDashActiveScheduledEvents(data.eventSchedule).forEach(function (ev) { dates.push(new Date(ev.end)); });
+    return dates;
+  }
+  function pfDashHasUrgentEnding() {
+    var now = new Date();
+    return pfDashUrgentEndDates().some(function (end) {
+      var ms = end - now;
+      return ms > 0 && ms <= DOCK_URGENT_DAYS * 86400000;
+    });
+  }
+  function pfDashUpdateUrgentBadge() {
+    var dot = document.getElementById('dockUrgentDot');
+    if (!dot) return;
+    dot.classList.toggle('show', pfDashHasUrgentEnding());
   }
   // データの再取得(手動更新ボタン・モーダルを開くたびのバックグラウンド更新の両方から
   // 呼ばれる共通処理)。取得中に重ねて呼ばれた場合は同じ取得処理に相乗りし(二重fetch防止)、
@@ -3427,6 +3468,7 @@
     pfDashLoading = pfDashLoadData().then(function (data) {
       pfDashCache = data;
       pfDashLoading = null;
+      pfDashUpdateUrgentBadge();
       // モーダルを開いたまま届いた場合だけ表示・カウントダウンタイマーを更新する。
       // 取得中にモーダルを閉じられていた場合にここでタイマーを再始動すると、
       // 閉じたはずのモーダル用に1秒おきの更新が裏で回り続けてしまう
@@ -3448,6 +3490,7 @@
     if (pfDashCache) {
       body.innerHTML = pfDashBuildHtml(pfDashCache);
       pfDashStartTimer();
+      pfDashUpdateUrgentBadge();
       // タブを開いたまま古いキャッシュに固定されないよう、開くたびにバックグラウンドで
       // 最新データを取り直す(表示中の内容はそのままに、届き次第差し替える)。
       pfDashRefresh();
