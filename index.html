@@ -1194,6 +1194,41 @@
   .dash-shard-time { color: var(--gold-light); font-weight: 600; font-variant-numeric: tabular-nums; }
   .dash-shard-time.past { color: var(--text-dim); font-weight: 400; text-decoration: line-through; }
   .dash-empty { font-size: 12.5px; color: var(--text-dim); padding: 2px 2px 4px; }
+
+  /* ═══ 🎉 「1年前の今日」通知バナー: 獲得履歴に同じ月日(かつ過去の年)の記録が
+     見つかった場合にページ読み込み時だけ表示する、閉じるボタン付きの一時バナー。
+     .pf-barと同じ幅・カード調の見た目を踏襲する。 ═══ */
+  .one-year-ago-banner {
+    max-width: 460px;
+    margin: 0 auto 14px;
+    background: var(--card-bg);
+    border: 1px solid var(--gold);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border-radius: 14px;
+    padding: 10px 12px 10px 16px;
+    font-size: 13.5px;
+    color: var(--cream);
+    display: none;
+    align-items: center;
+    gap: 10px;
+    line-height: 1.5;
+  }
+  .one-year-ago-banner.is-visible { display: flex; }
+  .one-year-ago-icon { flex-shrink: 0; font-size: 16px; }
+  .one-year-ago-text { flex: 1; min-width: 0; }
+  .one-year-ago-close {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: var(--text-dim);
+    padding: 0 2px;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .one-year-ago-close:hover { color: var(--cream); }
+
   .pf-modal-overlay {
     display: none;
     position: fixed;
@@ -1700,6 +1735,12 @@
     <h1 data-i18n="header.title">星のキャンドル計算機</h1>
     <p class="subtitle" data-i18n="header.subtitle">Sky 星を紡ぐ子どもたち・目標本数まであと何週間？</p>
   </header>
+
+  <div class="one-year-ago-banner" id="oneYearAgoBanner">
+    <span class="one-year-ago-icon" aria-hidden="true">🎉</span>
+    <span class="one-year-ago-text" id="oneYearAgoText"></span>
+    <button type="button" class="one-year-ago-close" id="oneYearAgoCloseBtn" aria-label="閉じる" data-i18n-aria-label="oneYearAgo.closeAriaLabel">×</button>
+  </div>
 
   <div class="pf-bar" id="pfBar"></div>
 
@@ -2378,6 +2419,10 @@
       paceProjectionNote: { ja: '💫 直近の実績ペースがこのまま続く場合、目標到達は{date}頃の見込みです。', en: "💫 At your recent pace, you're on track to reach your target around {date}." },
       paceProjectionNone: { ja: '💫 直近の実績では、今のペースのままだと目標到達の見込みが立ちません。', en: "💫 Based on your recent history, you're not currently on pace to reach your target." }
     },
+    oneYearAgo: {
+      banner: { ja: '🎉 {years}年前の今日の記録があります({label} {sign}{amount}{unit})', en: "🎉 You have a record from {years} year(s) ago today ({label} {sign}{amount}{unit})" },
+      closeAriaLabel: { ja: '閉じる', en: 'Close' }
+    },
     forecast: {
       nextRedShard: { ja: '次の赤闇まで', en: 'Next Red Shard' },
       collected: { ja: '獲得済み', en: 'Collected' },
@@ -2502,6 +2547,7 @@
     applyI18n();
     if (typeof update === 'function') update();
     if (typeof renderHistory === 'function') renderHistory();
+    if (typeof renderOneYearAgoBanner === 'function') renderOneYearAgoBanner(); // バナー表示中なら文言を現在の言語で組み直す
     if (typeof renderForecast === 'function') {
       try { renderForecast(); } catch (e) { /* noop */ }
     }
@@ -4178,7 +4224,10 @@
     candleFill: document.getElementById('candleFill'),
     resultContent: document.getElementById('resultContent'),
     historyList: document.getElementById('historyList'),
-    historyClearBtn: document.getElementById('historyClearBtn')
+    historyClearBtn: document.getElementById('historyClearBtn'),
+    oneYearAgoBanner: document.getElementById('oneYearAgoBanner'),
+    oneYearAgoText: document.getElementById('oneYearAgoText'),
+    oneYearAgoCloseBtn: document.getElementById('oneYearAgoCloseBtn')
   };
 
   // 入力内容をブラウザに保存する。localStorageが使えない環境(プライベートモード、
@@ -5551,6 +5600,87 @@
   // ここまで来て初めてHISTORY_STORAGE_KEYが確定するため、ページ読み込み時点の表示を
   // 正しい内容にするにはここでもう一度呼ぶ必要がある(renderTrendChart()と同じ理由)。
   renderFeatherUnaddedNote();
+
+  // ═══ 🎉 「1年前の今日」通知バナー ═══
+  // 獲得履歴(HISTORY_STORAGE_KEY)の中に、月日が今日と一致し、かつ年が今日より前の
+  // 記録が無いかをページ読み込み時に一度だけ調べる。複数年分ヒットした場合は、
+  // 直近の年(=最も「○年前」の○が小さいもの)を採用する。1日1回だけ表示すれば十分な
+  // ため、閉じた日付(Asia/Tokyo基準)をlocalStorageに保存し、同じ日にまた開いても
+  // 再表示しない(翌日以降・別のプロフィールでは改めて対象になりうる)。
+  var ONE_YEAR_AGO_DISMISS_KEY = nsKey('skyStarCandleCalc_oneYearAgoDismiss_v1');
+  var oneYearAgoMatch = null; // 見つかった履歴エントリと年差。言語切替時の再描画に使う。
+
+  // 指定ミリ秒(エポック)を、履歴の時刻表示(historyTimeLabel)と同じくAsia/Tokyo基準の
+  // 年・月・日に分解する。ユーザーの端末のタイムゾームが異なっていても、履歴自体が
+  // Asia/Tokyo基準で表示・解釈されているため、それと矛盾しないようここでも揃える。
+  function tokyoDateParts(ms) {
+    var parts = new Intl.DateTimeFormat('ja-JP', {
+      timeZone: 'Asia/Tokyo', year: 'numeric', month: 'numeric', day: 'numeric'
+    }).formatToParts(new Date(ms));
+    var map = {};
+    parts.forEach(function (part) { map[part.type] = part.value; });
+    return { year: parseInt(map.year, 10), month: parseInt(map.month, 10), day: parseInt(map.day, 10) };
+  }
+  // 「今日は既にバナーを閉じたか」を判定するための日付キー("年-月-日")。
+  function tokyoDateKey(ms) {
+    var p = tokyoDateParts(ms);
+    return p.year + '-' + p.month + '-' + p.day;
+  }
+
+  // 履歴から、月日が今日と一致し年だけが過去のものを探す。複数ヒットする場合は
+  // 年差(yearsAgo)が最小のもの(＝直近の「その日」)を優先する。
+  function findOneYearAgoEntry() {
+    var list = loadHistory();
+    if (list.length === 0) return null;
+    var today = tokyoDateParts(Date.now());
+    var best = null;
+    for (var i = 0; i < list.length; i++) {
+      var p = tokyoDateParts(list[i].time);
+      if (p.month === today.month && p.day === today.day && p.year < today.year) {
+        var yearsAgo = today.year - p.year;
+        if (!best || yearsAgo < best.yearsAgo) best = { entry: list[i], yearsAgo: yearsAgo };
+      }
+    }
+    return best;
+  }
+
+  // バナー文言を現在の表示言語で再構築する。言語切替(setLang())でも呼ばれるため、
+  // ここでのみ組み立てる(HTML側には固定文言を置かない)。
+  function renderOneYearAgoBanner() {
+    if (!oneYearAgoMatch || !els.oneYearAgoText) return;
+    var entry = oneYearAgoMatch.entry;
+    var isPlus = entry.amount >= 0;
+    els.oneYearAgoText.textContent = t('oneYearAgo.banner', {
+      years: oneYearAgoMatch.yearsAgo,
+      label: historyEntryLabel(entry),
+      sign: isPlus ? '+' : '−',
+      amount: fmt(Math.abs(entry.amount)),
+      unit: (LANG === 'ja' ? '' : ' ') + t('goal.unit')
+    });
+  }
+
+  // ページ読み込み時に一度だけ判定して表示する。今日既に閉じている場合は判定自体
+  // 省略して何もしない。
+  function initOneYearAgoBanner() {
+    if (!els.oneYearAgoBanner) return;
+    var todayKey = tokyoDateKey(Date.now());
+    var dismissedKey = null;
+    try { dismissedKey = window.localStorage.getItem(ONE_YEAR_AGO_DISMISS_KEY); } catch (err) { dismissedKey = null; }
+    if (dismissedKey === todayKey) return;
+    oneYearAgoMatch = findOneYearAgoEntry();
+    if (!oneYearAgoMatch) return;
+    renderOneYearAgoBanner();
+    els.oneYearAgoBanner.classList.add('is-visible');
+  }
+
+  if (els.oneYearAgoCloseBtn) {
+    els.oneYearAgoCloseBtn.addEventListener('click', function () {
+      try { window.localStorage.setItem(ONE_YEAR_AGO_DISMISS_KEY, tokyoDateKey(Date.now())); } catch (err) { /* no-op */ }
+      if (els.oneYearAgoBanner) els.oneYearAgoBanner.classList.remove('is-visible');
+    });
+  }
+
+  initOneYearAgoBanner();
 
   /* ================================================================
      🏆 称号(実績)
