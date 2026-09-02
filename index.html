@@ -1755,7 +1755,7 @@
 <div class="wrap">
   <nav class="page-head-top" aria-label="ページ操作" data-i18n-aria-label="header.ariaLabel">
     <button type="button" class="lang-toggle-btn" id="langToggleBtn" onclick="toggleLang()">EN</button>
-    <button type="button" class="force-refresh-btn" id="forceRefreshBtn" data-i18n="header.forceRefreshBtn" data-i18n-title="header.forceRefreshTitle" title="他サイトで更新した所持通貨などが反映されない場合、リロードの代わりにこちらをお試しください">🔄 最新の状態に更新</button>
+    <button type="button" class="force-refresh-btn" id="forceRefreshBtn" data-i18n="header.forceRefreshBtn" data-i18n-title="header.forceRefreshTitle" title="他サイトで更新した所持通貨などが反映されない場合、リロードの代わりにこちらをお試しください">最新の状態に更新</button>
   </nav>
 
   <header class="page-head">
@@ -1774,7 +1774,7 @@
 
   <div class="pf-modal-overlay" id="pfModalOverlay">
     <div class="pf-modal-card">
-      <h3 data-i18n="profile.modalTitle">🗂️ プロフィール（保存枠）</h3>
+      <h3 data-i18n="profile.modalTitle">プロフィール（保存枠）</h3>
       <div id="pfModalBody"></div>
       <div class="pf-add-row">
         <input type="text" id="pfNewProfileInput" class="pf-input" data-i18n-placeholder="profile.newNamePlaceholder" placeholder="新しいプロフィール名" maxlength="20">
@@ -1783,12 +1783,12 @@
       <p class="pf-hint" data-i18n="profile.switchHint">プロフィールを切り替えると、目標設定やチェック状況などがそのプロフィール専用の保存内容に切り替わります。サブアカウントなど複数アカウントをお持ちの方にご利用いただけます。</p>
       <div class="pf-currency-section">
         <div class="pf-currency-title" onclick="pfToggleCurrency()">
-          <span data-i18n="currency.sectionLabel">💰 所持通貨</span>
+          <span data-i18n="currency.sectionLabel">所持通貨</span>
           <span class="pf-currency-toggle-label" id="pfCurrencyToggleLabel" data-i18n="currency.toggleCloseLabel">閉じる ▲</span>
         </div>
         <div id="pfCurrencyBody"></div>
       </div>
-      <button type="button" class="pf-icon-btn" style="width:100%; margin-top:10px; padding:8px;" data-i18n="profile.backupOpenBtn" onclick="dmOpenModal()">💾 データのバックアップ・復元・削除</button>
+      <button type="button" class="pf-icon-btn" style="width:100%; margin-top:10px; padding:8px;" data-i18n="profile.backupOpenBtn" onclick="dmOpenModal()">データのバックアップ・復元・削除</button>
       <button type="button" class="pf-close-btn" data-i18n="profile.closeBtn" onclick="pfCloseModal()">閉じる</button>
     </div>
   </div>
@@ -1796,7 +1796,7 @@
   <div class="pf-modal-overlay" id="dashModalOverlay">
     <div class="pf-modal-card">
       <div class="dash-modal-header">
-        <h3 data-i18n="dashboard.modalTitle">🗓️ 今日・今週・今月</h3>
+        <h3 data-i18n="dashboard.modalTitle">今日・今週・今月</h3>
         <button type="button" class="pf-dash-btn" id="dashRefreshBtn" onclick="pfDashManualRefresh()" data-i18n-title="dashboard.refreshBtnTitle" title="最新のデータを取得し直します">🔄</button>
       </div>
       <div id="dashBody"><p class="pf-hint" data-i18n="dashboard.loading">読み込み中…</p></div>
@@ -1807,14 +1807,14 @@
   <!-- ▸ データのバックアップ・復元・削除モーダル -->
   <div class="pf-modal-overlay" id="dmModalOverlay">
     <div class="pf-modal-card">
-      <h3 data-i18n="backup.modalTitle">💾 データのバックアップ・復元・削除</h3>
+      <h3 data-i18n="backup.modalTitle">データのバックアップ・復元・削除</h3>
       <p class="pf-hint" style="margin-top:0;" data-i18n="backup.hint">このブラウザに保存されている taipak5000.github.io 系ツール（item・wings・companion 等）のデータをまとめて書き出し・読み込み・削除できます。全プロフィール分がまとめて対象になります。</p>
-      <button type="button" class="pf-add-btn" style="width:100%; margin-bottom:8px;" data-i18n="backup.exportBtn" onclick="dmExport()">⬇️ データをエクスポート（ファイルに保存）</button>
+      <button type="button" class="pf-add-btn" style="width:100%; margin-bottom:8px;" data-i18n="backup.exportBtn" onclick="dmExport()">データをエクスポート（ファイルに保存）</button>
       <input type="file" id="dmImportFile" accept="application/json" style="display:none" onchange="dmImportFileSelected(event)">
-      <button type="button" class="pf-icon-btn" style="width:100%; margin-bottom:8px; padding:8px;" data-i18n="backup.importBtn" onclick="document.getElementById('dmImportFile').click()">⬆️ ファイルからインポート</button>
+      <button type="button" class="pf-icon-btn" style="width:100%; margin-bottom:8px; padding:8px;" data-i18n="backup.importBtn" onclick="document.getElementById('dmImportFile').click()">ファイルからインポート</button>
       <div id="dmImportConfirmArea"></div>
       <div id="dmWipeArea">
-        <button type="button" class="pf-icon-btn pf-row-btn-danger" style="width:100%; padding:8px;" data-i18n="backup.wipeBtn" onclick="dmStartWipe()">🗑️ 全データを削除</button>
+        <button type="button" class="pf-icon-btn pf-row-btn-danger" style="width:100%; padding:8px;" data-i18n="backup.wipeBtn" onclick="dmStartWipe()">全データを削除</button>
       </div>
       <div id="dmStatus" class="pf-hint"></div>
       <button type="button" class="pf-close-btn" data-i18n="profile.closeBtn" onclick="dmCloseModal()">閉じる</button>
@@ -1824,7 +1824,7 @@
   <!-- ▸ ホーム画面アイコンカスタマイズモーダル -->
   <div class="pf-modal-overlay" id="iconCustomModal">
     <div class="pf-modal-card">
-      <h3 data-i18n="iconCustom.modalTitle">🎨 ホーム画面アイコンをカスタマイズ</h3>
+      <h3 data-i18n="iconCustom.modalTitle">ホーム画面アイコンをカスタマイズ</h3>
 
       <p class="pf-hint" style="margin-top:0;" data-i18n="iconCustom.instructions">
         スマホの「ホーム画面に追加」をしたときのアイコンを、好きな絵文字や画像に変更できます。<br>
@@ -1832,8 +1832,8 @@
       </p>
 
       <div style="display:flex; gap:8px; margin:14px 0;">
-        <button type="button" class="pf-icon-btn" id="iconModeEmojiBtn" onclick="pfIconSetMode('emoji')" style="flex:1; padding:8px;" data-i18n="iconCustom.emojiModeBtn">😀 絵文字</button>
-        <button type="button" class="pf-icon-btn" id="iconModeImageBtn" onclick="pfIconSetMode('image')" style="flex:1; padding:8px;" data-i18n="iconCustom.imageModeBtn">🖼️ 画像</button>
+        <button type="button" class="pf-icon-btn" id="iconModeEmojiBtn" onclick="pfIconSetMode('emoji')" style="flex:1; padding:8px;" data-i18n="iconCustom.emojiModeBtn">絵文字</button>
+        <button type="button" class="pf-icon-btn" id="iconModeImageBtn" onclick="pfIconSetMode('image')" style="flex:1; padding:8px;" data-i18n="iconCustom.imageModeBtn">画像</button>
       </div>
 
       <div id="iconEmojiPanel">
@@ -1855,7 +1855,7 @@
           <button type="button" onclick="pfIconPickSwatch('#32ADE6')" style="width:32px; height:32px; border-radius:50%; background:#32ADE6; border:2px solid transparent;"></button>
           <button type="button" onclick="pfIconPickSwatch('#48484A')" style="width:32px; height:32px; border-radius:50%; background:#48484A; border:2px solid transparent;"></button>
         </div>
-        <p style="font-size:11.5px; color:var(--text-dim); margin:0 0 6px;" data-i18n="iconCustom.freeColorHint">🎨 タップして好きな色を自由に選ぶこともできます</p>
+        <p style="font-size:11.5px; color:var(--text-dim); margin:0 0 6px;" data-i18n="iconCustom.freeColorHint">タップして好きな色を自由に選ぶこともできます</p>
         <input type="color" id="iconBgColorInput" value="#F5B54C" oninput="pfIconUpdatePreview()" style="width:100%; height:40px; border:none; border-radius:8px; background:none;">
       </div>
 
@@ -1878,15 +1878,15 @@
   <!-- ▸ ⚙️ 表示設定モーダル(ダークモード・キーボードショートカット) -->
   <div class="pf-modal-overlay" id="settingsModalOverlay">
     <div class="pf-modal-card">
-      <h3 data-i18n="settings.modalTitle">⚙️ 表示設定</h3>
+      <h3 data-i18n="settings.modalTitle">表示設定</h3>
 
-      <p class="pf-currency-title" style="cursor:default;" data-i18n="settings.displaySectionLabel">🌙 表示</p>
+      <p class="pf-currency-title" style="cursor:default;" data-i18n="settings.displaySectionLabel">表示</p>
       <div class="toggle-field" style="margin-bottom:14px;">
         <span class="pf-currency-label" data-i18n="settings.darkModeLabel">ダークモード</span>
         <button type="button" class="pf-icon-btn" id="settingsThemeToggleBtn" onclick="toggleTheme()">🌙</button>
       </div>
 
-      <p class="pf-currency-title" style="cursor:default; margin-top:14px; padding-top:14px; border-top:1px solid var(--card-border);" data-i18n="settings.shortcutsSectionLabel">⌨️ キーボードショートカット</p>
+      <p class="pf-currency-title" style="cursor:default; margin-top:14px; padding-top:14px; border-top:1px solid var(--card-border);" data-i18n="settings.shortcutsSectionLabel">キーボードショートカット</p>
       <div class="toggle-field" style="margin-bottom:12px;">
         <span class="pf-currency-label" data-i18n="settings.shortcutsEnableLabel">ショートカットを有効にする</span>
         <label class="switch">
@@ -1909,13 +1909,13 @@
         </div>
       </div>
 
-      <p class="pf-currency-title" style="cursor:default; margin-top:14px; padding-top:14px; border-top:1px solid var(--card-border);" data-i18n="settings.customizeSectionLabel">🎨 表示のカスタマイズ</p>
+      <p class="pf-currency-title" style="cursor:default; margin-top:14px; padding-top:14px; border-top:1px solid var(--card-border);" data-i18n="settings.customizeSectionLabel">表示のカスタマイズ</p>
       <div class="toggle-field" style="margin-bottom:14px;">
         <span class="pf-currency-label" data-i18n="settings.customizeLabel">アイコンの絵文字・色</span>
-        <button type="button" class="pf-icon-btn" data-i18n="settings.customizeBtn" onclick="settingsCloseModal(); pfIconOpenModal();">🎨 カスタマイズ</button>
+        <button type="button" class="pf-icon-btn" data-i18n="settings.customizeBtn" onclick="settingsCloseModal(); pfIconOpenModal();">カスタマイズ</button>
       </div>
 
-      <p class="pf-currency-title" style="cursor:default; margin-top:14px; padding-top:14px; border-top:1px solid var(--card-border);" data-i18n="settings.languageSectionLabel">🌐 言語</p>
+      <p class="pf-currency-title" style="cursor:default; margin-top:14px; padding-top:14px; border-top:1px solid var(--card-border);" data-i18n="settings.languageSectionLabel">言語</p>
       <div style="display:flex; gap:8px; margin-bottom:14px;">
         <button type="button" class="pf-icon-btn" id="settingsLangJaBtn" style="flex:1; padding:8px;" onclick="setLang('ja')">日本語</button>
         <button type="button" class="pf-icon-btn" id="settingsLangEnBtn" style="flex:1; padding:8px;" onclick="setLang('en')">English</button>
@@ -1929,7 +1929,7 @@
 
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-head">
-        <div class="sidebar-section-label" data-i18n="sidebar.relatedToolsLabel">🔗 関連ツール</div>
+        <div class="sidebar-section-label" data-i18n="sidebar.relatedToolsLabel">関連ツール</div>
         <button type="button" class="sidebar-close-btn" id="sidebarCloseBtn" data-i18n="sidebar.closeBtn">×</button>
       </div>
       <nav>
@@ -1970,7 +1970,7 @@
     </aside>
 
   <section class="card">
-    <h2 data-i18n="goal.heading">🎯 目標を設定</h2>
+    <h2 data-i18n="goal.heading">目標を設定</h2>
     <div class="field">
       <label for="target" data-i18n="goal.targetLabel">目標本数</label>
       <div class="input-suffix">
@@ -2010,7 +2010,7 @@
   </section>
 
   <section class="card">
-    <h2 data-i18n="weekly.heading">🪶 週の集め方</h2>
+    <h2 data-i18n="weekly.heading">週の集め方</h2>
     <div class="field">
       <div class="slider-row">
         <label for="feathers" data-i18n="weekly.featherLabel">原罪で配る羽の枚数</label>
@@ -2029,7 +2029,7 @@
     </div>
     <div class="predict-box">
       <div class="predict-head">
-        <span class="predict-title" data-i18n="weekly.predictTitle">🔮 赤闇の自動予測(β)</span>
+        <span class="predict-title" data-i18n="weekly.predictTitle">赤闇の自動予測(β)</span>
         <span class="predict-range" id="predictRange"></span>
       </div>
       <label class="predict-filter">
@@ -2040,7 +2040,7 @@
       <div class="predict-summary">
         <span class="predict-count"><span data-i18n="weekly.predictCountPrefix">今後7日間で赤闇が来る日数：</span><strong id="predictDays">0</strong><span id="predictDaysSuffix" data-i18n="weekly.predictCountSuffix">日</span></span>
       </div>
-      <button type="button" class="shard-cal-btn" id="shardCalBtn" data-i18n="weekly.calendarBtn">📅 カレンダーで1か月分見る</button>
+      <button type="button" class="shard-cal-btn" id="shardCalBtn" data-i18n="weekly.calendarBtn">カレンダーで1か月分見る</button>
       <p class="note" data-i18n="weekly.note">コミュニティ観測による非公式の推測ルールです。実際とズレる場合があります。赤闇の報酬は着地場所ごとに最大値が決まっており(2〜3.5本)、闇の花をどれだけ燃やせたかによって最大値より少なくなることもあります。1日の報酬は1回までのため、候補時刻は「どれか1つで報酬確定」という意味です。</p>
     </div>
   </section>
@@ -2048,7 +2048,7 @@
   <div class="shard-cal-overlay" id="shardCalOverlay">
     <div class="shard-cal-card">
       <div class="shard-cal-header">
-        <span class="shard-cal-title" data-i18n="shardCal.title">🔮 赤闇カレンダー</span>
+        <span class="shard-cal-title" data-i18n="shardCal.title">赤闇カレンダー</span>
         <button type="button" class="shard-cal-close" id="shardCalCloseBtn">✕</button>
       </div>
       <div class="shard-cal-nav-row">
@@ -2069,7 +2069,7 @@
   </div>
 
   <section class="card">
-    <h2 data-i18n="consumption.heading">🥤 週の消費</h2>
+    <h2 data-i18n="consumption.heading">週の消費</h2>
     <div class="field">
       <div class="toggle-field">
         <div class="toggle-text">
@@ -2085,7 +2085,7 @@
   </section>
 
   <section class="card result-card">
-    <h2 style="justify-content:center;" data-i18n="result.heading">📊 結果</h2>
+    <h2 style="justify-content:center;" data-i18n="result.heading">結果</h2>
 
     <div class="gauge-wrap">
       <div class="candle">
@@ -2105,14 +2105,14 @@
 
   <section class="card" id="titlesCard">
     <div class="titles-head">
-      <h2 data-i18n="titles.heading">🏆 称号</h2>
+      <h2 data-i18n="titles.heading">称号</h2>
       <span class="titles-count" id="titlesCount">0 / 0</span>
     </div>
     <div class="titles-chips" id="titlesChips"></div>
   </section>
 
   <section class="card">
-    <h2 data-i18n="notify.heading">🔔 通知</h2>
+    <h2 data-i18n="notify.heading">通知</h2>
     <div class="field">
       <div class="toggle-field">
         <div class="toggle-text">
@@ -2142,7 +2142,7 @@
   </section>
 
   <section class="card">
-    <h2 data-i18n="history.heading">📜 獲得履歴</h2>
+    <h2 data-i18n="history.heading">獲得履歴</h2>
     <div class="trend-chart-wrap" id="trendChartWrap"></div>
     <div class="history-list" id="historyList"></div>
     <div class="history-footer">
@@ -2154,7 +2154,7 @@
   <footer>
     <span data-i18n="footer.disclaimer">このサイトはSky 星を紡ぐ子どもたちの非公式ファンサイトです。thatgamecompanyは一切関与していません。</span><br>
     <span data-i18n="footer.creditLabel">作成・ご意見:</span> <a href="https://x.com/Skyzztai" target="_blank" rel="noopener noreferrer">@Skyzztai</a>　<span data-i18n="footer.referenceLabel">参考データ:</span> <a href="https://sky-children-of-the-light.fandom.com/ja/wiki/%E7%A0%B4%E7%89%87%E3%81%AE%E5%99%B4%E5%87%BA" target="_blank" rel="noopener noreferrer" data-i18n="footer.referenceLink">破片の噴出 (Sky Wiki 日本語)</a><br>
-    <a href="https://taipak5000.github.io/tai-info/" target="_blank" rel="noopener noreferrer" data-i18n="footer.infoLink">⚙️ 設定・更新情報・クレジット・プライバシーポリシー</a>
+    <a href="https://taipak5000.github.io/tai-info/" target="_blank" rel="noopener noreferrer" data-i18n="footer.infoLink">設定・更新情報・クレジット・プライバシーポリシー</a>
   </footer>
 
   <!-- 🧭 site-dock（クイックメニュー）: 既存のハンバーガーサイドバーと並存するショートカット行。
@@ -2221,7 +2221,7 @@
     sidebar: {
       hamburgerToggle: { ja: '☰ ツール', en: '☰ Tools' },
       closeBtn: { ja: '×', en: '×' },
-      relatedToolsLabel: { ja: '🔗 関連ツール', en: '🔗 Related Tools' },
+      relatedToolsLabel: { ja: '関連ツール', en: 'Related Tools' },
       langToggleBtn: { ja: 'EN', en: '日本語' }
     },
     tools: {
@@ -2240,7 +2240,7 @@
     profile: {
       barActiveSuffix: { ja: 'に切替中（タップで切替）', en: ' active (tap to switch)' },
       dashboardBtnTitle: { ja: '今日・今週・今月ダッシュボード', en: 'Today / this week / this month' },
-      modalTitle: { ja: '🗂️ プロフィール（保存枠）', en: '🗂️ Profiles' },
+      modalTitle: { ja: 'プロフィール（保存枠）', en: 'Profiles' },
       newNamePlaceholder: { ja: '新しいプロフィール名', en: 'New profile name' },
       addBtn: { ja: '追加', en: 'Add' },
       defaultName: { ja: 'メイン', en: 'Main' },
@@ -2252,12 +2252,12 @@
       accountColorTitle: { ja: 'アカウントカラー', en: 'Account color' },
       resetColorTitle: { ja: 'カラーを初期値に戻す', en: 'Reset color to default' },
       closeBtn: { ja: '閉じる', en: 'Close' },
-      backupOpenBtn: { ja: '💾 データのバックアップ・復元・削除', en: '💾 Backup / restore / erase data' },
+      backupOpenBtn: { ja: 'データのバックアップ・復元・削除', en: 'Backup / restore / erase data' },
       titlesToggleTemplate: { ja: '{count}個の称号', en: '{count} titles' },
       titlesEmptyState: { ja: 'まだ称号を獲得していません', en: 'No titles earned yet' }
     },
     currency: {
-      sectionLabel: { ja: '💰 所持通貨', en: '💰 Owned Currency' },
+      sectionLabel: { ja: '所持通貨', en: 'Owned Currency' },
       toggleOpenLabel: { ja: '開く ▼', en: 'Open ▼' },
       toggleCloseLabel: { ja: '閉じる ▲', en: 'Close ▲' },
       candle: { ja: 'キャンドル', en: 'Candles' },
@@ -2267,7 +2267,7 @@
       giftPass: { ja: 'ギフトパス', en: 'Gift Pass' }
     },
     dashboard: {
-      modalTitle: { ja: '🗓️ 今日・今週・今月', en: '🗓️ Today / This Week / This Month' },
+      modalTitle: { ja: '今日・今週・今月', en: 'Today / This Week / This Month' },
       refreshBtnTitle: { ja: '最新のデータを取得し直します', en: 'Fetch the latest data again' },
       loading: { ja: '読み込み中…', en: 'Loading…' },
       loadFailed: { ja: '読み込みに失敗しました', en: 'Failed to load' },
@@ -2314,11 +2314,11 @@
       vault: { ja: '書庫', en: 'Vault' }
     },
     backup: {
-      modalTitle: { ja: '💾 データのバックアップ・復元・削除', en: '💾 Backup / Restore / Erase Data' },
+      modalTitle: { ja: 'データのバックアップ・復元・削除', en: 'Backup / Restore / Erase Data' },
       hint: { ja: 'このブラウザに保存されている taipak5000.github.io 系ツール（item・wings・companion 等）のデータをまとめて書き出し・読み込み・削除できます。全プロフィール分がまとめて対象になります。', en: 'Back up, restore, or erase all locally-stored data for the taipak5000.github.io tool suite (item, wings, companion, etc.) at once. This covers all profiles together.' },
-      exportBtn: { ja: '⬇️ データをエクスポート（ファイルに保存）', en: '⬇️ Export data (save to file)' },
-      importBtn: { ja: '⬆️ ファイルからインポート', en: '⬆️ Import from file' },
-      wipeBtn: { ja: '🗑️ 全データを削除', en: '🗑️ Erase all data' },
+      exportBtn: { ja: 'データをエクスポート（ファイルに保存）', en: 'Export data (save to file)' },
+      importBtn: { ja: 'ファイルからインポート', en: 'Import from file' },
+      wipeBtn: { ja: '全データを削除', en: 'Erase all data' },
       exportSuccess: { ja: '書き出しました（{n}件のキー）。', en: 'Exported ({n} keys).' },
       importFileReadError: { ja: 'ファイルの読み込みに失敗しました（JSON形式ではありません）。', en: 'Failed to read file (not valid JSON).' },
       importFileInvalid: { ja: 'このツールで書き出したファイルではないようです。', en: "This doesn't look like a file exported from this tool." },
@@ -2330,20 +2330,20 @@
       wipeSuccess: { ja: '削除しました。ページを再読み込みします…', en: 'Erased. Reloading…' }
     },
     iconCustom: {
-      modalTitle: { ja: '🎨 ホーム画面アイコンをカスタマイズ', en: '🎨 Customize Home Screen Icon' },
+      modalTitle: { ja: 'ホーム画面アイコンをカスタマイズ', en: 'Customize Home Screen Icon' },
       instructions: { ja: 'スマホの「ホーム画面に追加」をしたときのアイコンを、好きな絵文字や画像に変更できます。<br><b>追加する前に</b>設定してください。追加した後に変更しても、既に追加済みのアイコンは自動更新されません（変更したい場合は一度削除して追加し直してください）。', en: "You can change the icon used when adding this site to your phone's home screen. Set this up before adding it — changing it afterward won't update an icon that's already been added (remove and re-add it if you want to change it later)." },
-      emojiModeBtn: { ja: '😀 絵文字', en: '😀 Emoji' },
-      imageModeBtn: { ja: '🖼️ 画像', en: '🖼️ Image' },
+      emojiModeBtn: { ja: '絵文字', en: 'Emoji' },
+      imageModeBtn: { ja: '画像', en: 'Image' },
       emojiLabel: { ja: '絵文字', en: 'Emoji' },
       bgColorLabel: { ja: '背景色', en: 'Background Color' },
-      freeColorHint: { ja: '🎨 タップして好きな色を自由に選ぶこともできます', en: '🎨 Or tap below to pick any color freely' },
+      freeColorHint: { ja: 'タップして好きな色を自由に選ぶこともできます', en: 'Or tap below to pick any color freely' },
       uploadImageLabel: { ja: '画像をアップロード', en: 'Upload Image' },
       previewLabel: { ja: 'プレビュー', en: 'Preview' },
       resetBtn: { ja: 'デフォルトに戻す', en: 'Reset to Default' },
       saveBtn: { ja: '保存して適用', en: 'Save & Apply' },
       selectImageFirst: { ja: '画像を選択してください', en: 'Please select an image' },
       saveFailed: { ja: '保存に失敗しました(容量オーバーの可能性があります)', en: 'Failed to save (storage may be full)' },
-      saved: { ja: '✅ 保存しました。これでホーム画面に追加すると反映されます', en: '✅ Saved. This will apply next time you add this to your home screen.' },
+      saved: { ja: '保存しました。これでホーム画面に追加すると反映されます', en: 'Saved. This will apply next time you add this to your home screen.' },
       resetDone: { ja: 'デフォルトのアイコンに戻しました', en: 'Reset to the default icon.' }
     },
     footer: {
@@ -2351,17 +2351,17 @@
       creditLabel: { ja: '作成・ご意見:', en: 'Created by / feedback:' },
       referenceLabel: { ja: '参考データ:', en: 'Reference data:' },
       referenceLink: { ja: '破片の噴出 (Sky Wiki 日本語)', en: 'Shard Eruptions (Sky Wiki, Japanese)' },
-      infoLink: { ja: '⚙️ 設定・更新情報・クレジット・プライバシーポリシー', en: "⚙️ Settings / What's New / Credits / Privacy Policy" }
+      infoLink: { ja: '設定・更新情報・クレジット・プライバシーポリシー', en: "Settings / What's New / Credits / Privacy Policy" }
     },
     header: {
       ariaLabel: { ja: 'ページ操作', en: 'Page controls' },
       title: { ja: '星のキャンドル計算機', en: 'Star Candle Calculator' },
       subtitle: { ja: 'Sky 星を紡ぐ子どもたち・目標本数まであと何週間？', en: 'Sky: Children of the Light — how many weeks until your goal?' },
-      forceRefreshBtn: { ja: '🔄 最新の状態に更新', en: '🔄 Refresh Now' },
+      forceRefreshBtn: { ja: '最新の状態に更新', en: 'Refresh Now' },
       forceRefreshTitle: { ja: '他サイトで更新した所持通貨などが反映されない場合、リロードの代わりにこちらをお試しください', en: "If currency updated on other sites isn't showing up here, try this instead of a normal reload" }
     },
     goal: {
-      heading: { ja: '🎯 目標を設定', en: '🎯 Set Your Goal' },
+      heading: { ja: '目標を設定', en: 'Set Your Goal' },
       targetLabel: { ja: '目標本数', en: 'Target Amount' },
       currentLabel: { ja: '所持本数', en: 'Current Amount' },
       targetDateLabel: { ja: '目標日(任意)', en: 'Target Date (optional)' },
@@ -2374,25 +2374,25 @@
       clearSelection: { ja: '選択をクリア', en: 'Clear selection' }
     },
     weekly: {
-      heading: { ja: '🪶 週の集め方', en: '🪶 Weekly Gains' },
+      heading: { ja: '週の集め方', en: 'Weekly Gains' },
       featherLabel: { ja: '原罪で配る羽の枚数', en: 'Feathers from Eye of Eden' },
       readout: { ja: '{n}枚 = {amount}本', en: '{n} feathers = {amount} candles' },
       addBtn: { ja: '＋ {amount}本を所持本数に加算', en: '+ Add {amount} candles to current amount' },
       shardSubHead: { ja: '闇の噴出(シャード)', en: 'Shard Eruptions' },
-      predictTitle: { ja: '🔮 赤闇の自動予測(β)', en: '🔮 Auto Red Shard Forecast (Beta)' },
+      predictTitle: { ja: '赤闇の自動予測(β)', en: 'Auto Red Shard Forecast (Beta)' },
       predictCountPrefix: { ja: '今後7日間で赤闇が来る日数：', en: 'Red Shard days in the next 7 days: ' },
       predictCountSuffix: { ja: '日', en: '' },
-      calendarBtn: { ja: '📅 カレンダーで1か月分見る', en: '📅 View a Full Month in the Calendar' },
+      calendarBtn: { ja: 'カレンダーで1か月分見る', en: 'View a Full Month in the Calendar' },
       note: { ja: 'コミュニティ観測による非公式の推測ルールです。実際とズレる場合があります。赤闇の報酬は着地場所ごとに最大値が決まっており(2〜3.5本)、闇の花をどれだけ燃やせたかによって最大値より少なくなることもあります。1日の報酬は1回までのため、候補時刻は「どれか1つで報酬確定」という意味です。', en: 'This is an unofficial rule inferred from community observation, and may not exactly match what happens in-game. Red Shard rewards have a maximum set by each landing spot (2–3.5 candles), and you may get less than that maximum depending on how much of the Dark Flower you managed to burn. Since you can only receive the reward once per day, the candidate times mean "any one of them confirms the reward."' },
       unaddedNote: { ja: '⚠️ 前回の加算({lastDate})から{weeks}週間分、加算し忘れているかもしれません(目安 約{amount}本)', en: "⚠️ It's been {weeks} week(s) since your last add ({lastDate}) — about {amount} candles may not be added yet" }
     },
     consumption: {
-      heading: { ja: '🥤 週の消費', en: '🥤 Weekly Consumption' },
+      heading: { ja: '週の消費', en: 'Weekly Consumption' },
       toggleTitle: { ja: 'リサイズドリンクを毎週購入する', en: 'Buy a Resize Drink every week' },
       toggleSub: { ja: '週1回・星のキャンドル8本で交換', en: 'Once a week, for 8 Star Candles' }
     },
     result: {
-      heading: { ja: '📊 結果', en: '📊 Result' },
+      heading: { ja: '結果', en: 'Result' },
       enterTarget: { ja: '目標本数を入力すると、達成までの週数が表示されます。', en: 'Enter a target amount to see how many weeks until you reach your goal.' },
       achieved: { ja: '🎉 目標本数を達成しています！', en: "🎉 You've reached your target!" },
       achievedBreakdown: { ja: '所持 {current}本 ／ 目標 {target}本', en: 'Current {current} candles / Target {target} candles' },
@@ -2407,7 +2407,7 @@
       paceOk: { ja: '✓ 今のペースで間に合う見込みです', en: '✓ On pace to make it in time' },
       paceWarn: { ja: '△ 今のペースだと週{n}本足りません', en: "△ You're short by {n} candles/week at your current pace" },
       paceShardNote: { ja: '※未チェックの今後の赤闇をすべて回収する前提で計算しています(下の「達成予定日」の試算と同じ前提)。', en: "*Assumes you collect every upcoming Red Shard that isn't already checked off (same assumption as the estimated goal date below)." },
-      shardEstimate: { ja: '🔮 今後の赤闇をすべて回収すると仮定した場合<br>達成予定日　<strong>{date}</strong>頃', en: '🔮 Assuming you collect every future Red Shard<br>Estimated goal date: <strong>{date}</strong>' },
+      shardEstimate: { ja: '今後の赤闇をすべて回収すると仮定した場合<br>達成予定日　<strong>{date}</strong>頃', en: 'Assuming you collect every future Red Shard<br>Estimated goal date: <strong>{date}</strong>' },
       heroPrefix: { ja: 'あと ', en: '' },
       heroSuffix: { ja: '週間', en: ' more weeks' },
       goalDateLine: { ja: '達成予定日　<strong>{date}</strong>頃', en: 'Estimated goal date: <strong>{date}</strong> (approx.)' },
@@ -2417,7 +2417,7 @@
       footnote: { ja: '※7日ごとの獲得ペースをもとにした目安です。実際の日付とは前後する場合があります。', en: '*This is an estimate based on your gain rate over each 7-day period. The actual date may differ.' }
     },
     notify: {
-      heading: { ja: '🔔 通知', en: '🔔 Notifications' },
+      heading: { ja: '通知', en: 'Notifications' },
       shardTitle: { ja: '次の赤闇の着地前に通知', en: 'Notify before the next Red Shard lands' },
       shardSub: { ja: '着地の10分前にブラウザ通知でお知らせします', en: "We'll send a browser notification 10 minutes before it lands" },
       goalTitle: { ja: '達成予定日が近づいたら通知', en: 'Notify as the goal date approaches' },
@@ -2425,14 +2425,14 @@
       note: { ja: '通知はこのタブ(ウィンドウ)を開いたままにしている間だけ届きます。閉じている・他のタブに切り替えている間の分は届きません。ブラウザで通知がブロックされている場合は、ブラウザ側のサイト設定から通知を許可してください。', en: "Notifications only arrive while this tab stays open — none will arrive while it's closed or backgrounded. If your browser is blocking notifications, allow them from your browser's site settings." },
       unsupported: { ja: 'お使いのブラウザは通知に対応していません。', en: "Your browser doesn't support notifications." },
       blocked: { ja: '🚫 ブラウザの通知がブロックされています。ブラウザ側のサイト設定から許可してください。', en: '🚫 Notifications are blocked by your browser. Allow them from your site settings.' },
-      granted: { ja: '🔔 通知は許可されています。', en: '🔔 Notifications are allowed.' },
+      granted: { ja: '通知は許可されています。', en: 'Notifications are allowed.' },
       shardFireTitle: { ja: '🔮 まもなく赤闇が着地します', en: '🔮 A Red Shard is about to land' },
       shardFireBody: { ja: 'あと約{minutes}分で着地予定です。', en: 'Landing in about {minutes} minute(s).' },
       goalFireTitle: { ja: '🕯️ 達成予定日が近づいています', en: '🕯️ Your goal date is approaching' },
       goalFireBody: { ja: '達成予定日：{date}', en: 'Estimated goal date: {date}' }
     },
     history: {
-      heading: { ja: '📜 獲得履歴', en: '📜 History' },
+      heading: { ja: '獲得履歴', en: 'History' },
       note: { ja: '羽ボタン・赤闇のチェックによる増減を記録します(最大50件)。「取り消す」でその操作だけを元に戻せます。', en: 'Records increases and decreases from the feather button and Red Shard checks (up to 50 entries). Use "Undo" to revert just that one action.' },
       clearBtn: { ja: '履歴を全て消去', en: 'Clear all history' },
       empty: { ja: 'まだ履歴はありません。羽ボタンや赤闇のチェックで記録されます。', en: 'No history yet. It will be recorded when you use the feather button or check off a Red Shard.' },
@@ -2441,14 +2441,14 @@
       shardEntry: { ja: '赤闇 {day}', en: 'Red Shard {day}' },
       confirmClear: { ja: '獲得履歴をすべて消去します。よろしいですか？(所持本数自体は変わりません)', en: "This will clear all history. Are you sure? (Your current amount won't change.)" },
       trendEmpty: { ja: 'まだ十分な履歴がないため、グラフは表示できません。', en: 'Not enough history yet to show a chart.' },
-      trendTargetLabel: { ja: '🎯 目標', en: '🎯 Target' },
+      trendTargetLabel: { ja: '目標', en: 'Target' },
       trendAriaLabel: { ja: '所持本数の推移グラフ', en: 'Chart of your candle amount over time' },
-      paceLineLabel: { ja: '💫 現在ペース', en: '💫 Current pace' },
-      paceProjectionNote: { ja: '💫 直近の実績ペースがこのまま続く場合、目標到達は{date}頃の見込みです。', en: "💫 At your recent pace, you're on track to reach your target around {date}." },
-      paceProjectionNone: { ja: '💫 直近の実績では、今のペースのままだと目標到達の見込みが立ちません。', en: "💫 Based on your recent history, you're not currently on pace to reach your target." }
+      paceLineLabel: { ja: '現在ペース', en: 'Current pace' },
+      paceProjectionNote: { ja: '直近の実績ペースがこのまま続く場合、目標到達は{date}頃の見込みです。', en: "At your recent pace, you're on track to reach your target around {date}." },
+      paceProjectionNone: { ja: '直近の実績では、今のペースのままだと目標到達の見込みが立ちません。', en: "Based on your recent history, you're not currently on pace to reach your target." }
     },
     oneYearAgo: {
-      banner: { ja: '🎉 {years}年前の今日の記録があります({label} {sign}{amount}{unit})', en: "🎉 You have a record from {years} year(s) ago today ({label} {sign}{amount}{unit})" },
+      banner: { ja: '{years}年前の今日の記録があります({label} {sign}{amount}{unit})', en: "You have a record from {years} year(s) ago today ({label} {sign}{amount}{unit})" },
       closeAriaLabel: { ja: '閉じる', en: 'Close' }
     },
     forecast: {
@@ -2469,17 +2469,17 @@
       realmLocationSep: { ja: '・', en: ' · ' },
       listSep: { ja: '・', en: ', ' },
       filterHighOnly: { ja: '💎 最高報酬(3.5本)の日だけ表示', en: '💎 Show only max-reward days (3.5 candles)' },
-      filterEmpty: { ja: '💎 最高報酬の日は今後7日間にありません。', en: 'No max-reward days in the next 7 days.' }
+      filterEmpty: { ja: '最高報酬の日は今後7日間にありません。', en: 'No max-reward days in the next 7 days.' }
     },
     shardCal: {
-      title: { ja: '🔮 赤闇カレンダー', en: '🔮 Red Shard Calendar' },
+      title: { ja: '赤闇カレンダー', en: 'Red Shard Calendar' },
       legend: { ja: '赤闇が来る日(タップで詳細)', en: 'Days with a Red Shard (tap for details)' },
       maxRewardShort: { ja: '　最大{n}本', en: ' Max {n} candles' },
       candidatesLabel: { ja: '候補(着地→終了・JST) ', en: 'Candidates (landing → end, JST): ' }
     },
     settings: {
-      modalTitle: { ja: '⚙️ 表示設定', en: '⚙️ Display Settings' },
-      displaySectionLabel: { ja: '🌙 表示', en: '🌙 Display' },
+      modalTitle: { ja: '表示設定', en: 'Display Settings' },
+      displaySectionLabel: { ja: '表示', en: 'Display' },
       darkModeLabel: { ja: '表示テーマ', en: 'Theme' },
       themeToggleDark: { ja: '🌙 ダーク', en: '🌙 Dark' },
       themeToggleLight: { ja: '☀️ ライト', en: '☀️ Light' },
@@ -2488,15 +2488,15 @@
       themeModeLight: { ja: 'ライト', en: 'Light' },
       themeModeSystem: { ja: 'システム(OS設定に追従)', en: 'System (follow OS)' },
       themeAriaLabel: { ja: '表示テーマ: 現在{current}。タップで{next}に切り替えます', en: 'Theme: currently {current}. Tap to switch to {next}.' },
-      shortcutsSectionLabel: { ja: '⌨️ キーボードショートカット', en: '⌨️ Keyboard Shortcuts' },
+      shortcutsSectionLabel: { ja: 'キーボードショートカット', en: 'Keyboard Shortcuts' },
       shortcutsEnableLabel: { ja: 'ショートカットを有効にする', en: 'Enable keyboard shortcuts' },
       shortcutOpenSettings: { ja: 'この設定を開く', en: 'Open this settings panel' },
       shortcutToggleTheme: { ja: '表示テーマ切替(ライト/ダーク/システム)', en: 'Cycle theme (Light/Dark/System)' },
       shortcutCloseModal: { ja: '開いているウィンドウを閉じる', en: 'Close the open window' },
-      customizeSectionLabel: { ja: '🎨 表示のカスタマイズ', en: '🎨 Icon Customization' },
+      customizeSectionLabel: { ja: '表示のカスタマイズ', en: 'Icon Customization' },
       customizeLabel: { ja: 'アイコンの絵文字・色', en: 'Icon emoji & colors' },
-      customizeBtn: { ja: '🎨 カスタマイズ', en: '🎨 Customize' },
-      languageSectionLabel: { ja: '🌐 言語', en: '🌐 Language' }
+      customizeBtn: { ja: 'カスタマイズ', en: 'Customize' },
+      languageSectionLabel: { ja: '言語', en: 'Language' }
     },
     dock: {
       ariaLabel: { ja: 'クイックメニュー', en: 'Quick Menu' },
@@ -2507,10 +2507,10 @@
       urgentTitle: { ja: '季節/イベントの終了が近づいています', en: 'A season or event is ending soon' }
     },
     titles: {
-      heading: { ja: '🏆 称号', en: '🏆 Titles' },
+      heading: { ja: '称号', en: 'Titles' },
       countTemplate: { ja: '{earned} / {total} 個解除', en: '{earned} / {total} unlocked' },
       lockedTooltip: { ja: '称号は条件を満たすと明らかになります', en: 'Unlocks when you meet its condition' },
-      unlockedToast: { ja: '🏆 称号「{icon} {name}」を獲得しました！', en: '🏆 Title unlocked: {icon} {name}!' },
+      unlockedToast: { ja: '称号「{icon} {name}」を獲得しました！', en: 'Title unlocked: {icon} {name}!' },
       streak3Name: { ja: '灯を絶やさぬ者', en: 'Flame Unwavering' },
       streak3Desc: { ja: '赤闇を3日連続で取りこぼさず回収', en: 'Collected shard rewards 3 days in a row without missing one' },
       streak7Name: { ja: '一週間の灯火番', en: 'Weeklong Flamekeeper' },
@@ -3077,7 +3077,7 @@
     pfApplyThemeColor(active.color);
     var bar = document.getElementById('pfBar');
     if (!bar) return;
-    bar.innerHTML = '<span class="pf-bar-text" tabindex="0" role="button" onclick="pfOpenModal()" onkeydown="if(event.target===event.currentTarget&&(event.key===\'Enter\'||event.key===\' \')){event.preventDefault();pfOpenModal();}">🗂️ <b>' + pfEscapeHtml(pfDisplayName(active)) + '</b>&nbsp;' + t('profile.barActiveSuffix') + '</span>' +
+    bar.innerHTML = '<span class="pf-bar-text" tabindex="0" role="button" onclick="pfOpenModal()" onkeydown="if(event.target===event.currentTarget&&(event.key===\'Enter\'||event.key===\' \')){event.preventDefault();pfOpenModal();}"><b>' + pfEscapeHtml(pfDisplayName(active)) + '</b>&nbsp;' + t('profile.barActiveSuffix') + '</span>' +
       '<button type="button" class="pf-dash-btn" onclick="pfDashOpen()" title="' + t('profile.dashboardBtnTitle') + '">🗓️</button>';
     // 🧭 画面下部ドックの「プロフィール」ボタンにも、現在アクティブなプロフィール名を表示する。
     // 長い名前は省略記号で切り詰める(CSS側の.site-dock-labelで対応)。
