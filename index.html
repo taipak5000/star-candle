@@ -2049,12 +2049,12 @@
     <div class="shard-cal-card">
       <div class="shard-cal-header">
         <span class="shard-cal-title" data-i18n="shardCal.title">赤闇カレンダー</span>
-        <button type="button" class="shard-cal-close" id="shardCalCloseBtn">✕</button>
+        <button type="button" class="shard-cal-close" id="shardCalCloseBtn" aria-label="閉じる" data-i18n-aria-label="oneYearAgo.closeAriaLabel">✕</button>
       </div>
       <div class="shard-cal-nav-row">
-        <button type="button" class="date-picker-nav" id="shardCalPrevBtn">‹</button>
+        <button type="button" class="date-picker-nav" id="shardCalPrevBtn" data-i18n-aria-label="goal.prevMonth" aria-label="前の月">‹</button>
         <span class="shard-cal-month" id="shardCalMonthLabel"></span>
-        <button type="button" class="date-picker-nav" id="shardCalNextBtn">›</button>
+        <button type="button" class="date-picker-nav" id="shardCalNextBtn" data-i18n-aria-label="goal.nextMonth" aria-label="次の月">›</button>
       </div>
       <div class="shard-cal-weekdays" id="shardCalWeekdays">
         <span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span>
@@ -2251,6 +2251,8 @@
       deleteBtn: { ja: '削除', en: 'Delete' },
       accountColorTitle: { ja: 'アカウントカラー', en: 'Account color' },
       resetColorTitle: { ja: 'カラーを初期値に戻す', en: 'Reset color to default' },
+      renameBtnTitle: { ja: '名前を変更', en: 'Rename' },
+      deleteBtnTitle: { ja: '削除', en: 'Delete' },
       closeBtn: { ja: '閉じる', en: 'Close' },
       backupOpenBtn: { ja: 'データのバックアップ・復元・削除', en: 'Backup / restore / erase data' },
       titlesToggleTemplate: { ja: '{count}個の称号', en: '{count} titles' },
@@ -2439,6 +2441,7 @@
       undoBtn: { ja: '取り消す', en: 'Undo' },
       featherEntry: { ja: '羽 {n}枚', en: '{n} Feathers' },
       shardEntry: { ja: '赤闇 {day}', en: 'Red Shard {day}' },
+      manualEntry: { ja: '手動編集', en: 'Manual edit' },
       confirmClear: { ja: '獲得履歴をすべて消去します。よろしいですか？(所持本数自体は変わりません)', en: "This will clear all history. Are you sure? (Your current amount won't change.)" },
       trendEmpty: { ja: 'まだ十分な履歴がないため、グラフは表示できません。', en: 'Not enough history yet to show a chart.' },
       trendTargetLabel: { ja: '目標', en: 'Target' },
@@ -2975,6 +2978,14 @@
     if (e.key === nsKey('wishOwnCurrency')) {
       var overlay = document.getElementById('pfModalOverlay');
       if (overlay && overlay.classList.contains('is-visible')) pfRenderCurrency();
+      // 所持本数(els.current)もプロフィール共通の所持星のキャンドル数と同一の値として
+      // 扱われる(loadState/syncCurrentToSharedCurrency参照)。他タブ/他サイトでの更新に
+      // このタブの所持本数も追従させる(編集中でなければ)。
+      if (document.activeElement !== els.current) {
+        els.current.value = pfLoadCurrency().ascendedCandle;
+        update();
+        saveState();
+      }
     }
   });
   window.addEventListener('pageshow', function (e) {
@@ -3730,8 +3741,8 @@
         '<input type="color" class="pf-color-input" value="' + colorVal + '" title="' + t('profile.accountColorTitle') + '" onchange="pfSetProfileColor(\'' + p.id + '\', this.value)">' +
         '<span class="pf-row-name" onclick="pfSwitchProfile(\'' + p.id + '\')">' + (p.id === activeId ? '✅ ' : '') + pfEscapeHtml(pfDisplayName(p)) + '</span>' +
         (p.color ? '<button type="button" class="pf-icon-btn pf-color-clear-btn" title="' + t('profile.resetColorTitle') + '" onclick="pfClearProfileColor(\'' + p.id + '\')">↺</button>' : '') +
-        '<button type="button" class="pf-icon-btn" onclick="pfStartRename(\'' + p.id + '\')">✏️</button>' +
-        (list.length > 1 ? '<button type="button" class="pf-icon-btn" onclick="pfStartDelete(\'' + p.id + '\')">🗑️</button>' : '') +
+        '<button type="button" class="pf-icon-btn" title="' + t('profile.renameBtnTitle') + '" aria-label="' + t('profile.renameBtnTitle') + '" onclick="pfStartRename(\'' + p.id + '\')">✏️</button>' +
+        (list.length > 1 ? '<button type="button" class="pf-icon-btn" title="' + t('profile.deleteBtnTitle') + '" aria-label="' + t('profile.deleteBtnTitle') + '" onclick="pfStartDelete(\'' + p.id + '\')">🗑️</button>' : '') +
         '</div>' + titlesHtml + '</div>';
     });
     body.innerHTML = html;
@@ -4312,14 +4323,23 @@
   function loadState() {
     try {
       var raw = window.localStorage.getItem(STORAGE_KEY);
-      if (!raw) return;
-      var state = JSON.parse(raw);
-      if (state.target !== undefined) els.target.value = state.target;
-      if (state.current !== undefined) els.current.value = state.current;
-      if (state.targetDate !== undefined) els.targetDate.value = state.targetDate;
-      if (state.feathers !== undefined) els.feathers.value = state.feathers;
-      if (state.buyDrink !== undefined) els.buyDrink.checked = !!state.buyDrink;
+      var state = raw ? JSON.parse(raw) : null;
+      if (state) {
+        if (state.target !== undefined) els.target.value = state.target;
+        if (state.current !== undefined) els.current.value = state.current;
+        if (state.targetDate !== undefined) els.targetDate.value = state.targetDate;
+        if (state.feathers !== undefined) els.feathers.value = state.feathers;
+        if (state.buyDrink !== undefined) els.buyDrink.checked = !!state.buyDrink;
+      }
     } catch (err) { /* no saved data, corrupted data, or storage unavailable - ignore */ }
+    // 所持本数(current)はプロフィール共通の所持星のキャンドル数(wishOwnCurrency.starCandle)と
+    // 同一の値として扱われる(syncCurrentToSharedCurrency参照)。プロフィールモーダルの通貨編集や
+    // 他サイトでの更新が、このツールの秘密鍵(STORAGE_KEY)を経由せずに反映されている場合がある
+    // ため、読み込み時は必ずこちらを正として上書きする(pfLoadCurrencyはpf*関数のセクションで
+    // 定義されているが、関数宣言のためホイストされここから呼んでも問題ない)。
+    try {
+      els.current.value = pfLoadCurrency().ascendedCandle;
+    } catch (err) { /* no-op */ }
   }
 
   function fmt(n) {
@@ -4489,6 +4509,30 @@
     update();
     saveState();
     syncCurrentToSharedCurrency();
+  });
+
+  // 所持本数(current)を手動で直接編集した場合、羽ボタン・赤闇チェックと違って獲得履歴
+  // (history)には何も記録されない。記録しないままだと、獲得履歴から逆算する推移グラフ
+  // (computeTrendPoints)や実績ペース(computeRecentDailyPace)がこの増減を把握できず、
+  // 古い/矛盾した値のままになってしまう。フォーカス時点の値を基準に、変更確定(change)
+  // のたびに差分を履歴として記録する。
+  var currentEditStartValue = null;
+  els.current.addEventListener('focus', function () {
+    currentEditStartValue = Math.max(0, parseFloat(els.current.value) || 0);
+  });
+  els.current.addEventListener('blur', function () {
+    currentEditStartValue = null;
+  });
+  els.current.addEventListener('change', function () {
+    var newVal = Math.max(0, parseFloat(els.current.value) || 0);
+    var baseline = currentEditStartValue !== null ? currentEditStartValue : newVal;
+    var delta = Math.round((newVal - baseline) * 100) / 100;
+    // フォーカスを維持したまま複数回コミットされる場合(数値入力のスピンボタン連打など)に
+    // 備えて、次回差分の基準を今回のコミット後の値に更新しておく。
+    currentEditStartValue = newVal;
+    if (delta !== 0 && typeof addHistoryEntry === 'function') {
+      addHistoryEntry('manual', t('history.manualEntry'), delta, null);
+    }
   });
 
   // 「＋◯本を所持本数に加算」ボタン:羽スライダーの換算本数(枚数×0.25)を
@@ -5451,6 +5495,9 @@
     if (entry.source === 'feather') {
       var m = /([\d.]+)/.exec(entry.label || '');
       return t('history.featherEntry', { n: m ? m[1] : '' });
+    }
+    if (entry.source === 'manual') {
+      return t('history.manualEntry');
     }
     return entry.label;
   }
