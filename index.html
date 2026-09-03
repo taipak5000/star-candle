@@ -448,12 +448,6 @@
     flex-shrink: 0;
   }
 
-  .two-col {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-
   .toggle-field {
     display: flex;
     align-items: center;
@@ -1487,24 +1481,6 @@
   /* 精度に不安がある新機能であることを示す小さな注記（例: 楽譜づくり） */
   .tool-badge-test { font-size: 9px; font-weight: 700; color: var(--cream); opacity: 0.55; text-transform: uppercase; letter-spacing: 0.3px; }
 
-  .sidebar-toggle-btn {
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
-    border-radius: 10px;
-    padding: 7px 14px;
-    font-size: 13px;
-    font-family: inherit;
-    cursor: pointer;
-    color: var(--cream);
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-weight: 500;
-  }
-  .sidebar-toggle-btn:hover { border-color: var(--gold); }
-
-  /* 🌐 言語切替ボタン：見た目は.sidebar-toggle-btnと同じだが、デスクトップ幅でも
-     常に表示する（.sidebar-toggle-btnの「デスクトップでは非表示」ルールの対象外にする） */
   .lang-toggle-btn {
     background: var(--card-bg);
     border: 1px solid var(--card-border);
@@ -1693,7 +1669,6 @@
 
   @media (min-width: 850px) {
     .wrap { max-width: 960px; }
-    .sidebar-toggle-btn { display: none; }
   }
 
   /* ═══ 🧭 site-dock（クイックメニュー）: pengram.jp系サイトに倣った画面下部固定の
@@ -2650,10 +2625,6 @@
   function resolveEffectiveTheme(mode) {
     if (mode === 'light' || mode === 'dark') return mode;
     return !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
-  }
-
-  function isDarkTheme() {
-    return document.documentElement.getAttribute('data-theme') === 'dark';
   }
 
   function applyThemeToDOM(mode) {
@@ -4263,7 +4234,6 @@
   // ═══ サイドバー開閉 ═══
   var sidebarEl = document.getElementById('sidebar');
   var sidebarOverlayEl = document.getElementById('sidebarOverlay');
-  var sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
   var sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
 
   function openSidebar() {
@@ -4278,15 +4248,6 @@
   }
   window.openSidebar = openSidebar; // site-dockの「☰ 他のツール」ボタンから呼び出すために公開
 
-  if (sidebarToggleBtn) {
-    sidebarToggleBtn.addEventListener('click', function () {
-      if (sidebarEl.classList.contains('sidebar-open')) {
-        closeSidebar();
-      } else {
-        openSidebar();
-      }
-    });
-  }
   sidebarCloseBtn.addEventListener('click', closeSidebar);
   sidebarOverlayEl.addEventListener('click', closeSidebar);
 
