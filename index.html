@@ -65,7 +65,11 @@
   .inline-icon.ok { stroke: #34C759; color: #34C759; }
   .icon-chip {
     display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
-    border-radius: 26%; color: var(--gold-light);
+    background: rgba(255,217,138,0.12);
+    background-image: linear-gradient(180deg, rgba(255,255,255,0.32), rgba(255,255,255,0) 60%);
+    border-radius: 26%;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.35), inset 0 1px 1px rgba(255,255,255,0.5), 0 1px 2px rgba(0,0,0,0.10);
+    color: var(--gold-light);
   }
   .icon-chip svg { display: block; stroke: var(--gold-light); fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
   .pf-titles-caret { transition: transform 0.15s ease; }
@@ -1873,7 +1877,7 @@
   <div class="one-year-ago-banner" id="oneYearAgoBanner">
     <span class="one-year-ago-icon" aria-hidden="true"><svg class="inline-icon" width="18" height="18"><use href="#i-sparkle"/></svg></span>
     <span class="one-year-ago-text" id="oneYearAgoText"></span>
-    <button type="button" class="one-year-ago-close" id="oneYearAgoCloseBtn" aria-label="閉じる" data-i18n-aria-label="oneYearAgo.closeAriaLabel"><svg class="inline-icon" width="14" height="14"><use href="#i-close"/></svg></button>
+    <button type="button" class="one-year-ago-close" id="oneYearAgoCloseBtn" aria-label="閉じる" data-i18n-aria-label="oneYearAgo.closeAriaLabel"><span class="icon-chip" style="width:22px; height:22px;"><svg width="16" height="16"><use href="#i-close"/></svg></span></button>
   </div>
 
   <div class="pf-bar" id="pfBar"></div>
@@ -1986,15 +1990,21 @@
     <div class="pf-modal-card">
       <h3 data-i18n="settings.modalTitle">表示設定</h3>
 
-      <p class="pf-currency-title" style="cursor:default;" data-i18n="settings.displaySectionLabel">表示</p>
+      <p class="pf-currency-title" style="cursor:default; justify-content:flex-start; gap:6px;" data-i18n="settings.displaySectionLabel">表示</p>
       <div class="toggle-field" style="margin-bottom:14px;">
-        <span class="pf-currency-label" data-i18n="settings.darkModeLabel">ダークモード</span>
+        <span style="display:flex; align-items:center; gap:8px;">
+          <span class="dash-row-icon icon-chip" style="width:22px; height:22px;"><svg width="17" height="17"><use href="#i-palette"/></svg></span>
+          <span class="pf-currency-label" data-i18n="settings.darkModeLabel">ダークモード</span>
+        </span>
         <button type="button" class="pf-icon-btn" id="settingsThemeToggleBtn" onclick="toggleTheme()"></button>
       </div>
 
-      <p class="pf-currency-title" style="cursor:default; margin-top:14px; padding-top:14px; border-top:1px solid var(--card-border);" data-i18n="settings.shortcutsSectionLabel">キーボードショートカット</p>
+      <p class="pf-currency-title" style="cursor:default; justify-content:flex-start; gap:6px; margin-top:14px; padding-top:14px; border-top:1px solid var(--card-border);" data-i18n="settings.shortcutsSectionLabel">キーボードショートカット</p>
       <div class="toggle-field" style="margin-bottom:12px;">
-        <span class="pf-currency-label" data-i18n="settings.shortcutsEnableLabel">ショートカットを有効にする</span>
+        <span style="display:flex; align-items:center; gap:8px;">
+          <span class="dash-row-icon icon-chip" style="width:22px; height:22px;"><svg width="17" height="17"><use href="#i-keyboard"/></svg></span>
+          <span class="pf-currency-label" data-i18n="settings.shortcutsEnableLabel">ショートカットを有効にする</span>
+        </span>
         <label class="switch">
           <input type="checkbox" id="settingsShortcutsToggle" onchange="settingsToggleShortcuts(this.checked)">
           <span class="switch-track"><span class="switch-thumb"></span></span>
@@ -2015,13 +2025,16 @@
         </div>
       </div>
 
-      <p class="pf-currency-title" style="cursor:default; margin-top:14px; padding-top:14px; border-top:1px solid var(--card-border);" data-i18n="settings.customizeSectionLabel">表示のカスタマイズ</p>
+      <p class="pf-currency-title" style="cursor:default; justify-content:flex-start; gap:6px; margin-top:14px; padding-top:14px; border-top:1px solid var(--card-border);" data-i18n="settings.customizeSectionLabel">表示のカスタマイズ</p>
       <div class="toggle-field" style="margin-bottom:14px;">
-        <span class="pf-currency-label" data-i18n="settings.customizeLabel">アイコンの絵文字・色</span>
+        <span style="display:flex; align-items:center; gap:8px;">
+          <span class="dash-row-icon icon-chip" style="width:22px; height:22px;"><svg width="17" height="17"><use href="#i-palette"/></svg></span>
+          <span class="pf-currency-label" data-i18n="settings.customizeLabel">アイコンの絵文字・色</span>
+        </span>
         <button type="button" class="pf-icon-btn" data-i18n="settings.customizeBtn" onclick="settingsCloseModal(); pfIconOpenModal();">カスタマイズ</button>
       </div>
 
-      <p class="pf-currency-title" style="cursor:default; margin-top:14px; padding-top:14px; border-top:1px solid var(--card-border);" data-i18n="settings.languageSectionLabel">言語</p>
+      <p class="pf-currency-title" style="cursor:default; justify-content:flex-start; gap:6px; margin-top:14px; padding-top:14px; border-top:1px solid var(--card-border);" data-i18n="settings.languageSectionLabel">言語</p>
       <div style="display:flex; gap:8px; margin-bottom:14px;">
         <button type="button" class="pf-icon-btn" id="settingsLangJaBtn" style="flex:1; padding:8px;" onclick="setLang('ja')">日本語</button>
         <button type="button" class="pf-icon-btn" id="settingsLangEnBtn" style="flex:1; padding:8px;" onclick="setLang('en')">English</button>
@@ -2155,7 +2168,7 @@
     <div class="shard-cal-card">
       <div class="shard-cal-header">
         <span class="shard-cal-title" data-i18n="shardCal.title">赤闇カレンダー</span>
-        <button type="button" class="shard-cal-close" id="shardCalCloseBtn" aria-label="閉じる" data-i18n-aria-label="oneYearAgo.closeAriaLabel"><svg class="inline-icon" width="14" height="14"><use href="#i-close"/></svg></button>
+        <button type="button" class="shard-cal-close" id="shardCalCloseBtn" aria-label="閉じる" data-i18n-aria-label="oneYearAgo.closeAriaLabel"><span class="icon-chip" style="width:22px; height:22px;"><svg width="16" height="16"><use href="#i-close"/></svg></span></button>
       </div>
       <div class="shard-cal-nav-row">
         <button type="button" class="date-picker-nav" id="shardCalPrevBtn" data-i18n-aria-label="goal.prevMonth" aria-label="前の月">‹</button>
@@ -2268,22 +2281,22 @@
        モーダル／サイドバーのz-indexと同じ比較文脈に入れ、正しく覆われるようにする -->
   <nav class="site-dock" aria-label="クイックメニュー" data-i18n-aria-label="dock.ariaLabel">
     <button type="button" onclick="pfOpenModal()">
-      <span class="site-dock-icon"><svg class="inline-icon" width="20" height="20"><use href="#i-folder"/></svg></span>
+      <span class="site-dock-icon"><span class="icon-chip" style="width:28px; height:28px;"><svg width="22" height="22"><use href="#i-folder"/></svg></span></span>
       <span class="site-dock-label" id="siteDockProfileLabel">プロフィール</span>
     </button>
     <button type="button" onclick="pfDashOpen()">
       <span class="site-dock-icon-wrap">
-        <span class="site-dock-icon"><svg class="inline-icon" width="20" height="20"><use href="#i-calendar"/></svg></span>
+        <span class="site-dock-icon"><span class="icon-chip" style="width:28px; height:28px;"><svg width="22" height="22"><use href="#i-calendar"/></svg></span></span>
         <span class="dock-urgent-dot" id="dockUrgentDot" aria-hidden="true" title="季節/イベントの終了が近づいています" data-i18n-title="dock.urgentTitle"></span>
       </span>
       <span class="site-dock-label" data-i18n="dock.dashboard">ダッシュボード</span>
     </button>
     <button type="button" onclick="openSidebar()">
-      <span class="site-dock-icon"><svg class="inline-icon" width="20" height="20"><use href="#i-menu"/></svg></span>
+      <span class="site-dock-icon"><span class="icon-chip" style="width:28px; height:28px;"><svg width="22" height="22"><use href="#i-menu"/></svg></span></span>
       <span class="site-dock-label" data-i18n="dock.otherTools">他のツール</span>
     </button>
     <button type="button" onclick="settingsOpenModal()">
-      <span class="site-dock-icon"><svg class="inline-icon" width="20" height="20"><use href="#i-settings"/></svg></span>
+      <span class="site-dock-icon"><span class="icon-chip" style="width:28px; height:28px;"><svg width="22" height="22"><use href="#i-settings"/></svg></span></span>
       <span class="site-dock-label" data-i18n="dock.settings">表示設定</span>
     </button>
   </nav>
@@ -2326,7 +2339,7 @@
     },
     sidebar: {
       hamburgerToggle: { ja: '☰ ツール', en: '☰ Tools' },
-      closeBtn: { ja: '<svg class="inline-icon" width="14" height="14"><use href="#i-close"/></svg>', en: '<svg class="inline-icon" width="14" height="14"><use href="#i-close"/></svg>' },
+      closeBtn: { ja: '<span class="icon-chip" style="width:22px; height:22px;"><svg width="16" height="16"><use href="#i-close"/></svg></span>', en: '<span class="icon-chip" style="width:22px; height:22px;"><svg width="16" height="16"><use href="#i-close"/></svg></span>' },
       relatedToolsLabel: { ja: '関連ツール', en: 'Related Tools' },
       langToggleBtn: { ja: 'EN', en: '日本語' }
     },
@@ -2589,7 +2602,7 @@
     },
     settings: {
       modalTitle: { ja: '表示設定', en: 'Display Settings' },
-      displaySectionLabel: { ja: '表示', en: 'Display' },
+      displaySectionLabel: { ja: '<svg class="inline-icon" width="15" height="15"><use href="#i-monitor"/></svg> 表示', en: '<svg class="inline-icon" width="15" height="15"><use href="#i-monitor"/></svg> Display' },
       darkModeLabel: { ja: '表示テーマ', en: 'Theme' },
       themeToggleDark: { ja: 'ダーク', en: 'Dark' },
       themeToggleLight: { ja: 'ライト', en: 'Light' },
@@ -2598,15 +2611,15 @@
       themeModeLight: { ja: 'ライト', en: 'Light' },
       themeModeSystem: { ja: 'システム(OS設定に追従)', en: 'System (follow OS)' },
       themeAriaLabel: { ja: '表示テーマ: 現在{current}。タップで{next}に切り替えます', en: 'Theme: currently {current}. Tap to switch to {next}.' },
-      shortcutsSectionLabel: { ja: 'キーボードショートカット', en: 'Keyboard Shortcuts' },
+      shortcutsSectionLabel: { ja: '<svg class="inline-icon" width="15" height="15"><use href="#i-keyboard"/></svg> キーボードショートカット', en: '<svg class="inline-icon" width="15" height="15"><use href="#i-keyboard"/></svg> Keyboard Shortcuts' },
       shortcutsEnableLabel: { ja: 'ショートカットを有効にする', en: 'Enable keyboard shortcuts' },
       shortcutOpenSettings: { ja: 'この設定を開く', en: 'Open this settings panel' },
       shortcutToggleTheme: { ja: '表示テーマ切替(ライト/ダーク/システム)', en: 'Cycle theme (Light/Dark/System)' },
       shortcutCloseModal: { ja: '開いているウィンドウを閉じる', en: 'Close the open window' },
-      customizeSectionLabel: { ja: '表示のカスタマイズ', en: 'Icon Customization' },
+      customizeSectionLabel: { ja: '<svg class="inline-icon" width="15" height="15"><use href="#i-palette"/></svg> 表示のカスタマイズ', en: '<svg class="inline-icon" width="15" height="15"><use href="#i-palette"/></svg> Icon Customization' },
       customizeLabel: { ja: 'アイコンの絵文字・色', en: 'Icon emoji & colors' },
       customizeBtn: { ja: 'カスタマイズ', en: 'Customize' },
-      languageSectionLabel: { ja: '言語', en: 'Language' }
+      languageSectionLabel: { ja: '<svg class="inline-icon" width="15" height="15"><use href="#i-globe"/></svg> 言語', en: '<svg class="inline-icon" width="15" height="15"><use href="#i-globe"/></svg> Language' }
     },
     dock: {
       ariaLabel: { ja: 'クイックメニュー', en: 'Quick Menu' },
