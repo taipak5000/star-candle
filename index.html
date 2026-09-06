@@ -5708,6 +5708,12 @@
     }
     var target = Math.max(0, parseFloat(els.target.value) || 0);
     var W = 300, H = 84, padX = 4, padY = 10;
+    // バグ修正: このSVGはpreserveAspectRatio="none"で縦横を別々に引き伸ばして
+    // カード幅いっぱいに表示するため、テキスト要素もそのまま描画すると文字が
+    // 横に潰れて伸びてしまう。実際の表示幅から縦横の伸び率の差を求め、
+    // ラベルにだけ逆方向のscaleを掛けて潰れを打ち消す。
+    var renderedW = wrap.getBoundingClientRect().width || W;
+    var textUnstretchX = (72 * W) / (H * renderedW);
     var minT = points[0].time;
     var maxT = points[points.length - 1].time;
     var last = points[points.length - 1];
@@ -5749,8 +5755,11 @@
     var targetLineSvg = '';
     if (target > 0 && target <= maxV) {
       var ty = yOf(target).toFixed(1);
-      targetLineSvg = '<line x1="' + padX + '" y1="' + ty + '" x2="' + (W - padX) + '" y2="' + ty + '" stroke="var(--crimson-light)" stroke-width="1" stroke-dasharray="4 3" opacity="0.85" />' +
-        '<text x="' + (W - padX) + '" y="' + Math.max(8, parseFloat(ty) - 3) + '" text-anchor="end" font-size="8" fill="var(--crimson-light)">' + t('history.trendTargetLabel') + '</text>';
+      var targetLabelAnchorX = W - padX;
+      targetLineSvg = '<line x1="' + padX + '" y1="' + ty + '" x2="' + targetLabelAnchorX + '" y2="' + ty + '" stroke="var(--crimson-light)" stroke-width="1" stroke-dasharray="4 3" opacity="0.85" />' +
+        '<g transform="translate(' + targetLabelAnchorX + ',0) scale(' + textUnstretchX.toFixed(4) + ',1) translate(-' + targetLabelAnchorX + ',0)">' +
+        '<text x="' + targetLabelAnchorX + '" y="' + Math.max(8, parseFloat(ty) - 3) + '" text-anchor="end" font-size="8" fill="var(--crimson-light)">' + t('history.trendTargetLabel') + '</text>' +
+        '</g>';
     }
 
     // 現在ペースの予測到達ライン(破線・目標ラインとは別色)。実績の最終点(現在値)から、
@@ -5767,7 +5776,9 @@
       if (reachedTarget) {
         paceLineSvg += '<circle cx="' + x2 + '" cy="' + y2 + '" r="2.6" fill="var(--lavender)" />';
       }
-      paceLineSvg += '<text x="' + x2 + '" y="' + Math.max(8, parseFloat(y2) - 4) + '" text-anchor="end" font-size="8" fill="var(--lavender)">' + t('history.paceLineLabel') + '</text>';
+      paceLineSvg += '<g transform="translate(' + x2 + ',0) scale(' + textUnstretchX.toFixed(4) + ',1) translate(-' + x2 + ',0)">' +
+        '<text x="' + x2 + '" y="' + Math.max(8, parseFloat(y2) - 4) + '" text-anchor="end" font-size="8" fill="var(--lavender)">' + t('history.paceLineLabel') + '</text>' +
+        '</g>';
       paceNoteHtml = '<p class="trend-pace-note">' + t('history.paceProjectionNote', { date: jpDate(paceProjection.date) }) + '</p>';
     } else if (target > 0 && last.value < target && dailyPace !== null && dailyPace <= 0) {
       // 直近の実績が増えていない/減っている場合は、線は引かずに文言だけで注意喚起する
