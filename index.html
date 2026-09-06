@@ -485,6 +485,7 @@
   .toggle-sub {
     font-size: 12px;
     color: var(--text-dim);
+    line-height: 1.5;
   }
 
   .switch {
@@ -829,6 +830,15 @@
   }
 
   .result-card { text-align: center; border-color: rgba(245,181,76,0.28); }
+  /* ヒーロー数値(.hero-stat)や短い一行の状態文言(.state-message)はカード全体の
+     中央揃えのままで良いが、警告文(2文構成)・内訳・注釈は長さのある文章のため、
+     中央揃えのまま折り返すと行ごとの長さがバラつき読みにくい。.target-date-box/
+     .shard-estimate-box(既存)と同じ考え方で左揃えに戻す。 */
+  .result-card .state-message.warning,
+  .result-card .breakdown,
+  .result-card .note {
+    text-align: left;
+  }
 
   .gauge-wrap {
     display: flex;
@@ -1581,6 +1591,14 @@
   }
   .history-amount.is-plus { color: var(--gold-light); }
   .history-amount.is-minus { color: var(--crimson-light); }
+  /* 数字(増減量)を主役にし、単位(本/candles)は小さく・淡色にして視線が数字に
+     まず向くようにする。色自体は親のis-plus/is-minusを継承させ増減の意味は保つ。 */
+  .history-amount .history-amount-unit {
+    font-size: 10.5px;
+    font-weight: 500;
+    opacity: 0.75;
+    margin-left: 1px;
+  }
 
   .history-undo-btn {
     flex-shrink: 0;
@@ -5644,7 +5662,7 @@
             '<span class="history-time">' + historyTimeLabel(entry.time) + '</span>' +
             '<span class="history-label">' + historyEntryLabel(entry) + '</span>' +
           '</div>' +
-          '<span class="history-amount' + (isPlus ? ' is-plus' : ' is-minus') + '">' + sign + fmt(Math.abs(entry.amount)) + (LANG === 'ja' ? '' : ' ') + t('goal.unit') + '</span>' +
+          '<span class="history-amount' + (isPlus ? ' is-plus' : ' is-minus') + '">' + sign + fmt(Math.abs(entry.amount)) + '<span class="history-amount-unit">' + (LANG === 'ja' ? '' : ' ') + t('goal.unit') + '</span></span>' +
           '<button type="button" class="history-undo-btn" data-history-id="' + entry.id + '">' + t('history.undoBtn') + '</button>' +
         '</div>';
       }).join('');
