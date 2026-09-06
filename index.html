@@ -1378,6 +1378,11 @@
   .pf-row-confirm-text { flex: 1; font-size: 12.5px; color: var(--cream); line-height: 1.4; }
   .pf-row-btn-ok { background: var(--gold); color: var(--indigo); border: none; font-weight: 700; }
   .pf-row-btn-danger { background: var(--crimson); color: #fff; border: none; }
+  /* .pf-icon-btn:hover(詳細度0,2,0)が.pf-row-btn-ok/danger単体(詳細度0,1,0)にhover時の詳細度勝負で
+     勝ってしまい、背景が半透明白に差し替わって文字が読めなくなる(okは紺文字が紺背景に沈み込み、
+     dangerは赤の警告色が消えてキャンセルボタンと見分けがつかなくなる)のを防ぐための明示ルール */
+  .pf-icon-btn.pf-row-btn-ok:hover { background: var(--gold); color: var(--indigo); }
+  .pf-icon-btn.pf-row-btn-danger:hover { background: var(--crimson); color: #fff; }
 
   /* ── 🏆 プロフィール切替モーダル内：他ツール横断の獲得称号（プロフィールを切り替えずに閲覧） ── */
   .pf-titles-row { padding: 0 4px 8px; }
@@ -6112,7 +6117,9 @@
     toastShowing = true;
     var el = document.createElement('div');
     el.className = 'toast';
-    el.textContent = msg;
+    // msgは常にこのサイト内部の信頼済みテンプレート(称号アイコンのSVG文字列 + i18n辞書の名前)から
+    // 組み立てられ、外部入力は混入しない。アイコンをマークアップとして描画するためinnerHTMLを使用。
+    el.innerHTML = msg;
     document.body.appendChild(el);
     setTimeout(function () { el.classList.add('show'); }, 10);
     setTimeout(function () {
