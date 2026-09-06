@@ -6145,7 +6145,7 @@
     if (!notifyStatusEl) return;
     if (!notifySupported()) {
       notifyStatusEl.textContent = t('notify.unsupported');
-    } else if (Notification.permission === 'denied' && ((notifyShardToggleEl && notifyShardToggleEl.checked) || (notifyGoalToggleEl && notifyGoalToggleEl.checked))) {
+    } else if (Notification.permission === 'denied' && ((notifyShardToggleEl && notifyShardToggleEl.checked) || (notifyGoalToggleEl && notifyGoalToggleEl.checked) || notifyLoadFlag(NOTIFY_SHARD_ENABLED_KEY) || notifyLoadFlag(NOTIFY_GOAL_ENABLED_KEY))) {
       notifyStatusEl.innerHTML = t('notify.blocked');
     } else if (Notification.permission === 'granted' && ((notifyShardToggleEl && notifyShardToggleEl.checked) || (notifyGoalToggleEl && notifyGoalToggleEl.checked))) {
       notifyStatusEl.textContent = t('notify.granted');
@@ -6179,17 +6179,18 @@
       return;
     }
     if (Notification.permission === 'denied') {
-      toggleEl.checked = false;
       notifyRenderStatus();
+      toggleEl.checked = false;
       return;
     }
     Notification.requestPermission().then(function (perm) {
       if (perm === 'granted') {
         notifySaveFlag(enabledKey, true);
+        notifyRenderStatus();
       } else {
+        notifyRenderStatus();
         toggleEl.checked = false;
       }
-      notifyRenderStatus();
     });
   }
 
