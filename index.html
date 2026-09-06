@@ -4593,7 +4593,7 @@
       var estDateValid = !isNaN(estDate.getTime());
       var goalDateLineHtml = estDateValid ? t('result.goalDateLine', { date: jpDate(estDate) }) : t('result.goalDateTooFar');
       html =
-        '<div class="hero-stat">' + t('result.heroPrefix') + weeksNeeded + '<span class="unit-small">' + t('result.heroSuffix') + '</span></div>' +
+        '<div class="hero-stat">' + t('result.heroPrefix') + fmt(weeksNeeded) + '<span class="unit-small">' + t('result.heroSuffix') + '</span></div>' +
         '<p class="stat-line">' + goalDateLineHtml + '</p>' +
         '<p class="stat-line">' + t('result.remainingLine', { remaining: fmt(remaining) }) + '</p>' +
         targetDateInfo +
