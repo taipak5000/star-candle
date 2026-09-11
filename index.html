@@ -1218,6 +1218,11 @@
      「開くアニメーションはtransitionでなくkeyframesで」の制約（display:noneを
      transitionは跨げない）自体を回避できる。矢印の回転だけ、display:noneに
      関係しない常時表示要素へのtransitionなので問題ない。 ---------- */
+  /* デスクトップ幅ではpf-modal-cardが600pxまで広がる(@media (min-width:560px))ため、
+     アスペクト比固定のセルがキャップなしだと1マス70px超まで肥大化し、
+     11pxの日付数字と4pxのドットに対してバランスの悪い巨大グリッドになる。
+     コンパクトなカレンダーとして自然な幅で頭打ちにする。 */
+  .dash-calendar { max-width: 380px; margin: 0 auto; }
   .dash-calendar-summary {
     display: flex; align-items: center; gap: 6px; cursor: pointer; list-style: none;
     font-size: 12.5px; font-weight: 600; color: var(--cream); padding: 9px 11px;
@@ -3640,9 +3645,13 @@
       var key = year + '-' + month + '-' + d;
       var cats = marks.get(key);
       var isToday = key === todayKey;
-      var dotsHtml = cats
-        ? '<span class="dash-cal-dots">' + CAT_ORDER.filter(function (c) { return cats.has(c); }).map(function (c) { return '<i class="dash-cal-dot ' + c + '"></i>'; }).join('') + '</span>'
-        : '';
+      // ドットが0件の日も<span class="dash-cal-dots">自体は常に出力する(中身だけ空)。
+      // これを省略すると、その日のセルだけflex列の子要素が1個(日付のみ)になり、
+      // 2個(日付+ドット行)の隣接セルとcenter揃えの基準位置がずれて日付の高さが数px
+      // ぶれてしまうため。
+      var dotsHtml = '<span class="dash-cal-dots">' + (cats
+        ? CAT_ORDER.filter(function (c) { return cats.has(c); }).map(function (c) { return '<i class="dash-cal-dot ' + c + '"></i>'; }).join('')
+        : '') + '</span>';
       cellsHtml += '<div class="dash-cal-day' + (isToday ? ' is-today' : '') + '"><span class="dash-cal-daynum">' + d + '</span>' + dotsHtml + '</div>';
     }
     var dowHtml = '';
@@ -3778,13 +3787,30 @@
   // 勝手に閉じてしまうため、差し替え前に開閉状態を読み、差し替え後に復元する。
   // (1秒おきのカウントダウン更新・言語切替・バックグラウンドデータ再取得のいずれで
   // dashBodyを再描画する場合も、この関数経由にすることでカレンダーの開閉状態を保つ)
+  // 同じ理由でフォーカスも失われる: dashBody内にフォーカスがある要素(カレンダーの
+  // <summary>など)がinnerHTML差し替えで消えると、ブラウザはフォーカスを<body>へ
+  // 落としてしまい、#dashModalOverlayにバインドされたフォーカストラップのkeydown
+  // リスナーがTabを検知できなくなる(targetがoverlayの外→bubbleがoverlay内を通らない)。
+  // 差し替え前にフォーカス要素をタグ名+クラス名で覚えておき、差し替え後に同じ
+  // セレクタの新要素へフォーカスを戻すことでこれを防ぐ。
   function pfDashSetBodyHtml(body, html) {
     var cal = body.querySelector('.dash-calendar');
     var wasOpen = !!(cal && cal.open);
+    var active = document.activeElement;
+    var hadFocus = !!(active && body.contains(active) && active !== body);
+    var focusSelector = null;
+    if (hadFocus) {
+      var cls = active.className && typeof active.className === 'string' ? active.className.trim() : '';
+      focusSelector = active.tagName.toLowerCase() + (cls ? '.' + cls.split(/\s+/).join('.') : '');
+    }
     body.innerHTML = html;
     if (wasOpen) {
       var cal2 = body.querySelector('.dash-calendar');
       if (cal2) cal2.open = true;
+    }
+    if (hadFocus && focusSelector) {
+      var toRefocus = body.querySelector(focusSelector);
+      if (toRefocus) toRefocus.focus();
     }
   }
   function pfDashStartTimer() {
@@ -3830,7 +3856,11 @@
     dashReminderSyncUI(); // ブラウザ側の通知許可状態が変わっている可能性があるため開くたびに再同期
     var body = document.getElementById('dashBody');
     if (pfDashCache) {
-      body.innerHTML = pfDashBuildHtml(pfDashCache);
+      // body.innerHTMLへの直書きだと、pfDashOpen()が開いている間に二重発火した場合
+      // (クリック/タップの二重発火など)、既に開いていたカレンダーのdetails要素が
+      // 作り直されて閉じた状態に戻ってしまう。pfDashSetBodyHtml()経由にすることで
+      // 他の再描画経路(1秒タイマー・言語切替・手動更新)と同じく開閉状態を保つ。
+      pfDashSetBodyHtml(body, pfDashBuildHtml(pfDashCache));
       pfDashStartTimer();
       // タブを開いたまま古いキャッシュに固定されないよう、開くたびにバックグラウンドで
       // 最新データを取り直す(表示中の内容はそのままに、届き次第差し替える)。
