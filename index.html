@@ -1155,7 +1155,8 @@
   footer a { color: var(--lavender); }
   footer a:hover { color: var(--gold-light); }
 
-  a:focus-visible, button:focus-visible, input:focus-visible, .pf-bar-text:focus-visible {
+  a:focus-visible, button:focus-visible, input:focus-visible, .pf-bar-text:focus-visible,
+  .dash-calendar-summary:focus-visible {
     outline: 2px solid var(--gold-light);
     outline-offset: 2px;
   }
@@ -3787,6 +3788,19 @@
   var pfDashCache = null;
   var pfDashLoading = null;
   var pfDashTimer = null;
+  // trueの間は#dashBody内でポインタ(マウス/タッチ)が押下されたまま(mousedown〜mouseup/pointerup前)。
+  // 1秒おきの再描画(pfDashStartTimer)がこの間にdashBody.innerHTMLを差し替えると、押下中の
+  // 要素(カレンダーの<summary>など)が新しいDOMノードに作り直され、後から来るmouseup/click側は
+  // 別ノードを指すことになってブラウザがclickイベントを合成できず、タップ/ドラッグが
+  // サイレントに不発になる(押下→差し替え→離す、を実機トレースで確認済み)。これを避けるため、
+  // ポインタ押下中は1秒ティックの再描画を1回スキップし、離した直後のティックで最新表示に追いつく。
+  var pfDashPointerDown = false;
+  document.addEventListener('pointerdown', function (e) {
+    var body = document.getElementById('dashBody');
+    if (body && body.contains(e.target)) pfDashPointerDown = true;
+  }, true);
+  document.addEventListener('pointerup', function () { pfDashPointerDown = false; }, true);
+  document.addEventListener('pointercancel', function () { pfDashPointerDown = false; }, true);
   // details要素(.dash-calendar)を含むdashBody.innerHTMLを差し替える共通ヘルパー。
   // innerHTMLごと差し替えるとdetails要素が作り直され、ユーザーが開いていたカレンダーが
   // 勝手に閉じてしまうため、差し替え前に開閉状態を読み、差し替え後に復元する。
@@ -3826,6 +3840,9 @@
     pfDashStopTimer();
     pfDashTimer = setInterval(function () {
       if (!pfDashCache) return;
+      // ポインタがdashBody内で押下中はこのティックの再描画を丸ごとスキップする
+      // (理由はpfDashPointerDown宣言部のコメント参照)。次のティックで最新表示に追いつく。
+      if (pfDashPointerDown) return;
       var body = document.getElementById('dashBody');
       if (body) pfDashSetBodyHtml(body, pfDashBuildHtml(pfDashCache));
     }, 1000);
