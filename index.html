@@ -3831,6 +3831,28 @@
       var cls = active.className && typeof active.className === 'string' ? active.className.trim() : '';
       focusSelector = active.tagName.toLowerCase() + (cls ? '.' + cls.split(/\s+/).join('.') : '');
     }
+    // 設定モーダルなど、pf-modal-overlay同士がダッシュボードの上に重ねて開かれる場合が
+    // ある(「?」ショートカット等)。その際フォーカスは既に上のモーダルへ移っているため
+    // 上のhadFocusはfalseになるが、pfModalTrapStackには「そのモーダルを開く直前に
+    // フォーカスしていた要素」への生DOM参照が“トリガー”としてまだ残っており、それが
+    // このdashBody内の要素(カレンダーの<summary>等)のことがある。innerHTML差し替えで
+    // その要素が作り直されると参照が古いノードを指したままになり、上のモーダルを閉じる
+    // 際のフォーカス復元(pfModalTrapClose)が「もうdocumentに存在しない」と判定して
+    // サイレントにスキップされ、フォーカストラップが壊れる。そこで差し替え前に
+    // dashBody内を指しているトリガーを洗い出してセレクタ化しておき、差し替え後に
+    // 該当要素を再取得してスタック側の参照を新しいノードに更新する(フォーカスは移さない。
+    // 移すべきかどうかはpfModalTrapClose側の責務のため)。
+    var staleTriggers = [];
+    for (var i = 0; i < pfModalTrapStack.length; i++) {
+      var entry = pfModalTrapStack[i];
+      if (entry.trigger && entry.trigger !== active && body.contains(entry.trigger)) {
+        var ecls = entry.trigger.className && typeof entry.trigger.className === 'string' ? entry.trigger.className.trim() : '';
+        staleTriggers.push({
+          entry: entry,
+          selector: entry.trigger.tagName.toLowerCase() + (ecls ? '.' + ecls.split(/\s+/).join('.') : '')
+        });
+      }
+    }
     body.innerHTML = html;
     if (wasOpen) {
       var cal2 = body.querySelector('.dash-calendar');
@@ -3843,6 +3865,10 @@
       // タイマー再描画が来るたびに、フォーカス復元のためだけに先頭(カレンダー)まで
       // スクロール位置が引き戻されるのを防ぐ。
       if (toRefocus) toRefocus.focus({ preventScroll: true });
+    }
+    for (var j = 0; j < staleTriggers.length; j++) {
+      var replacement = body.querySelector(staleTriggers[j].selector);
+      if (replacement) staleTriggers[j].entry.trigger = replacement;
     }
   }
   function pfDashStartTimer() {
