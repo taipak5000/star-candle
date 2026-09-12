@@ -1221,8 +1221,13 @@
   /* デスクトップ幅ではpf-modal-cardが600pxまで広がる(@media (min-width:560px))ため、
      アスペクト比固定のセルがキャップなしだと1マス70px超まで肥大化し、
      11pxの日付数字と4pxのドットに対してバランスの悪い巨大グリッドになる。
-     コンパクトなカレンダーとして自然な幅で頭打ちにする。 */
-  .dash-calendar { max-width: 380px; margin: 0 auto; }
+     以前は.dash-calendar自体にmax-width:380pxを付けて頭打ちにしていたが、そうすると
+     カレンダーの外枠(summary〜legendまで)だけが他の全幅の兄弟セクション（デイリー/
+     今週/今月の.dash-row群）より明らかに狭い「浮いた箱」に見えてしまう(Class K)。
+     そこで外枠(.dash-calendar/.dash-calendar-summary)は他のセクションと同じく
+     全幅のまま保ち、セルの肥大化だけを.dash-cal-gridのグリッド列幅に
+     minmax(0, 44px)の上限を設けて防ぐ(48px弱=見出しの指示通りの上限)。
+     コンテナ側に余白ができる分はjustify-content:centerで中央寄せする。 */
   .dash-calendar-summary {
     display: flex; align-items: center; gap: 6px; cursor: pointer; list-style: none;
     font-size: 12.5px; font-weight: 600; color: var(--cream); padding: 9px 11px;
@@ -1234,7 +1239,7 @@
   .dash-calendar[open] .dash-calendar-summary { border-radius: 10px 10px 0 0; }
   .dash-calendar[open] .dash-calendar-chevron { transform: rotate(90deg); }
   .dash-cal-grid {
-    display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px;
+    display: grid; grid-template-columns: repeat(7, minmax(0, 44px)); justify-content: center; gap: 3px;
     padding: 10px 11px; background: rgba(255,255,255,0.06); border-radius: 0 0 10px 10px;
   }
   .dash-cal-dow { text-align: center; font-size: 10px; font-weight: 700; color: var(--text-dim); padding-bottom: 4px; }
@@ -3810,7 +3815,11 @@
     }
     if (hadFocus && focusSelector) {
       var toRefocus = body.querySelector(focusSelector);
-      if (toRefocus) toRefocus.focus();
+      // { preventScroll: true }: 指定なしのfocus()はターゲットが画面外にあると自動で
+      // スクロールしてしまう。ダッシュボードを下までスクロールした状態で1秒おきの
+      // タイマー再描画が来るたびに、フォーカス復元のためだけに先頭(カレンダー)まで
+      // スクロール位置が引き戻されるのを防ぐ。
+      if (toRefocus) toRefocus.focus({ preventScroll: true });
     }
   }
   function pfDashStartTimer() {
@@ -6819,7 +6828,11 @@
   }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'], subtree: true, attributeOldValue: true });
 
   function isInteractive(el) {
-    return !!(el && el.closest && el.closest('input, select, textarea, button, a, label, [contenteditable], [role="button"], input[type="range"]'));
+    // summary: ダッシュボードのカレンダー(.dash-calendar > summary)のような開閉トグルを、
+    // シートのドラッグ判定(>10pxの移動でドラッグ扱いになる)から除外する。これが無いと、
+    // 指がわずかにズレる普通のタップがドラッグとして捕捉され、カレンダーが開閉せず
+    // シート自体が閉じてしまうことがある。
+    return !!(el && el.closest && el.closest('input, select, textarea, button, a, label, [contenteditable], [role="button"], input[type="range"], summary'));
   }
   document.addEventListener('pointerdown', function (e) {
     if (REDUCE_MOTION.matches) return;
