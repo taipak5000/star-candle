@@ -3644,6 +3644,12 @@
     var marks = pfDashCalendarMarks(data, year, month);
     var todayKey = year + '-' + month + '-' + now.getDate();
     var CAT_ORDER = ['season', 'event', 'candle', 'revisit'];
+    // カテゴリドットは色だけで情報を伝えており、その日のセル(または.dash-cal-dots)自体に
+    // title/aria-labelなどのテキスト等価物が一切無いため、スクリーンリーダー利用者には
+    // 日付番号以外の情報が伝わらない(Class N)。凡例と同じ翻訳文言を再利用して、
+    // アクティブなカテゴリがある日だけ「9月12日: 季節、キャンドル2倍」のような
+    // テキストをセルのtitle/aria-labelに付与する(視覚上のドット表示自体は変更しない)。
+    var CAT_LABEL_KEYS = { season: 'dashboard.calLegendSeason', event: 'dashboard.calLegendEvent', candle: 'dashboard.calLegendCandle', revisit: 'dashboard.calLegendRevisit' };
 
     var cellsHtml = '';
     for (var i = 0; i < startWeekday; i++) cellsHtml += '<div class="dash-cal-day is-pad"></div>';
@@ -3651,14 +3657,17 @@
       var key = year + '-' + month + '-' + d;
       var cats = marks.get(key);
       var isToday = key === todayKey;
+      var activeCats = cats ? CAT_ORDER.filter(function (c) { return cats.has(c); }) : [];
       // ドットが0件の日も<span class="dash-cal-dots">自体は常に出力する(中身だけ空)。
       // これを省略すると、その日のセルだけflex列の子要素が1個(日付のみ)になり、
       // 2個(日付+ドット行)の隣接セルとcenter揃えの基準位置がずれて日付の高さが数px
       // ぶれてしまうため。
-      var dotsHtml = '<span class="dash-cal-dots">' + (cats
-        ? CAT_ORDER.filter(function (c) { return cats.has(c); }).map(function (c) { return '<i class="dash-cal-dot ' + c + '"></i>'; }).join('')
-        : '') + '</span>';
-      cellsHtml += '<div class="dash-cal-day' + (isToday ? ' is-today' : '') + '"><span class="dash-cal-daynum">' + d + '</span>' + dotsHtml + '</div>';
+      var dotsHtml = '<span class="dash-cal-dots">' + activeCats.map(function (c) { return '<i class="dash-cal-dot ' + c + '"></i>'; }).join('') + '</span>';
+      var dayLabel = (LANG === 'ja' ? ((month + 1) + '月' + d + '日') : (MONTHS_EN[month] + ' ' + d));
+      if (activeCats.length) {
+        dayLabel += ': ' + activeCats.map(function (c) { return t(CAT_LABEL_KEYS[c]); }).join(LANG === 'ja' ? '、' : ', ');
+      }
+      cellsHtml += '<div class="dash-cal-day' + (isToday ? ' is-today' : '') + '" title="' + dayLabel + '" aria-label="' + dayLabel + '"><span class="dash-cal-daynum">' + d + '</span>' + dotsHtml + '</div>';
     }
     var dowHtml = '';
     for (var w = 0; w < 7; w++) dowHtml += '<div class="dash-cal-dow">' + weekdayLabel(w) + '</div>';
