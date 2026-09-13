@@ -2995,7 +2995,9 @@
 
   function pfModalFocusableEls(overlay) {
     var nodes = overlay.querySelectorAll(
-      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      // summary: ダッシュボードのイベントカレンダーがネイティブ<details><summary>の開閉
+      // トグルを使っているため、これが無いとカレンダーがTab/Shift+Tabで到達不能になる。
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), summary, [tabindex]:not([tabindex="-1"])'
     );
     var result = [];
     for (var i = 0; i < nodes.length; i++) {
@@ -3050,13 +3052,18 @@
   }
 
   // ═══ オーバーレイの排他制御(設定/ダッシュボード/プロフィール切替/サイドバー
-  // 「他のツール」ドロワー/赤闇カレンダーの5つ) ═══
+  // 「他のツール」ドロワー/赤闇カレンダー/アイコンカスタマイズの6つ) ═══
   // これらは下部ドックのボタンや「?」ショートカット、独自のボタンからそれぞれ
   // いつでも単独で開けるため、開いたまま別のものを開くと2つのオーバーレイが
   // 同時に見えてしまう。開く前に、開こうとしているもの以外を閉じておく
-  // (各close関数は未オープン時は何もしない安全な関数)。データバックアップ・
-  // アイコンカスタマイズはプロフィール/設定の中から開く「入れ子」の遷移のため対象外
-  // (pfModalTrapStackのスタック管理により、入れ子のままでもフォーカストラップは破綻しない)。
+  // (各close関数は未オープン時は何もしない安全な関数)。データバックアップのみ
+  // プロフィールの中から開く際にプロフィールモーダルを閉じない「入れ子」の遷移のため
+  // 対象外(pfModalTrapStackのスタック管理により、入れ子のままでもフォーカストラップは
+  // 破綻しない)。アイコンカスタマイズは設定モーダルの中のボタンから開くが、そのボタンが
+  // settingsCloseModal()を先に呼んで設定を閉じてから開くため実際には「入れ子」ではなく、
+  // 設定が「?」ショートカットでダッシュボード等の上に重ねて開かれていた場合、設定だけが
+  // 閉じてダッシュボード側が開いたまま残ってしまう(このヘルパーに含めないと、その状態で
+  // アイコンカスタマイズモーダルが二重に表示される)。
   function pfCloseOtherTopLevelOverlays(exceptId) {
     if (exceptId !== 'settingsModalOverlay') {
       var s = document.getElementById('settingsModalOverlay');
@@ -3077,6 +3084,10 @@
     if (exceptId !== 'shardCalOverlay') {
       var sc = document.getElementById('shardCalOverlay');
       if (sc && sc.classList.contains('is-visible')) closeShardCal();
+    }
+    if (exceptId !== 'iconCustomModal') {
+      var ic = document.getElementById('iconCustomModal');
+      if (ic && ic.classList.contains('is-visible')) pfIconCloseModal();
     }
   }
 
@@ -4762,6 +4773,11 @@
   var pfIconUploadedImg = null;
 
   function pfIconOpenModal() {
+    // 既に開いている場合は何もしない（ここでガードしないとpfModalTrapOpen側の
+    // トリガー参照がモーダル内の要素で上書きされ、閉じたときにフォーカスの戻し先を見失う）
+    var iconAlready = document.getElementById('iconCustomModal');
+    if (iconAlready && iconAlready.classList.contains('is-visible')) return;
+    pfCloseOtherTopLevelOverlays('iconCustomModal');
     var overlay = document.getElementById('iconCustomModal');
     overlay.classList.add('is-visible');
     closeSidebar();
