@@ -2967,7 +2967,14 @@
     // ケースであることがそのコミットメッセージからも確認できる)。ここでpfCloseOther
     // TopLevelOverlaysを呼んでダッシュボード等を閉じてしまうと、「設定だけをちらっと
     // 開いて閉じれば元の場所(ダッシュボード等)に戻る」という既存の挙動を壊してしまう。
+    // ただしアイコンカスタマイズだけは例外(このヘルパーの対象外)ではなく、設定にとっては
+    // 通常の兄弟オーバーレイとして扱う。「?」ショートカットがアイコンカスタマイズの上に
+    // 設定を重ねて開いてしまわないよう、ここで明示的に閉じておく。
     closeSidebar();
+    var icOpenWhileSettingsOpens = document.getElementById('iconCustomModal');
+    if (icOpenWhileSettingsOpens && icOpenWhileSettingsOpens.classList.contains('is-visible')) {
+      pfIconCloseModal();
+    }
     settingsSyncThemeBtnUI();
     settingsSyncShortcutsUI();
     settingsSyncLangButtonsUI();
@@ -3095,6 +3102,14 @@
     if (exceptId !== 'iconCustomModal') {
       var ic = document.getElementById('iconCustomModal');
       if (ic && ic.classList.contains('is-visible')) pfIconCloseModal();
+    }
+    // データバックアップはプロフィールの中に入れ子で開く(開く側では意図的にこの
+    // ヘルパーを呼ばずプロフィールを残す)が、他のトップレベルオーバーレイが開かれた
+    // 際にはプロフィールと一緒に自身も閉じる必要がある(でないとプロフィールだけ閉じて
+    // バックアップモーダルが取り残され、新しいオーバーレイと二重表示になる)。
+    if (exceptId !== 'dmModalOverlay') {
+      var dm = document.getElementById('dmModalOverlay');
+      if (dm && dm.classList.contains('is-visible')) dmCloseModal();
     }
   }
 
