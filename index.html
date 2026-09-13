@@ -1818,9 +1818,15 @@
     animation: sheetSlideUp 0.32s cubic-bezier(0.25, 1, 0.5, 1);
     transition: transform 0.32s cubic-bezier(0.25, 1, 0.5, 1);
   }
+  /* 🖥️ デスクトップ幅の共有規約: モーダルカードもページコンテナ(.wrap)と同じ
+     720px/960pxの2段階に統一する（姉妹サイト間の表記ゆれだった600px/560pxを是正。
+     設定モーダルの360px狭め表示はこのサイト独自の意図的な選択のため対象外・現状維持）。 */
+  .pf-modal-card { max-width: 720px; }
   @media (min-width: 560px) {
-    .pf-modal-card { max-width: 600px; }
     #settingsModalOverlay .pf-modal-card { max-width: 360px; }
+  }
+  @media (min-width: 850px) {
+    .pf-modal-card { max-width: 960px; }
   }
   .pf-modal-card.is-dragging, .pf-modal-card.js-anim { transition: none; animation: none; cursor: grabbing; user-select: none; }
   .pf-modal-card::before {
@@ -2942,6 +2948,18 @@
   }
 
   function settingsOpenModal() {
+    // 既に開いている場合は何もしない（ここでガードしないとpfModalTrapOpen側の
+    // トリガー参照がモーダル内の要素で上書きされ、閉じたときにフォーカスの戻し先を見失う）
+    var alreadyOpen = document.getElementById('settingsModalOverlay');
+    if (alreadyOpen && alreadyOpen.classList.contains('is-visible')) return;
+    // ⚠️ 設定モーダルだけはpfCloseOtherTopLevelOverlays()を使わず、意図的にsidebarのみを
+    // 閉じる（元々からの挙動）。「?」ショートカットはダッシュボード/プロフィール切替/
+    // 赤闇カレンダーが開いているかどうかを確認せずいつでも発火するため、これらの上に
+    // 設定モーダルが重ねて開かれる状態はこのサイトで元々想定内の挙動(コミット7d823c0で
+    // この重ね開き時のフォーカストラップ破壊を修正済み＝意図的にサポートされている
+    // ケースであることがそのコミットメッセージからも確認できる)。ここでpfCloseOther
+    // TopLevelOverlaysを呼んでダッシュボード等を閉じてしまうと、「設定だけをちらっと
+    // 開いて閉じれば元の場所(ダッシュボード等)に戻る」という既存の挙動を壊してしまう。
     closeSidebar();
     settingsSyncThemeBtnUI();
     settingsSyncShortcutsUI();
@@ -3028,6 +3046,37 @@
     overlay.removeEventListener('keydown', entry.handler);
     if (entry.trigger && typeof entry.trigger.focus === 'function' && document.contains(entry.trigger)) {
       entry.trigger.focus();
+    }
+  }
+
+  // ═══ オーバーレイの排他制御(設定/ダッシュボード/プロフィール切替/サイドバー
+  // 「他のツール」ドロワー/赤闇カレンダーの5つ) ═══
+  // これらは下部ドックのボタンや「?」ショートカット、独自のボタンからそれぞれ
+  // いつでも単独で開けるため、開いたまま別のものを開くと2つのオーバーレイが
+  // 同時に見えてしまう。開く前に、開こうとしているもの以外を閉じておく
+  // (各close関数は未オープン時は何もしない安全な関数)。データバックアップ・
+  // アイコンカスタマイズはプロフィール/設定の中から開く「入れ子」の遷移のため対象外
+  // (pfModalTrapStackのスタック管理により、入れ子のままでもフォーカストラップは破綻しない)。
+  function pfCloseOtherTopLevelOverlays(exceptId) {
+    if (exceptId !== 'settingsModalOverlay') {
+      var s = document.getElementById('settingsModalOverlay');
+      if (s && s.classList.contains('is-visible')) settingsCloseModal();
+    }
+    if (exceptId !== 'dashModalOverlay') {
+      var d = document.getElementById('dashModalOverlay');
+      if (d && d.classList.contains('is-visible')) pfDashClose();
+    }
+    if (exceptId !== 'pfModalOverlay') {
+      var p = document.getElementById('pfModalOverlay');
+      if (p && p.classList.contains('is-visible')) pfCloseModal();
+    }
+    if (exceptId !== 'sidebar') {
+      var sb = document.getElementById('sidebar');
+      if (sb && sb.classList.contains('sidebar-open')) closeSidebar();
+    }
+    if (exceptId !== 'shardCalOverlay') {
+      var sc = document.getElementById('shardCalOverlay');
+      if (sc && sc.classList.contains('is-visible')) closeShardCal();
     }
   }
 
@@ -3620,19 +3669,24 @@
     // 実際のデータの同時実行予定数は多くても5〜6件程度のため十分)。月をまたいだ色の
     // 一貫性(同じ予定名は常に同じ色)は失われるが、月内での判別可能性を優先する。
     var colorMap = new Map();
-    function colorFor(name) {
-      if (!colorMap.has(name)) colorMap.set(name, DASH_CAL_BAR_PALETTE[colorMap.size % DASH_CAL_BAR_PALETTE.length]);
-      return colorMap.get(name);
+    function colorFor(key) {
+      if (!colorMap.has(key)) colorMap.set(key, DASH_CAL_BAR_PALETTE[colorMap.size % DASH_CAL_BAR_PALETTE.length]);
+      return colorMap.get(key);
     }
 
-    function pushItems(schedule, name) {
+    // colorKeyはname(表示テキスト)と別引数にしてある。再訪精霊は全スケジュールが
+    // 同一の匿名化されたラベル(t('dashboard.revisitSpirit')＝「再訪精霊」)を表示テキストに
+    // 使うため、nameをそのまま色キーにすると別々の再訪スケジュール同士が同じ月内で
+    // 同時に表示された場合に同色になってしまう(衝突防止の保証が崩れる)。呼び出し側で
+    // 各スケジュールを一意に識別できるキー(配列インデックス等)を別途渡せるようにする。
+    function pushItems(schedule, name, colorKey) {
       pfDashOccurrencesInRange(schedule, rangeStart, rangeEnd).forEach(function (o) {
         var clipStart = o.start && o.start > rangeStart ? o.start : rangeStart;
         var clipEnd = o.end < rangeEnd ? o.end : rangeEnd;
         if (clipEnd < clipStart) return;
         items.push({
           name: name,
-          color: colorFor(name),
+          color: colorFor(colorKey !== undefined ? colorKey : name),
           startDay: clipStart.getDate(),
           endDay: clipEnd.getDate(),
           // 実際の開始/終了がこの月の表示範囲内にあるかどうか(範囲外なら、その端は
@@ -3653,7 +3707,9 @@
     }
     (data.eventSchedule || []).forEach(function (ev) { pushItems(ev, ev.name); });
     (data.candleBonusSchedule || []).forEach(function (ev) { pushItems(ev, ev.name); });
-    (data.revisitSchedules || []).forEach(function (sch) { pushItems(sch, t('dashboard.revisitSpirit')); });
+    // 色キーだけスケジュール自体(配列インデックス)で一意化する。表示テキストは
+    // 意図的に匿名化された共通ラベルのまま変更しない(pushItemsのコメント参照)。
+    (data.revisitSchedules || []).forEach(function (sch, idx) { pushItems(sch, t('dashboard.revisitSpirit'), 'revisit:' + idx); });
 
     // 開始日が早い順、同じ開始日なら長い予定を優先してレーンに割り当てる
     // (長い予定ほど上のレーンに固定されやすくなり、月をまたいでも位置が安定しやすい)
@@ -3971,6 +4027,11 @@
     return pfDashLoading;
   }
   function pfDashOpen() {
+    // 既に開いている場合は何もしない（ここでガードしないとpfModalTrapOpen側の
+    // トリガー参照がモーダル内の要素で上書きされ、閉じたときにフォーカスの戻し先を見失う）
+    var dashAlready = document.getElementById('dashModalOverlay');
+    if (dashAlready && dashAlready.classList.contains('is-visible')) return;
+    pfCloseOtherTopLevelOverlays('dashModalOverlay');
     var overlay = document.getElementById('dashModalOverlay');
     if (overlay) overlay.classList.add('is-visible');
     pfModalTrapOpen(overlay);
@@ -4515,6 +4576,11 @@
   }
 
   function pfOpenModal() {
+    // 既に開いている場合は何もしない（ここでガードしないとpfModalTrapOpen側の
+    // トリガー参照がモーダル内の要素で上書きされ、閉じたときにフォーカスの戻し先を見失う）
+    var pfAlready = document.getElementById('pfModalOverlay');
+    if (pfAlready && pfAlready.classList.contains('is-visible')) return;
+    pfCloseOtherTopLevelOverlays('pfModalOverlay');
     pfEditingId = null;
     pfDeletingId = null;
     pfRenderModal();
@@ -4902,6 +4968,10 @@
   var sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
 
   function openSidebar() {
+    // 既に開いている場合は何もしない（ここでガードしないとpfModalTrapOpen側の
+    // トリガー参照がドロワー内の要素で上書きされ、閉じたときにフォーカスの戻し先を見失う）
+    if (sidebarEl.classList.contains('sidebar-open')) return;
+    pfCloseOtherTopLevelOverlays('sidebar');
     sidebarEl.classList.add('sidebar-open');
     sidebarOverlayEl.classList.add('is-visible');
     pfModalTrapOpen(sidebarEl);
@@ -5989,14 +6059,20 @@
   }
 
   function openShardCal() {
+    // 既に開いている場合は何もしない（ここでガードしないとpfModalTrapOpen側の
+    // トリガー参照がモーダル内の要素で上書きされ、閉じたときにフォーカスの戻し先を見失う）
+    if (shardCalOverlay.classList.contains('is-visible')) return;
+    pfCloseOtherTopLevelOverlays('shardCalOverlay');
     shardCalViewDate = new Date();
     shardCalViewDate.setDate(1);
     shardCalSelectedKey = null;
     renderShardCalGrid();
     shardCalOverlay.classList.add('is-visible');
+    pfModalTrapOpen(shardCalOverlay);
   }
   function closeShardCal() {
     shardCalOverlay.classList.remove('is-visible');
+    pfModalTrapClose(shardCalOverlay);
   }
 
   shardCalBtn.addEventListener('click', openShardCal);
