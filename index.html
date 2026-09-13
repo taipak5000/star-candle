@@ -1769,7 +1769,12 @@
     left: 0;
     right: 0;
     bottom: 0;
-    z-index: 90;
+    /* 🩹 以前はz-index:90でオーバーレイ(.pf-modal-overlay/.sidebar-overlayのz-index:499~1000)より
+       低かったため、オーバーレイ表示中は別のドックアイコンをクリックしても背景(クリックアウトサイドで
+       閉じるオーバーレイ)にクリックが吸われてしまい、「別のオーバーレイに一発で切り替わる」はずが
+       1回目のクリックで現在のオーバーレイが閉じるだけになっていた。ドックは常にクリック可能であるべき
+       なので、全オーバーレイのz-indexより上に置く(トースト通知z-index:2000だけは上のまま)。 */
+    z-index: 1500;
     padding: 6px 10px calc(8px + env(safe-area-inset-bottom));
     background: var(--card-bg);
     backdrop-filter: blur(18px);
@@ -2371,7 +2376,8 @@
 
   <!-- 🧭 site-dock（クイックメニュー）: 既存のハンバーガーサイドバーと並存するショートカット行。
        .wrap（z-index:1でスタッキングコンテキストを作る）の内側に置くことで、
-       モーダル／サイドバーのz-indexと同じ比較文脈に入れ、正しく覆われるようにする -->
+       モーダル／サイドバーのz-indexと同じ比較文脈に入れる（🩹 ただし常にクリック可能で
+       あるべきなので、z-index自体はそれらより上＝正しく覆う側にしてある。上のCSS参照）。 -->
   <nav class="site-dock" aria-label="クイックメニュー" data-i18n-aria-label="dock.ariaLabel">
     <button type="button" onclick="pfOpenModal()">
       <span class="site-dock-icon"><span class="icon-chip" style="width:28px; height:28px;"><svg width="22" height="22"><use href="#i-folder"/></svg></span></span>
@@ -3109,6 +3115,11 @@
     return false;
   }
 
+  // 🩹 input要素はtypeを問わず一律「入力中」扱いにしていたため、type=colorやcheckboxのような
+  // 実際には'?'や'd'をリテラル文字として受け付けない入力にフォーカスがあるだけで
+  // ショートカットが死んでいた。実際に文字を打ち込めるtypeだけを「入力中」とみなす。
+  var FT_NON_TEXT_INPUT_TYPES = ['checkbox', 'radio', 'range', 'color', 'button', 'submit', 'reset', 'file', 'image', 'hidden'];
+
   // 3つのキーボードショートカット: ?=この設定を開く / d,D=ダークモード切替 / Esc=開いている
   // モーダルを閉じる。Escapeのみ sky_shortcuts_enabled のOFFに関わらず常時有効
   // (モーダルを閉じる基本UXであり、クリックアウトサイドで閉じる挙動と同じ扱いのため)。
@@ -3116,7 +3127,8 @@
     if (e.repeat) return;
     if (e.ctrlKey || e.metaKey || e.altKey) return;
     var targetEl = e.target;
-    var isTyping = targetEl && (targetEl.tagName === 'INPUT' || targetEl.tagName === 'TEXTAREA' || targetEl.tagName === 'SELECT' || targetEl.isContentEditable);
+    var isTextInput = targetEl && targetEl.tagName === 'INPUT' && FT_NON_TEXT_INPUT_TYPES.indexOf((targetEl.type || '').toLowerCase()) === -1;
+    var isTyping = targetEl && (isTextInput || targetEl.tagName === 'TEXTAREA' || targetEl.tagName === 'SELECT' || targetEl.isContentEditable);
 
     if (e.key === 'Escape') {
       // 入力中でもEscapeでダイアログを閉じられることを期待するユーザーが多いため、
