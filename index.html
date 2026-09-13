@@ -1263,6 +1263,7 @@
      週境界や月境界をまたぐ棒がシームレスに(隙間なく)見える。 */
   .dash-cal-bar.round-l { border-top-left-radius: 9px; border-bottom-left-radius: 9px; margin-left: 2px; }
   .dash-cal-bar.round-r { border-top-right-radius: 9px; border-bottom-right-radius: 9px; margin-right: 2px; }
+  .dash-cal-bar.half-end { width: 50%; }
 
   /* ═══ 🎉 「1年前の今日」通知バナー: 獲得履歴に同じ月日(かつ過去の年)の記録が
      見つかった場合にページ読み込み時だけ表示する、閉じるボタン付きの一時バナー。
@@ -3721,6 +3722,13 @@
           // (＝丸めない)」として扱う。
           trueStart: !!o.start && o.start.getTime() >= rangeStart.getTime(),
           trueEnd: o.end.getTime() <= rangeEnd.getTime(),
+          // 🕓 このプロジェクトの予定はほぼ全てゲーム内デイリーリセット基準
+          // （太平洋時間8:00＝日本時間15:59/16:00終了・開始）のため、実際の終了時刻は
+          // 日付が変わる直前(23:59台)ではなく日中(だいたい15:59)であることが多い。
+          // 最終日を丸ごと塗ると「その日一日ずっと開催中」に誤って見えてしまうため、
+          // 終了時刻が日付境界でない場合はrenderLoopで最終日だけ半分の幅に短縮する。
+          // (o.endは日クリップ前の本物の終了Date。clipEndではなくこちらで判定する)
+          endsMidDay: !(o.end.getHours() === 23 && o.end.getMinutes() >= 59),
         });
       });
     }
@@ -3802,9 +3810,29 @@
         var roundLeft = it.trueStart && it.startDay >= weekFirstDay;
         var roundRight = it.trueEnd && it.endDay <= weekLastDay;
         var nameEsc = pfEscapeHtml(it.name);
-        barsHtml += '<div class="dash-cal-bar' + (roundLeft ? ' round-l' : '') + (roundRight ? ' round-r' : '') + '"' +
-          ' style="grid-column:' + colStart + ' / span ' + colSpan + '; grid-row:' + (localRow + 1) + '; background:' + it.color + ';"' +
-          ' title="' + nameEsc + '">' + nameEsc + '</div>';
+        // 🕓 この週に本当の最終日が含まれ(roundRight)、かつその終了時刻が日中(15:59等)
+        // である場合(endsMidDay)、最終日のセルだけ半分の幅に短縮して「日中までしか
+        // 開催していない」ことを視覚的に伝える。前日までの分は通常どおり全幅で塗り、
+        // 最終日のセルとの間は余白なく隣接させる(column-gap:0)ことで1本の連続した
+        // 棒に見えるようにする。翌月へ継続中(roundRight===false)の予定は対象外。
+        var halfEnd = roundRight && it.endsMidDay;
+        if (halfEnd && colSpan > 1) {
+          var tailCol = colStart + colSpan - 1;
+          barsHtml += '<div class="dash-cal-bar' + (roundLeft ? ' round-l' : '') + '"' +
+            ' style="grid-column:' + colStart + ' / span ' + (colSpan - 1) + '; grid-row:' + (localRow + 1) + '; background:' + it.color + ';"' +
+            ' title="' + nameEsc + '">' + nameEsc + '</div>';
+          barsHtml += '<div class="dash-cal-bar half-end round-r"' +
+            ' style="grid-column:' + tailCol + ' / span 1; grid-row:' + (localRow + 1) + '; background:' + it.color + ';"' +
+            ' title="' + nameEsc + '"></div>';
+        } else if (halfEnd) {
+          barsHtml += '<div class="dash-cal-bar half-end round-r' + (roundLeft ? ' round-l' : '') + '"' +
+            ' style="grid-column:' + colStart + ' / span ' + colSpan + '; grid-row:' + (localRow + 1) + '; background:' + it.color + ';"' +
+            ' title="' + nameEsc + '">' + nameEsc + '</div>';
+        } else {
+          barsHtml += '<div class="dash-cal-bar' + (roundLeft ? ' round-l' : '') + (roundRight ? ' round-r' : '') + '"' +
+            ' style="grid-column:' + colStart + ' / span ' + colSpan + '; grid-row:' + (localRow + 1) + '; background:' + it.color + ';"' +
+            ' title="' + nameEsc + '">' + nameEsc + '</div>';
+        }
       });
 
       weeksHtml += '<div class="dash-cal-week">' +
