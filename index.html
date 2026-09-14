@@ -2274,7 +2274,7 @@
           <span class="dash-row-icon icon-chip" style="width:22px; height:22px;"><svg width="17" height="17"><use href="#i-palette"/></svg></span>
           <span class="pf-currency-label" data-i18n="settings.customizeLabel">アイコンの絵文字・色</span>
         </span>
-        <button type="button" class="pf-icon-btn" data-i18n="settings.customizeBtn" onclick="settingsCloseModal(); pfIconOpenModal();">カスタマイズ</button>
+        <button type="button" class="pf-icon-btn" data-i18n="settings.customizeBtn" onclick="pfIconOpenFromSettings();">カスタマイズ</button>
       </div>
 
       <p class="pf-currency-title" style="cursor:default; justify-content:flex-start; gap:6px; margin-top:14px; padding-top:14px; border-top:1px solid var(--card-border);" data-i18n="settings.languageSectionLabel">言語</p>
@@ -2971,10 +2971,21 @@
     // ただしアイコンカスタマイズだけは例外(このヘルパーの対象外)ではなく、設定にとっては
     // 通常の兄弟オーバーレイとして扱う。「?」ショートカットがアイコンカスタマイズの上に
     // 設定を重ねて開いてしまわないよう、ここで明示的に閉じておく。
-    closeSidebar();
-    var icOpenWhileSettingsOpens = document.getElementById('iconCustomModal');
-    if (icOpenWhileSettingsOpens && icOpenWhileSettingsOpens.classList.contains('is-visible')) {
-      pfIconCloseModal();
+    // 🩹 この2つの直接クローズも「これから開く設定モーダルのための副作用」であり、
+    // pfCloseOtherTopLevelOverlays()経由ではないため、ここでも自前でsuppressフラグを
+    // 立てておかないと、下のpfModalTrapOpen(overlay)がdocument.activeElementを
+    // 読み取る前にsidebar/アイコンカスタマイズ側のtrap popが自分のトリガーへ
+    // フォーカスを戻してしまい、設定モーダルの本当のトリガーを見失う
+    // (pfSuppressTrapFocusRestore宣言部のコメント参照)。
+    pfSuppressTrapFocusRestore++;
+    try {
+      closeSidebar();
+      var icOpenWhileSettingsOpens = document.getElementById('iconCustomModal');
+      if (icOpenWhileSettingsOpens && icOpenWhileSettingsOpens.classList.contains('is-visible')) {
+        pfIconCloseModal();
+      }
+    } finally {
+      pfSuppressTrapFocusRestore--;
     }
     settingsSyncThemeBtnUI();
     settingsSyncShortcutsUI();
@@ -3007,6 +3018,17 @@
   // 二重に開く場合もあるため、単一のグローバル状態ではなくoverlayごとにスタックで
   // 管理し、内側のモーダルを閉じたら外側のモーダルのトラップが壊れず残るようにする。
   var pfModalTrapStack = [];
+
+  // 🩹 連鎖オーバーレイのフォーカス誤復元バグ対策: pfCloseOtherTopLevelOverlays()が
+  // 「開こうとしているBのために他のAを閉じる」際、pfModalTrapClose(A)が即座にA自身の
+  // トリガーへフォーカスを戻してしまうと、その直後に呼ばれるpfModalTrapOpen(B)が
+  // document.activeElementを読み取った時点で既にA側のトリガーに上書きされてしまっており、
+  // Bの本当のトリガー(実際にクリックされた要素や「?」ショートカット押下時にフォーカス
+  // されていた要素)を正しく記憶できなくなる。この「他を閉じるための連鎖的なクローズ」で
+  // ある間だけ、pfModalTrapClose()自身のフォーカス復元を止めておく(Escape等ユーザーが
+  // 直接1つだけ閉じる通常のクローズでは、このフラグは立たないので今までどおり即座に
+  // 復元される)。
+  var pfSuppressTrapFocusRestore = 0;
 
   function pfModalFocusableEls(overlay) {
     var nodes = overlay.querySelectorAll(
@@ -3070,8 +3092,25 @@
     var wasTopmost = (idx === pfModalTrapStack.length - 1);
     pfModalTrapStack.splice(idx, 1);
     overlay.removeEventListener('keydown', entry.handler);
-    if (wasTopmost && entry.trigger && typeof entry.trigger.focus === 'function' && document.contains(entry.trigger)) {
-      entry.trigger.focus();
+    // 🩹 pfCloseOtherTopLevelOverlays()が「Bを開くためにAを連鎖的に閉じている」
+    // 最中は、ここでフォーカスを動かさない。動かしてしまうと、この直後に走る
+    // BのpfModalTrapOpen()がdocument.activeElementを読み取る時点で既にAの
+    // トリガーに上書きされてしまい、Bの本当のトリガーを見失う。このケースでは
+    // どのみちすぐ別のオーバーレイのトラップに置き換わるので、下の「残存
+    // オーバーレイへフォーカスを保証する」処理も含めて丸ごとスキップしてよい。
+    if (pfSuppressTrapFocusRestore) return;
+    if (wasTopmost) {
+      var el = entry.trigger;
+      // offsetParentのチェックは、トリガーがDOM上には残っているものの(例:別の
+      // オーバーレイの中の要素)、そのオーバーレイ自体が閉じてdisplay:noneになり
+      // フォーカス不可能になっているケースに備えたもの——この場合は無言で
+      // 失敗させず、常に見えている下部site-dockの先頭ボタンへ安全に逃がす。
+      if (el && typeof el.focus === 'function' && document.contains(el) && el.offsetParent !== null) {
+        el.focus();
+      } else {
+        var fallback = document.querySelector('.site-dock button, .site-dock a');
+        if (fallback) fallback.focus();
+      }
     }
     // 閉じた後もまだスタックに残っているオーバーレイがあれば、その中で最前面の
     // ものの中に必ずフォーカスがあることを保証する(上記でトリガーへ戻さなかった
@@ -3102,37 +3141,45 @@
   // 閉じてダッシュボード側が開いたまま残ってしまう(このヘルパーに含めないと、その状態で
   // アイコンカスタマイズモーダルが二重に表示される)。
   function pfCloseOtherTopLevelOverlays(exceptId) {
-    if (exceptId !== 'settingsModalOverlay') {
-      var s = document.getElementById('settingsModalOverlay');
-      if (s && s.classList.contains('is-visible')) settingsCloseModal();
-    }
-    if (exceptId !== 'dashModalOverlay') {
-      var d = document.getElementById('dashModalOverlay');
-      if (d && d.classList.contains('is-visible')) pfDashClose();
-    }
-    if (exceptId !== 'pfModalOverlay') {
-      var p = document.getElementById('pfModalOverlay');
-      if (p && p.classList.contains('is-visible')) pfCloseModal();
-    }
-    if (exceptId !== 'sidebar') {
-      var sb = document.getElementById('sidebar');
-      if (sb && sb.classList.contains('sidebar-open')) closeSidebar();
-    }
-    if (exceptId !== 'shardCalOverlay') {
-      var sc = document.getElementById('shardCalOverlay');
-      if (sc && sc.classList.contains('is-visible')) closeShardCal();
-    }
-    if (exceptId !== 'iconCustomModal') {
-      var ic = document.getElementById('iconCustomModal');
-      if (ic && ic.classList.contains('is-visible')) pfIconCloseModal();
-    }
-    // データバックアップはプロフィールの中に入れ子で開く(開く側では意図的にこの
-    // ヘルパーを呼ばずプロフィールを残す)が、他のトップレベルオーバーレイが開かれた
-    // 際にはプロフィールと一緒に自身も閉じる必要がある(でないとプロフィールだけ閉じて
-    // バックアップモーダルが取り残され、新しいオーバーレイと二重表示になる)。
-    if (exceptId !== 'dmModalOverlay') {
-      var dm = document.getElementById('dmModalOverlay');
-      if (dm && dm.classList.contains('is-visible')) dmCloseModal();
+    // 🩹 このスコープ内で行われるクローズは、すべて「これから開くものの副作用」であり
+    // ユーザーが意図した単独クローズではないため、pfModalTrapClose()自身のフォーカス
+    // 復元をここでは止めておく(pfSuppressTrapFocusRestore宣言部のコメント参照)。
+    pfSuppressTrapFocusRestore++;
+    try {
+      if (exceptId !== 'settingsModalOverlay') {
+        var s = document.getElementById('settingsModalOverlay');
+        if (s && s.classList.contains('is-visible')) settingsCloseModal();
+      }
+      if (exceptId !== 'dashModalOverlay') {
+        var d = document.getElementById('dashModalOverlay');
+        if (d && d.classList.contains('is-visible')) pfDashClose();
+      }
+      if (exceptId !== 'pfModalOverlay') {
+        var p = document.getElementById('pfModalOverlay');
+        if (p && p.classList.contains('is-visible')) pfCloseModal();
+      }
+      if (exceptId !== 'sidebar') {
+        var sb = document.getElementById('sidebar');
+        if (sb && sb.classList.contains('sidebar-open')) closeSidebar();
+      }
+      if (exceptId !== 'shardCalOverlay') {
+        var sc = document.getElementById('shardCalOverlay');
+        if (sc && sc.classList.contains('is-visible')) closeShardCal();
+      }
+      if (exceptId !== 'iconCustomModal') {
+        var ic = document.getElementById('iconCustomModal');
+        if (ic && ic.classList.contains('is-visible')) pfIconCloseModal();
+      }
+      // データバックアップはプロフィールの中に入れ子で開く(開く側では意図的にこの
+      // ヘルパーを呼ばずプロフィールを残す)が、他のトップレベルオーバーレイが開かれた
+      // 際にはプロフィールと一緒に自身も閉じる必要がある(でないとプロフィールだけ閉じて
+      // バックアップモーダルが取り残され、新しいオーバーレイと二重表示になる)。
+      if (exceptId !== 'dmModalOverlay') {
+        var dm = document.getElementById('dmModalOverlay');
+        if (dm && dm.classList.contains('is-visible')) dmCloseModal();
+      }
+    } finally {
+      pfSuppressTrapFocusRestore--;
     }
   }
 
@@ -4898,7 +4945,15 @@
     pfCloseOtherTopLevelOverlays('iconCustomModal');
     var overlay = document.getElementById('iconCustomModal');
     overlay.classList.add('is-visible');
-    closeSidebar();
+    // 🩹 これから開くアイコンカスタマイズモーダルの副作用としてのクローズなので、
+    // pfCloseOtherTopLevelOverlays()と同様ここもsuppress対象にする(念のための
+    // 保険的な二重クローズだが、sidebarが万一まだ開いたままだった場合に備える)。
+    pfSuppressTrapFocusRestore++;
+    try {
+      closeSidebar();
+    } finally {
+      pfSuppressTrapFocusRestore--;
+    }
     pfModalTrapOpen(overlay);
   }
   function pfIconCloseModal() {
@@ -4906,6 +4961,28 @@
     overlay.classList.remove('is-visible');
     pfModalTrapClose(overlay);
   }
+
+  // 🩹 設定モーダル内の「カスタマイズ」ボタン専用: 設定を閉じてアイコンカスタマイズを
+  // 開くという連鎖を1ステップで行う。settingsCloseModal()を先に呼ぶとその場で
+  // pfModalTrapClose()が(suppressしない限り)即座に設定自身のトリガーへフォーカスを
+  // 戻してしまい、直後のpfIconOpenModal()が捕まえるべき「カスタマイズ」ボタン自身
+  // (設定モーダルの中の要素で、設定を閉じると同時に非表示になる)を見失う。ここで
+  // suppressフラグを立てている間にsettingsCloseModal()を呼ぶことで、document.
+  // activeElementを「カスタマイズ」ボタンのまま維持し、pfIconOpenModal()内の
+  // pfModalTrapOpen()がそれを正しく本当のトリガーとして捕捉できるようにする
+  // (その後アイコンカスタマイズを閉じる際、このボタンは設定モーダルごと非表示に
+  // なっていてfocus不能なため、pfModalTrapClose()側のoffsetParentチェックにより
+  // 自動的に下部site-dockへフォールバックする)。
+  function pfIconOpenFromSettings() {
+    pfSuppressTrapFocusRestore++;
+    try {
+      settingsCloseModal();
+    } finally {
+      pfSuppressTrapFocusRestore--;
+    }
+    pfIconOpenModal();
+  }
+  window.pfIconOpenFromSettings = pfIconOpenFromSettings;
 
   function pfIconSetMode(mode) {
     pfIconMode = mode;
@@ -5525,9 +5602,11 @@
   document.addEventListener('click', function (ev) {
     if (!datePickerEl.contains(ev.target)) closeDatePicker();
   });
-  document.addEventListener('keydown', function (ev) {
-    if (ev.key === 'Escape') closeDatePicker();
-  });
+  // 🩹 赤闇カレンダーと同じ理由でこの日付ピッカー専用のEscapeリスナーも削除。
+  // closeTopmostOpenModal()が既にdatePickerPopupの開閉状態を見て処理するため、
+  // 個別リスナーを残すと他のオーバーレイと重なって開いている状態でEscapeを
+  // 1回押した際に2つ同時に閉じてしまう(赤闇カレンダー+設定モーダルの
+  // 組み合わせで確認された不具合と同一のパターン)。
 
   updateDateTriggerText();
 
@@ -6242,9 +6321,14 @@
       if (typeof renderForecast === 'function') renderForecast(); // 予測欄が同じ日を表示していれば同期させる
     } catch (err) { /* no-op */ }
   });
-  document.addEventListener('keydown', function (ev) {
-    if (ev.key === 'Escape') closeShardCal();
-  });
+  // 🩹 以前はここで赤闇カレンダー専用のEscapeリスナーを個別に持っていたが、これは
+  // closeTopmostOpenModal()(3172行目付近のグローバルEscapeハンドラ)による「開いている
+  // 一番手前のオーバーレイだけを閉じる」判定を経由せず、無条件にこのカレンダーを閉じて
+  // いた。そのため設定モーダルが赤闇カレンダーの上に重ねて開かれている状態でEscapeを
+  // 1回押すと、closeTopmostOpenModal()が設定を閉じるのに加え、このリスナーが独立して
+  // カレンダー側も同時に閉じてしまい、2階層が一度に閉じるバグになっていた。
+  // closeTopmostOpenModal()は既にshardCalOverlayの表示状態を見て閉じる処理を
+  // 含んでいるため、この専用リスナーは削除して一本化する(挙動の欠落はない)。
 
   // ---- 獲得履歴ログ ----
   // 羽ボタン・赤闇チェックによる所持本数の増減を記録する。「取り消す」でその操作だけを
