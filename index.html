@@ -2085,65 +2085,6 @@
     </div>
   </div>
 
-  <!-- ▸ ⚙️ 表示設定モーダル(ダークモード・キーボードショートカット) -->
-  <div class="pf-modal-overlay" id="settingsModalOverlay">
-    <div class="pf-modal-card">
-      <h3 data-i18n="settings.modalTitle">表示設定</h3>
-
-      <p class="pf-currency-title" style="cursor:default; justify-content:flex-start; gap:6px;" data-i18n="settings.displaySectionLabel">表示</p>
-      <div class="toggle-field" style="margin-bottom:14px;">
-        <span style="display:flex; align-items:center; gap:8px;">
-          <span class="dash-row-icon icon-chip" style="width:22px; height:22px;"><svg width="17" height="17"><use href="#i-palette"/></svg></span>
-          <span class="pf-currency-label" data-i18n="settings.darkModeLabel">ダークモード</span>
-        </span>
-        <button type="button" class="pf-icon-btn" id="settingsThemeToggleBtn" onclick="toggleTheme()"></button>
-      </div>
-
-      <p class="pf-currency-title" style="cursor:default; justify-content:flex-start; gap:6px; margin-top:14px; padding-top:14px; border-top:1px solid var(--card-border);" data-i18n="settings.shortcutsSectionLabel">キーボードショートカット</p>
-      <div class="toggle-field" style="margin-bottom:12px;">
-        <span style="display:flex; align-items:center; gap:8px;">
-          <span class="dash-row-icon icon-chip" style="width:22px; height:22px;"><svg width="17" height="17"><use href="#i-keyboard"/></svg></span>
-          <span class="pf-currency-label" data-i18n="settings.shortcutsEnableLabel">ショートカットを有効にする</span>
-        </span>
-        <label class="switch">
-          <input type="checkbox" id="settingsShortcutsToggle" onchange="settingsToggleShortcuts(this.checked)">
-          <span class="switch-track"><span class="switch-thumb"></span></span>
-        </label>
-      </div>
-      <div class="pf-hint" style="margin-top:0;">
-        <div class="pf-row" style="border-bottom:none; padding:3px 4px;">
-          <span class="pf-row-name" style="flex:none; width:34px; color:var(--gold-light); font-weight:700; cursor:default;">?</span>
-          <span data-i18n="settings.shortcutOpenSettings">この設定を開く</span>
-        </div>
-        <div class="pf-row" style="border-bottom:none; padding:3px 4px;">
-          <span class="pf-row-name" style="flex:none; width:34px; color:var(--gold-light); font-weight:700; cursor:default;">D</span>
-          <span data-i18n="settings.shortcutToggleTheme">ダークモード切替</span>
-        </div>
-        <div class="pf-row" style="border-bottom:none; padding:3px 4px;">
-          <span class="pf-row-name" style="flex:none; width:34px; color:var(--gold-light); font-weight:700; cursor:default;">Esc</span>
-          <span data-i18n="settings.shortcutCloseModal">開いているウィンドウを閉じる</span>
-        </div>
-      </div>
-
-      <p class="pf-currency-title" style="cursor:default; justify-content:flex-start; gap:6px; margin-top:14px; padding-top:14px; border-top:1px solid var(--card-border);" data-i18n="settings.customizeSectionLabel">表示のカスタマイズ</p>
-      <div class="toggle-field" style="margin-bottom:14px;">
-        <span style="display:flex; align-items:center; gap:8px;">
-          <span class="dash-row-icon icon-chip" style="width:22px; height:22px;"><svg width="17" height="17"><use href="#i-palette"/></svg></span>
-          <span class="pf-currency-label" data-i18n="settings.customizeLabel">アイコンの絵文字・色</span>
-        </span>
-        <button type="button" class="pf-icon-btn" data-i18n="settings.customizeBtn" onclick="settingsCloseModal(); pfIconOpenModal();">カスタマイズ</button>
-      </div>
-
-      <p class="pf-currency-title" style="cursor:default; justify-content:flex-start; gap:6px; margin-top:14px; padding-top:14px; border-top:1px solid var(--card-border);" data-i18n="settings.languageSectionLabel">言語</p>
-      <div style="display:flex; gap:8px; margin-bottom:14px;">
-        <button type="button" class="pf-icon-btn" id="settingsLangJaBtn" style="flex:1; padding:8px;" onclick="setLang('ja')">日本語</button>
-        <button type="button" class="pf-icon-btn" id="settingsLangEnBtn" style="flex:1; padding:8px;" onclick="setLang('en')">English</button>
-      </div>
-
-      <button type="button" class="pf-close-btn" data-i18n="profile.closeBtn" onclick="settingsCloseModal()">閉じる</button>
-    </div>
-  </div>
-
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
     <aside class="sidebar" id="sidebar">
@@ -2284,6 +2225,65 @@
         <span class="shard-cal-legend-check" aria-hidden="true"><svg class="inline-icon ok" width="12" height="12"><use href="#i-check"/></svg></span><span data-i18n="forecast.collected">獲得済み</span>
       </div>
       <div class="shard-cal-day-detail" id="shardCalDayDetail" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- ▸ ⚙️ 表示設定モーダル(ダークモード・キーボードショートカット) -->
+  <div class="pf-modal-overlay" id="settingsModalOverlay">
+    <div class="pf-modal-card">
+      <h3 data-i18n="settings.modalTitle">表示設定</h3>
+
+      <p class="pf-currency-title" style="cursor:default; justify-content:flex-start; gap:6px;" data-i18n="settings.displaySectionLabel">表示</p>
+      <div class="toggle-field" style="margin-bottom:14px;">
+        <span style="display:flex; align-items:center; gap:8px;">
+          <span class="dash-row-icon icon-chip" style="width:22px; height:22px;"><svg width="17" height="17"><use href="#i-palette"/></svg></span>
+          <span class="pf-currency-label" data-i18n="settings.darkModeLabel">ダークモード</span>
+        </span>
+        <button type="button" class="pf-icon-btn" id="settingsThemeToggleBtn" onclick="toggleTheme()"></button>
+      </div>
+
+      <p class="pf-currency-title" style="cursor:default; justify-content:flex-start; gap:6px; margin-top:14px; padding-top:14px; border-top:1px solid var(--card-border);" data-i18n="settings.shortcutsSectionLabel">キーボードショートカット</p>
+      <div class="toggle-field" style="margin-bottom:12px;">
+        <span style="display:flex; align-items:center; gap:8px;">
+          <span class="dash-row-icon icon-chip" style="width:22px; height:22px;"><svg width="17" height="17"><use href="#i-keyboard"/></svg></span>
+          <span class="pf-currency-label" data-i18n="settings.shortcutsEnableLabel">ショートカットを有効にする</span>
+        </span>
+        <label class="switch">
+          <input type="checkbox" id="settingsShortcutsToggle" onchange="settingsToggleShortcuts(this.checked)">
+          <span class="switch-track"><span class="switch-thumb"></span></span>
+        </label>
+      </div>
+      <div class="pf-hint" style="margin-top:0;">
+        <div class="pf-row" style="border-bottom:none; padding:3px 4px;">
+          <span class="pf-row-name" style="flex:none; width:34px; color:var(--gold-light); font-weight:700; cursor:default;">?</span>
+          <span data-i18n="settings.shortcutOpenSettings">この設定を開く</span>
+        </div>
+        <div class="pf-row" style="border-bottom:none; padding:3px 4px;">
+          <span class="pf-row-name" style="flex:none; width:34px; color:var(--gold-light); font-weight:700; cursor:default;">D</span>
+          <span data-i18n="settings.shortcutToggleTheme">ダークモード切替</span>
+        </div>
+        <div class="pf-row" style="border-bottom:none; padding:3px 4px;">
+          <span class="pf-row-name" style="flex:none; width:34px; color:var(--gold-light); font-weight:700; cursor:default;">Esc</span>
+          <span data-i18n="settings.shortcutCloseModal">開いているウィンドウを閉じる</span>
+        </div>
+      </div>
+
+      <p class="pf-currency-title" style="cursor:default; justify-content:flex-start; gap:6px; margin-top:14px; padding-top:14px; border-top:1px solid var(--card-border);" data-i18n="settings.customizeSectionLabel">表示のカスタマイズ</p>
+      <div class="toggle-field" style="margin-bottom:14px;">
+        <span style="display:flex; align-items:center; gap:8px;">
+          <span class="dash-row-icon icon-chip" style="width:22px; height:22px;"><svg width="17" height="17"><use href="#i-palette"/></svg></span>
+          <span class="pf-currency-label" data-i18n="settings.customizeLabel">アイコンの絵文字・色</span>
+        </span>
+        <button type="button" class="pf-icon-btn" data-i18n="settings.customizeBtn" onclick="settingsCloseModal(); pfIconOpenModal();">カスタマイズ</button>
+      </div>
+
+      <p class="pf-currency-title" style="cursor:default; justify-content:flex-start; gap:6px; margin-top:14px; padding-top:14px; border-top:1px solid var(--card-border);" data-i18n="settings.languageSectionLabel">言語</p>
+      <div style="display:flex; gap:8px; margin-bottom:14px;">
+        <button type="button" class="pf-icon-btn" id="settingsLangJaBtn" style="flex:1; padding:8px;" onclick="setLang('ja')">日本語</button>
+        <button type="button" class="pf-icon-btn" id="settingsLangEnBtn" style="flex:1; padding:8px;" onclick="setLang('en')">English</button>
+      </div>
+
+      <button type="button" class="pf-close-btn" data-i18n="profile.closeBtn" onclick="settingsCloseModal()">閉じる</button>
     </div>
   </div>
 
@@ -3026,7 +3026,7 @@
   function pfModalTrapOpen(overlay) {
     if (!overlay) return;
     var trigger = document.activeElement;
-    var card = overlay.querySelector('.pf-modal-card');
+    var card = overlay.querySelector('.pf-modal-card, .shard-cal-card');
     if (card && !card.hasAttribute('tabindex')) card.setAttribute('tabindex', '-1');
     var focusables = pfModalFocusableEls(overlay);
     var toFocus = focusables[0] || card;
@@ -3059,10 +3059,32 @@
     }
     if (idx === -1) return;
     var entry = pfModalTrapStack[idx];
+    // 設定モーダルは「?」ショートカットで赤闇カレンダー等の上に重ねて開かれる
+    // ことがあり(settingsOpenModal付近のコメント参照)、その場合スタックは
+    // [下側の先に開いたオーバーレイ, 上側の設定] のように積まれる。この状態で
+    // 下側(トップではない側)のオーバーレイが自身のXボタン等で先に閉じられると、
+    // そのオーバーレイ自身のトリガー(背景要素)へフォーカスを戻してしまい、
+    // まだ開いたままの上側オーバーレイのトラップが何も含まない状態になって
+    // Tabが背景へ抜けてしまう。トリガーへ戻すのは、このオーバーレイが閉じた
+    // 時点でスタックの最前面(トップ)だった場合のみに限る。
+    var wasTopmost = (idx === pfModalTrapStack.length - 1);
     pfModalTrapStack.splice(idx, 1);
     overlay.removeEventListener('keydown', entry.handler);
-    if (entry.trigger && typeof entry.trigger.focus === 'function' && document.contains(entry.trigger)) {
+    if (wasTopmost && entry.trigger && typeof entry.trigger.focus === 'function' && document.contains(entry.trigger)) {
       entry.trigger.focus();
+    }
+    // 閉じた後もまだスタックに残っているオーバーレイがあれば、その中で最前面の
+    // ものの中に必ずフォーカスがあることを保証する(上記でトリガーへ戻さなかった
+    // ケースに加え、トリガーへ戻した結果がたまたま残存オーバーレイの外だった
+    // 場合の保険も兼ねる)。
+    if (pfModalTrapStack.length > 0) {
+      var top = pfModalTrapStack[pfModalTrapStack.length - 1];
+      if (!top.overlay.contains(document.activeElement)) {
+        var focusables = pfModalFocusableEls(top.overlay);
+        var card = top.overlay.querySelector('.pf-modal-card, .shard-cal-card');
+        var toFocus = focusables[0] || card;
+        if (toFocus && typeof toFocus.focus === 'function') toFocus.focus();
+      }
     }
   }
 
