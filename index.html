@@ -1410,6 +1410,22 @@
     padding: 6px 8px; font-size: 14px; color: var(--cream); font-family: inherit; outline: none; box-sizing: border-box; text-align: right;
   }
   .pf-currency-row .pf-currency-input:focus { border-color: var(--gold); }
+  /* 🩹 使いやすさ改善: このツールの計算に直結する星のキャンドル(primary)行を、他ツールと
+     共有するだけの残り4件から視覚的に分ける。淡いgoldの縁取り+背景で強調し、直下に
+     短い説明文を添える。 */
+  .pf-currency-row-primary {
+    background: rgba(245,181,76,0.10);
+    border: 1px solid rgba(245,181,76,0.35);
+    border-radius: 8px;
+    padding: 7px 8px;
+    margin: 2px 0;
+  }
+  .pf-currency-row-primary .pf-currency-label { font-weight: 700; color: var(--gold-light); }
+  .pf-currency-primary-hint { font-size: 11px; color: var(--text-dim); margin: 4px 2px 10px; line-height: 1.4; }
+  .pf-currency-group-label {
+    font-size: 11px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.3px;
+    margin: 6px 0 2px; padding-top: 8px; border-top: 1px dashed var(--card-border);
+  }
   .pf-close-btn {
     display: block;
     width: 100%;
@@ -2257,6 +2273,16 @@
         </span>
         <button type="button" class="pf-icon-btn" id="settingsThemeToggleBtn" onclick="toggleTheme()"></button>
       </div>
+      <div class="toggle-field" style="margin-bottom:14px;">
+        <span style="display:flex; align-items:center; gap:8px;">
+          <span class="dash-row-icon icon-chip" style="width:22px; height:22px;"><svg width="17" height="17"><use href="#i-trophy"/></svg></span>
+          <span class="pf-currency-label" data-i18n="settings.titlesVisibleLabel">称号を表示する</span>
+        </span>
+        <label class="switch">
+          <input type="checkbox" id="settingsTitlesToggle" onchange="settingsToggleTitlesVisible(this.checked)">
+          <span class="switch-track"><span class="switch-thumb"></span></span>
+        </label>
+      </div>
 
       <p class="pf-currency-title" style="cursor:default; justify-content:flex-start; gap:6px; margin-top:14px; padding-top:14px; border-top:1px solid var(--card-border);" data-i18n="settings.shortcutsSectionLabel">キーボードショートカット</p>
       <div class="toggle-field" style="margin-bottom:12px;">
@@ -2502,7 +2528,9 @@
       heart: { ja: 'ハート', en: 'Hearts' },
       ascendedCandle: { ja: '星のキャンドル', en: 'Star Candles' },
       seasonCandle: { ja: 'シーズンキャンドル', en: 'Season Candles' },
-      giftPass: { ja: 'ギフトパス', en: 'Gift Pass' }
+      giftPass: { ja: 'ギフトパス', en: 'Gift Pass' },
+      primaryHint: { ja: 'この本数がこのツールの計算(所持本数)に使われます', en: "This amount is used in this tool's calculation (Current Amount)." },
+      sharedGroupLabel: { ja: '他のツールと共有', en: 'Shared with other tools' }
     },
     dashboard: {
       modalTitle: { ja: '今日・今週・今月', en: 'Today / This Week / This Month' },
@@ -2737,6 +2765,7 @@
       modalTitle: { ja: '表示設定', en: 'Display Settings' },
       displaySectionLabel: { ja: '<svg class="inline-icon" width="15" height="15"><use href="#i-monitor"/></svg> 表示', en: '<svg class="inline-icon" width="15" height="15"><use href="#i-monitor"/></svg> Display' },
       darkModeLabel: { ja: '表示テーマ', en: 'Theme' },
+      titlesVisibleLabel: { ja: '称号を表示する', en: 'Show titles' },
       themeToggleDark: { ja: 'ダーク', en: 'Dark' },
       themeToggleLight: { ja: 'ライト', en: 'Light' },
       themeToggleSystem: { ja: 'システム', en: 'System' },
@@ -2974,6 +3003,33 @@
     if (chk) chk.checked = skyShortcutsEnabled();
   }
 
+  // ═══ 🏆 称号の表示/非表示設定: 端末(ブラウザ)ごとの表示設定であり、SHORTCUTS_STORAGE_KEY等
+  // と同じくnsKey()を使わないプレーンなグローバルキー(プロフィール単位にはしない)。
+  // 未設定(null)の場合はデフォルトON扱い(既存ユーザーは明示的にOFFにするまで今まで通り見える)。
+  var TITLES_VISIBLE_STORAGE_KEY = 'sky_titles_enabled';
+
+  function titlesVisible() {
+    var v;
+    try { v = localStorage.getItem(TITLES_VISIBLE_STORAGE_KEY); } catch (e) { v = null; }
+    return v === null ? true : v === '1';
+  }
+
+  // 称号が表示される全箇所(称号(実績)パネル・プロフィール切替モーダル内の獲得称号一覧)に
+  // 即座に反映する。称号の解除判定・保存自体は表示設定と無関係に裏側で継続する
+  // (checkAndUnlockTitles参照。OFFにしても記録は失われず、後でONに戻せば正しく見える)。
+  function settingsToggleTitlesVisible(checked) {
+    try { localStorage.setItem(TITLES_VISIBLE_STORAGE_KEY, checked ? '1' : '0'); } catch (e) { /* noop */ }
+    if (typeof renderTitles === 'function') renderTitles();
+    var pfOverlay = document.getElementById('pfModalOverlay');
+    if (pfOverlay && pfOverlay.classList.contains('is-visible') && typeof pfRenderModal === 'function') pfRenderModal();
+  }
+  window.settingsToggleTitlesVisible = settingsToggleTitlesVisible;
+
+  function settingsSyncTitlesToggleUI() {
+    var chk = document.getElementById('settingsTitlesToggle');
+    if (chk) chk.checked = titlesVisible();
+  }
+
   function settingsOpenModal() {
     // 既に開いている場合は何もしない（ここでガードしないとpfModalTrapOpen側の
     // トリガー参照がモーダル内の要素で上書きされ、閉じたときにフォーカスの戻し先を見失う）
@@ -3008,6 +3064,7 @@
     }
     settingsSyncThemeBtnUI();
     settingsSyncShortcutsUI();
+    settingsSyncTitlesToggleUI();
     settingsSyncLangButtonsUI();
     var overlay = document.getElementById('settingsModalOverlay');
     if (overlay) overlay.classList.add('is-visible');
@@ -4603,8 +4660,9 @@
     var html = '';
     list.forEach(function (p) {
       // 🏆 獲得称号セクションはプロフィールを切り替えなくても常に閲覧できる必要があるため、
-      // 編集中・削除確認中も含めた全状態共通で行の下に添える。
-      var titlesHtml = pfBuildTitlesSectionHtml(p);
+      // 編集中・削除確認中も含めた全状態共通で行の下に添える。ただし表示設定(称号を表示する)
+      // がOFFの場合はこの行自体を出さない(称号(実績)パネルと同じ設定に従う)。
+      var titlesHtml = (typeof titlesVisible !== 'function' || titlesVisible()) ? pfBuildTitlesSectionHtml(p) : '';
       if (pfEditingId === p.id) {
         html += '<div class="pf-profile-block"><div class="pf-row" style="flex-wrap: wrap;">' +
           '<input type="text" class="pf-row-input" id="pfEditInput" value="' + pfEscapeHtml(pfDisplayName(p)) + '" maxlength="20" ' +
@@ -4691,10 +4749,13 @@
   // candle/heartはitemのwishOwnCurrencyを、seasonCandleはcompanionの記録
   // データを直接読み書きし、二重管理を避ける。昇華キャンドル・シーズン
   // ハート・イベント通貨はどのサイトにも記録先が無いため新規キーで管理する。
+  // ascendedCandle(星のキャンドル)だけprimary:trueを立てる。このツール自身の
+  // メイン計算(所持本数)に直結する唯一の値であり、pfRenderCurrency()で他の4件
+  // (他ツールと共有するだけでこのツールの計算には使わない値)と視覚的に分けて表示する。
   var PF_CURRENCY_FIELDS = [
+    { key: 'ascendedCandle', icon: '<svg class="inline-icon" width="14" height="14"><use href="#i-star-candle"/></svg>', primary: true },
     { key: 'candle',         icon: '<svg class="inline-icon" width="14" height="14"><use href="#i-candle"/></svg>' },
     { key: 'heart',          icon: '<svg class="inline-icon" width="14" height="14"><use href="#i-heart"/></svg>' },
-    { key: 'ascendedCandle', icon: '<svg class="inline-icon" width="14" height="14"><use href="#i-star-candle"/></svg>' },
     { key: 'seasonCandle',   icon: '<svg class="inline-icon" width="14" height="14"><use href="#i-candle"/></svg>' },
     { key: 'giftPass',       icon: '<svg class="inline-icon" width="14" height="14"><use href="#i-ticket"/></svg>' }
   ];
@@ -4744,17 +4805,34 @@
       localStorage.setItem(ekey, JSON.stringify(extra));
     }
   }
+  // 1件分の行HTML。primary(星のキャンドル)は🩹 小数(羽報酬由来の端数など)を正しく
+  // 受け付けられるようstep="any"にする。他の4件は常に整数のためstep="1"のまま
+  // (以前はstepを何も指定しておらず既定値の1になっていたため、星のキャンドルに端数値が
+  // 入っている状態でスピナー(▲▼)を操作すると端数が無条件に切り捨てられていた不具合を修正)。
+  function pfCurrencyRowHtml(f, value) {
+    return '<div class="pf-currency-row' + (f.primary ? ' pf-currency-row-primary' : '') + '">' +
+      '<span class="pf-currency-label">' + f.icon + ' ' + t('currency.' + f.key) + '</span>' +
+      '<input type="number" min="0" step="' + (f.primary ? 'any' : '1') + '" inputmode="decimal" class="pf-currency-input" value="' + value + '" ' +
+      'onchange="pfSaveCurrencyField(\'' + f.key + '\', this.value)">' +
+      '</div>';
+  }
   function pfRenderCurrency() {
     var body = document.getElementById('pfCurrencyBody');
     if (!body) return;
     var c = pfLoadCurrency();
-    body.innerHTML = PF_CURRENCY_FIELDS.map(function (f) {
-      return '<div class="pf-currency-row">' +
-        '<span class="pf-currency-label">' + f.icon + ' ' + t('currency.' + f.key) + '</span>' +
-        '<input type="number" min="0" class="pf-currency-input" value="' + c[f.key] + '" ' +
-        'onchange="pfSaveCurrencyField(\'' + f.key + '\', this.value)">' +
-        '</div>';
-    }).join('');
+    // 🩹 使いやすさ改善: このツール自身の計算に使われるのはascendedCandle(星のキャンドル)
+    // だけなので、それを他4件(他ツールと共有するだけの通貨)と視覚的に分け、迷わず
+    // 見つけられるようにする(以前は5件が同列に並んでおり、どれがこの計算機に効くのか
+    // 分かりにくかった)。
+    var primaryFields = PF_CURRENCY_FIELDS.filter(function (f) { return f.primary; });
+    var otherFields = PF_CURRENCY_FIELDS.filter(function (f) { return !f.primary; });
+    var html = primaryFields.map(function (f) { return pfCurrencyRowHtml(f, c[f.key]); }).join('');
+    if (primaryFields.length) html += '<p class="pf-currency-primary-hint">' + t('currency.primaryHint') + '</p>';
+    if (otherFields.length) {
+      html += '<div class="pf-currency-group-label">' + t('currency.sharedGroupLabel') + '</div>' +
+        otherFields.map(function (f) { return pfCurrencyRowHtml(f, c[f.key]); }).join('');
+    }
+    body.innerHTML = html;
     pfSyncCurrencyToggleUI();
   }
 
@@ -6884,9 +6962,13 @@
       });
       if (newlyEarned.length) saveTitleStore(store);
       renderTitles(store);
-      newlyEarned.forEach(function (ti) {
-        showToast(t('titles.unlockedToast', { icon: ti.icon, name: t(ti.nameKey) }));
-      });
+      // 🏆 表示設定がOFFの間はトースト(称号名を表示する演出)も出さない。解除の記録自体は
+      // 上でstoreに保存済みなので、後でONに戻せば正しく反映される。
+      if (typeof titlesVisible !== 'function' || titlesVisible()) {
+        newlyEarned.forEach(function (ti) {
+          showToast(t('titles.unlockedToast', { icon: ti.icon, name: t(ti.nameKey) }));
+        });
+      }
     } catch (e) { /* no-op */ }
   }
 
@@ -6896,6 +6978,11 @@
     var chips = document.getElementById('titlesChips');
     var countEl = document.getElementById('titlesCount');
     if (!card || !chips) return;
+    // 🏆 表示設定(称号を表示する)がOFFの場合はカード自体を隠す。解除判定・保存は
+    // ここより前(checkAndUnlockTitles)で表示設定と無関係に継続しているため、
+    // ONに戻せば取得済みの称号はそのまま正しく表示される。
+    if (typeof titlesVisible === 'function' && !titlesVisible()) { card.style.display = 'none'; return; }
+    card.style.display = '';
     var earnedCount = TITLES.filter(function (ti) { return !!store[ti.id]; }).length;
     if (countEl) countEl.textContent = t('titles.countTemplate', { earned: earnedCount, total: TITLES.length });
     // 未獲得も含め全件を常に描画する。未獲得は名前・条件文を「？？？」で隠し、汎用の
