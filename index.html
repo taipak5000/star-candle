@@ -1577,11 +1577,6 @@
     white-space: nowrap;
   }
   .sidebar-nav-link:hover { background: rgba(255,255,255,0.08); }
-  .sidebar-nav-link.current-tool {
-    background: rgba(245,181,76,0.16);
-    color: var(--gold-light);
-    font-weight: 700;
-  }
   /* 精度に不安がある新機能であることを示す小さな注記（例: 楽譜づくり） */
   .tool-badge-test { font-size: 9px; font-weight: 700; color: var(--cream); opacity: 0.55; text-transform: uppercase; letter-spacing: 0.3px; }
 
@@ -2115,50 +2110,7 @@
         <div class="sidebar-section-label" data-i18n="sidebar.relatedToolsLabel">関連ツール</div>
         <button type="button" class="sidebar-close-btn" id="sidebarCloseBtn" data-i18n="sidebar.closeBtn">×</button>
       </div>
-      <nav>
-        <a href="https://taipak5000.github.io/tai-item/" class="sidebar-nav-link">
-          <svg class="inline-icon" width="19" height="19"><use href="#i-folder"/></svg> <span data-i18n="tools.item">アイテム所持管理</span>
-        </a>
-        <a href="https://taipak5000.github.io/tai-emote/" class="sidebar-nav-link">
-          <svg class="inline-icon" width="19" height="19"><use href="#i-masks"/></svg> <span data-i18n="tools.emote">エモート所持率管理</span>
-        </a>
-        <a href="https://taipak5000.github.io/share/" class="sidebar-nav-link">
-          <svg class="inline-icon" width="19" height="19"><use href="#i-pin"/></svg> <span data-i18n="tools.share">創作物管理ツール</span>
-        </a>
-        <a href="https://taipak5000.github.io/tai-nomacan/" class="sidebar-nav-link">
-          <svg class="inline-icon" width="19" height="19"><use href="#i-candle"/></svg> <span data-i18n="tools.taiNomacan">ノマキャン計算機</span>
-        </a>
-        <a href="https://taipak5000.github.io/star-candle/" class="sidebar-nav-link current-tool">
-          <svg class="inline-icon" width="19" height="19"><use href="#i-star-candle"/></svg> <span data-i18n="tools.starCandle">星のキャンドル計算機</span>
-        </a>
-        <a href="https://taipak5000.github.io/companion/" class="sidebar-nav-link">
-          <svg class="inline-icon" width="19" height="19"><use href="#i-sparkle"/></svg> <span data-i18n="tools.companion">精霊同行ツール</span>
-        </a>
-        <a href="https://taipak5000.github.io/wings/" class="sidebar-nav-link">
-          <svg class="inline-icon" width="19" height="19"><use href="#i-wing"/></svg> <span data-i18n="tools.wings">羽トラッカー</span>
-        </a>
-        <a href="https://taipak5000.github.io/tai-catalog/" class="sidebar-nav-link">
-          <svg class="inline-icon" width="19" height="19"><use href="#i-tree"/></svg><span class="tool-badge-test">test</span> <span data-i18n="tools.catalog">精霊ツリー管理</span>
-        </a>
-        <a href="https://taipak5000.github.io/tai-revisit/" class="sidebar-nav-link">
-          <svg class="inline-icon" width="19" height="19"><use href="#i-wing"/></svg> <span data-i18n="tools.revisit">再訪精霊データベース</span>
-        </a>
-        <a href="https://taipak5000.github.io/tai-score/" class="sidebar-nav-link">
-          <svg class="inline-icon" width="19" height="19"><use href="#i-music-note"/></svg><span class="tool-badge-test">test</span> <span data-i18n="tools.score">楽譜づくり</span>
-        </a>
-        <a href="https://taipak5000.github.io/tai-card/" class="sidebar-nav-link">
-          <svg class="inline-icon" width="19" height="19"><use href="#i-card"/></svg> <span data-i18n="tools.card">星紡ぎカード</span>
-        </a>
-        <a href="https://taipak5000.github.io/tai-transfer/" class="sidebar-nav-link">
-          <svg class="inline-icon" width="19" height="19"><use href="#i-sync"/></svg> <span data-i18n="tools.dataTransfer">データ引継ぎ</span>
-        </a>
-        <a href="https://taipak5000.github.io/tai-info/" class="sidebar-nav-link">
-          <svg class="inline-icon" width="19" height="19"><use href="#i-settings"/></svg> <span data-i18n="tools.taiInfo">設定・クレジット</span>
-        </a>
-        <a href="https://taipak5000.github.io/skyzztai-profile/" class="sidebar-nav-link">
-          <svg class="inline-icon" width="19" height="19"><use href="#i-person"/></svg> <span data-i18n="tools.profile">作者プロフィール</span>
-        </a>
-      </nav>
+      <nav id="sidebarToolLinks"></nav>
     </aside>
 
   <section class="card">
@@ -2469,7 +2421,7 @@
     try { return localStorage.getItem(LANG_STORAGE_KEY) || 'ja'; } catch (e) { return 'ja'; }
   })();
 
-  // 翻訳辞書。sidebar/tools/profile/currency/dashboard/realm/backup/iconCustom/footerは
+  // 翻訳辞書。sidebar/profile/currency/dashboard/realm/backup/iconCustom/footerは
   // taipak5000.github.io系ツール共通のUIチェイン（itemのi18n.js/profiles.jsが原本）。
   // このサイト固有の文言（goal/weekly/consumption/result/history/forecast/shardCal等）は
   // このファイル用に新規に用意したもの。
@@ -2482,22 +2434,6 @@
       closeBtn: { ja: '<span class="icon-chip" style="width:22px; height:22px;"><svg width="16" height="16"><use href="#i-close"/></svg></span>', en: '<span class="icon-chip" style="width:22px; height:22px;"><svg width="16" height="16"><use href="#i-close"/></svg></span>' },
       relatedToolsLabel: { ja: '関連ツール', en: 'Related Tools' },
       langToggleBtn: { ja: 'EN', en: '日本語' }
-    },
-    tools: {
-      item: { ja: 'アイテム所持管理', en: 'Item Collection' },
-      emote: { ja: 'エモート所持率管理', en: 'Emote Collection' },
-      share: { ja: '創作物管理ツール', en: 'Creation Manager' },
-      taiNomacan: { ja: 'ノマキャン計算機', en: 'Nomacan Calculator' },
-      starCandle: { ja: '星のキャンドル計算機', en: 'Star Candle Calculator' },
-      companion: { ja: '精霊同行ツール', en: 'Spirit Companion Tool' },
-      wings: { ja: '羽トラッカー', en: 'Wing Tracker' },
-      catalog: { ja: '精霊ツリー管理', en: 'Spirit Tree Catalog' },
-      revisit: { ja: '再訪精霊データベース', en: 'Revisit Spirit Database' },
-      score: { ja: '楽譜づくり', en: 'Sheet Music Maker' },
-      card: { ja: '星紡ぎカード', en: 'Self-Intro Card Maker' },
-      dataTransfer: { ja: 'データ引継ぎ', en: 'Data Transfer' },
-      taiInfo: { ja: '設定・クレジット', en: 'Settings & Credits' },
-      profile: { ja: '作者プロフィール', en: 'Creator Profile' }
     },
     profile: {
       barActiveSuffix: { ja: 'に切替中（タップで切替）', en: ' active (tap to switch)' },
@@ -2858,6 +2794,7 @@
     LANG = lang;
     try { localStorage.setItem(LANG_STORAGE_KEY, LANG); } catch (e) { /* noop */ }
     applyI18n();
+    renderSiteLinks(); // サイドバー「関連ツール」のラベルを現在の言語で組み直す
     if (typeof update === 'function') update();
     if (typeof renderHistory === 'function') renderHistory();
     if (typeof renderOneYearAgoBanner === 'function') renderOneYearAgoBanner(); // バナー表示中なら文言を現在の言語で組み直す
@@ -5272,6 +5209,62 @@
   // 既にオプトイン＆許可済みの場合だけ静かに再開する（新規の許可リクエストは発生しない）
   dashReminderSyncUI();
   dashReminderInit();
+
+  // ═══ 🧭 共通「関連ツール」一覧（サイドバー） ═══
+  // 一覧の元データは1か所だけ: https://taipak5000.github.io/tai-item/site-links.json
+  // （itemリポジトリ）。そこを編集すると全サイトのサイドバーに反映される。
+  // 取得結果は端末にキャッシュし、オフラインでも前回の一覧で表示する。
+  // ※反映は各サイトのService Workerのキャッシュ経由のため、編集後1回リロードが遅れることがある
+  var SITE_LINKS_URL = 'https://taipak5000.github.io/tai-item/site-links.json';
+  var SITE_LINKS_CACHE_KEY = 'sky_site_links_v1'; // 端末単位・全サイト共通（プロフィールには依存しない）
+  var siteLinksData = null;
+
+  function siteLinksParse(d) {
+    if (!d || !Array.isArray(d.tools)) return null;
+    var ok = d.tools.filter(function (tool) {
+      return tool && typeof tool.path === 'string' && typeof tool.icon === 'string' &&
+        /^[A-Za-z0-9._-]+$/.test(tool.path) && /^i-[a-z0-9-]+$/.test(tool.icon);
+    });
+    return ok.length ? ok : null;
+  }
+  function siteLinksLoadCached() {
+    try { return siteLinksParse(JSON.parse(localStorage.getItem(SITE_LINKS_CACHE_KEY))); } catch (e) { return null; }
+  }
+  function siteLinksRefresh() { // 一覧が変わったらtrueで解決するPromise
+    return Promise.resolve().then(function () {
+      return fetch(SITE_LINKS_URL, { cache: 'no-cache' });
+    }).then(function (res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    }).then(function (raw) {
+      var tools = siteLinksParse(raw);
+      if (!tools) throw new Error('invalid site-links.json');
+      var changed = JSON.stringify(tools) !== JSON.stringify(siteLinksData);
+      siteLinksData = tools;
+      try { localStorage.setItem(SITE_LINKS_CACHE_KEY, JSON.stringify(raw)); } catch (e) { /* noop */ }
+      return changed;
+    });
+  }
+  function siteLinkName(tool, lang) { return tool[lang] || tool.en || tool.ja; }
+
+  function renderSiteLinks() {
+    var nav = document.getElementById('sidebarToolLinks');
+    if (!nav) return;
+    if (!siteLinksData) {
+      nav.innerHTML = '<p class="pf-hint">ツール一覧を読み込めませんでした / Could not load the tool list</p>';
+      return;
+    }
+    nav.innerHTML = siteLinksData.map(function (tool) {
+      return '<a href="https://taipak5000.github.io/' + tool.path + '/" class="sidebar-nav-link">' +
+        '<svg class="inline-icon" width="19" height="19"><use href="#' + tool.icon + '"/></svg>' +
+        (tool.badgeTest ? '<span class="tool-badge-test">test</span> ' : ' ') +
+        '<span>' + pfEscapeHtml(siteLinkName(tool, LANG)) + '</span></a>';
+    }).join('');
+  }
+
+  siteLinksData = siteLinksLoadCached();
+  renderSiteLinks();
+  siteLinksRefresh().then(function (changed) { if (changed) renderSiteLinks(); }).catch(function () { renderSiteLinks(); });
 
   // ═══ サイドバー開閉 ═══
   var sidebarEl = document.getElementById('sidebar');
